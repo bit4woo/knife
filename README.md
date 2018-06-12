@@ -28,7 +28,7 @@ A extension that add some small function to context menu；
 
    尝试对选中的内容进行【Unicode转中文的操作】，只有当选中的内容时response是才会显示该菜单。
 
-![U2C](.\img\U2C.png)
+![U2C](img/U2C.png)
 
 
 
