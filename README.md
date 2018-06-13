@@ -26,7 +26,7 @@ A extension that add some small function to context menu；
 
 4. U2C
 
-   尝试对选中的内容进行【Unicode转中文的操作】，只有当选中的内容时response是才会显示该菜单。
+   尝试对选中的内容进行【Unicode转中文的操作】，只有当选中的内容是response中的内容事才会显示该菜单。专门用于【Unicode转中文】的插件可以关注[U2C](https://github.com/bit4woo/u2c)
 
 ![U2C](img/U2C.png)
 
