@@ -31,7 +31,7 @@ import U2C.Unicode;
 
 public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory,IHttpListener
 {
-	public String ExtenderName = "knife v0.1";
+	public String ExtenderName = "knife v0.2";
 	public String github = "https://github.com/bit4woo/knife";
 	public IBurpCollaboratorClientContext ccc;
 	public IExtensionHelpers helpers;
@@ -101,13 +101,18 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
     		menuItem3.addActionListener(new disMiss(invocation,dismissUrls));
     		list.add(menuItem3);
     		*/
+    		/*
 			byte context = invocation.getInvocationContext();
 			//只有当选中的内容是响应包的时候才显示U2C
 			if (context == invocation.CONTEXT_MESSAGE_EDITOR_RESPONSE || context == invocation.CONTEXT_MESSAGE_VIEWER_RESPONSE) {
 	    		JMenuItem menuItem4 = new JMenuItem("^-^ U2C");
 	    		menuItem4.addActionListener(new U2C(invocation));
 	    		list.add(menuItem4);
-			}
+			}*/
+			
+    		JMenuItem menuItem4 = new JMenuItem("^-^ U2C(unicode to chinese)");
+    		menuItem4.addActionListener(new U2C(invocation));
+    		list.add(menuItem4);
 
         }
     	return list;
