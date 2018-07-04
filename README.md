@@ -10,7 +10,7 @@ A extension that add some small function to context menu；
 
 ### 功能说明
 
-目前有四个菜单：
+目前有五个菜单：
 
 1. copy this cookie
 
@@ -19,6 +19,9 @@ A extension that add some small function to context menu；
 2. get lastest cookie
 
    从proxy history中获取与当前域的最新cookie值。个人觉得这个很有有用，特别是当repeater等请求中的cookie过期，而又需要重放复现时。感谢cf_hb师傅的idea。
+3. update cookie
+
+   在“get latest cookie”的基础上更进一步，直接更新当前请求的cookie，主要用于repeater中。get lastest cookie仍有其用武之地，当需要把最新cookie copy到burp以外的环境时。
 
 3. add host to scope
 
