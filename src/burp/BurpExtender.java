@@ -14,8 +14,10 @@ import java.awt.event.WindowEvent;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JCheckBox;
@@ -26,12 +28,14 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.LineBorder;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import U2C.Unicode;
 
 
 public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory,IHttpListener
 {
-	public String ExtenderName = "knife v0.2";
+	public String ExtenderName = "knife v0.3";
 	public String github = "https://github.com/bit4woo/knife";
 	public IBurpCollaboratorClientContext ccc;
 	public IExtensionHelpers helpers;
@@ -40,6 +44,8 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	public List<String> dismissUrls; //用于记录不想看到的URL
 	//一键复测和让某个URL不在burp http proxy 中显示，这2个功能还无法实现，由于burp本身的限制。
 	public GUIU2C U2CWindowFlag;
+	
+    private HashMap<String,IHttpRequestResponsePersisted> processedRequestResponse;
 
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks)
@@ -86,10 +92,14 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
     		menuItem2.addActionListener(new copyThisCookie(invocation));
     		list.add(menuItem2);
     		
-    		JMenuItem menuItem = new JMenuItem("^-^ Get lastest cookie");
-            menuItem.addActionListener(new getLastestCookie(invocation));
+    		JMenuItem menuItem = new JMenuItem("^-^ Get latest cookie");
+            menuItem.addActionListener(new getLatestCookie(invocation));
             list.add(menuItem);
             
+			JMenuItem menuItemUpdateCookie = new JMenuItem("^-^ Update cookie");
+			menuItemUpdateCookie.addActionListener(new updateCookie(invocation));	
+			list.add(menuItemUpdateCookie);
+			
     		JMenuItem menuItem1 = new JMenuItem("^-^ Add host to scope");//适用于最小scope的情况，
     		menuItem1.addActionListener(new addHostToScope(invocation));
     		list.add(menuItem1);
@@ -113,74 +123,43 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
     		JMenuItem menuItem4 = new JMenuItem("^-^ U2C(unicode to chinese)");
     		menuItem4.addActionListener(new U2C(invocation));
     		list.add(menuItem4);
-
+    		
         }
     	return list;
 	}
 	
-	public class getLastestCookie implements ActionListener{
+	public class getLatestCookie implements ActionListener{
 		private IContextMenuInvocation invocation;
 		//callbacks.printOutput(Integer.toString(invocation.getToolFlag()));//issue tab of target map is 16
-		public getLastestCookie(IContextMenuInvocation invocation) {
+		public getLatestCookie(IContextMenuInvocation invocation) {
 			this.invocation  = invocation;
 		}
+		
 		@Override
 		public void actionPerformed(ActionEvent e)
 	      {
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+			String shortUrl = messages[0].getHttpService().toString();
+			/*
         	IRequestInfo analyzedRequest = helpers.analyzeRequest(messages[0]);
     		String url = analyzedRequest.getUrl().toString();
     		String shortUrl = url.substring(0, url.indexOf("/", 8));//从字符串的第8位开始查找
-    		
-        	//cookie的path属性是无法从请求的数据包中获取的
-        	//List<ICookie> cookies = callbacks.getCookieJarContents();
-        	//cookie jar 中的cookie的范围确定，主要是domain和path，不需要关注过期时间，因为cookie jar只保存最新的。
-        	//还是草粉师傅说得对，直接从history里面拿最好
-        	
-        	IHttpRequestResponse[]  historyMessages = Reverse(callbacks.getProxyHistory());
-        	//callbacks.printOutput("length of history: "+ historyMessages.length);
-        	String lastestCookie =null;
-        	for (IHttpRequestResponse historyMessage:historyMessages) {
-        		IRequestInfo hisAnalyzedRequest = helpers.analyzeRequest(historyMessage);
-        		String hisUrl = hisAnalyzedRequest.getUrl().toString();
-        		String hisShortUrl = hisUrl.substring(0, hisUrl.indexOf("/", 8));
-        		//callbacks.printOutput(hisShortUrl);
-        		
-        		if (hisShortUrl.equals(shortUrl)) {
-        			List<String> hisHeaders = hisAnalyzedRequest.getHeaders();
-        			for (String hisHeader:hisHeaders) {
-        				if (hisHeader.toLowerCase().startsWith("cookie:")) {
-        					lastestCookie = hisHeader;
-        					break;
-        				}
-        			}
-        			if(lastestCookie != null) {
-        				break;
-        			}
-        		}
-        	}
+    		*/
         	//获取系统剪切板
         	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        	if(lastestCookie !=null) {
-        	StringSelection selection = new StringSelection(lastestCookie);
+        	String latestCookie = getLatestCookieFromHistory(shortUrl);
+        	if(latestCookie !=null) {
+        	StringSelection selection = new StringSelection(latestCookie);
         	//添加文本到系统剪切板
         	clipboard.setContents(selection, null);
         	}
 
 	      }
-	
-		public IHttpRequestResponse[] Reverse(IHttpRequestResponse[] input){
-		    for (int start = 0, end = input.length - 1; start < end; start++, end--) {
-		    	IHttpRequestResponse temp = input[end];
-		        input[end] = input[start];
-		        input[start] = temp;
-		    }
-		    return input;
-		}
 	}
 	
 	
 	public class addHostToScope implements ActionListener{
+		//scope matching is actually String matching!!
 		private IContextMenuInvocation invocation;
 		//callbacks.printOutput(Integer.toString(invocation.getToolFlag()));//issue tab of target map is 16
 		public addHostToScope(IContextMenuInvocation invocation) {
@@ -192,12 +171,15 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	       try{
 	        	IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 	        	for(IHttpRequestResponse message:messages) {
+	        		/*
 	        		IRequestInfo analyzedRequest = helpers.analyzeRequest(message);
 	        		URL fullUrl= analyzedRequest.getUrl();
 	        		String host = fullUrl.getHost();
 	        		int port = fullUrl.getPort();
 	        		String protocol = fullUrl.getProtocol();
 	        		String url = protocol+"://"+host+":"+port;
+	        		*/
+	        		String url = message.getHttpService().toString();
 					URL shortUrl = new URL(url);
 		        	//callbacks.printOutput(shortUrl.toString());
 		        	callbacks.includeInScope(shortUrl);
@@ -314,6 +296,81 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	    }
 	}
 
+	public class updateCookie implements ActionListener{
+		private IContextMenuInvocation invocation;
+
+		public updateCookie(IContextMenuInvocation invocation) {
+			this.invocation  = invocation;
+		}
+		
+		/* add content within the location of mouse pointer
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			
+			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
+			int[] selectedBounds = invocation.getSelectionBounds();
+			byte selectedInvocationContext = invocation.getInvocationContext();
+		
+			byte[] selectedRequest = selectedItems[0].getRequest();
+			
+			byte[] preSelectedPortion = Arrays.copyOfRange(selectedRequest, 0, selectedBounds[0]);//pre
+			byte[] postSelectedPortion = Arrays.copyOfRange(selectedRequest, selectedBounds[1], selectedRequest.length);//post
+
+			String shorturl = selectedItems[0].getHttpService().toString();
+			String latestCookie = getLatestCookieFromHistory(shorturl);
+			callbacks.printOutput(latestCookie);
+			
+			if (latestCookie !=null) {
+				byte[] newRequestBytes = ArrayUtils.addAll(preSelectedPortion, helpers.stringToBytes(latestCookie));//pre+cookie
+				newRequestBytes = ArrayUtils.addAll(newRequestBytes, postSelectedPortion);//pre+cookie+post
+				
+				if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+					selectedItems[0].setRequest(newRequestBytes);
+				}
+			}
+		}*/
+		
+		@Override
+		public void actionPerformed(ActionEvent event) {
+			
+			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
+			byte selectedInvocationContext = invocation.getInvocationContext();
+		
+			byte[] selectedRequest = selectedItems[0].getRequest();
+			
+			
+			String shorturl = selectedItems[0].getHttpService().toString();
+			String latestCookie = getLatestCookieFromHistory(shorturl);
+			
+			if (latestCookie !=null) {
+	        	IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
+	        	List<String> headers = analyzedRequest.getHeaders();
+	        	String cookie =null;
+	        	for(String header:headers) {
+	        		if(header.toLowerCase().startsWith("cookie:")) {
+	        			cookie = header;
+	        		}
+	        		if(cookie !=null) {
+	        			int index = headers.indexOf(cookie);
+	        			headers.remove(index);
+	    	        	headers.add(index,latestCookie);
+	    	        	break;
+	        		}
+	        	}
+	        	
+	        	
+	        	byte[] body= Arrays.copyOfRange(selectedRequest, analyzedRequest.getBodyOffset(), selectedRequest.length);
+	        	
+	        	byte[] newRequestBytes = helpers.buildHttpMessage(headers, body);
+				
+				if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+					selectedItems[0].setRequest(newRequestBytes);
+				}
+			}
+		}
+	}
+	
+	
 	public class GUIU2C {
 		public JFrame frame;
 		public ITextEditor u2cTextEditor;
@@ -352,4 +409,43 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 		}
 	}
 
+	public IHttpRequestResponse[] Reverse(IHttpRequestResponse[] input){
+	    for (int start = 0, end = input.length - 1; start < end; start++, end--) {
+	    	IHttpRequestResponse temp = input[end];
+	        input[end] = input[start];
+	        input[start] = temp;
+	    }
+	    return input;
+	}
+	
+	public String getLatestCookieFromHistory(String shortUrl){
+		//cookie的path属性是无法从请求的数据包中获取的
+    	//List<ICookie> cookies = callbacks.getCookieJarContents();
+    	//cookie jar 中的cookie的范围确定，主要是domain和path，不需要关注过期时间，因为cookie jar只保存最新的。
+    	//还是草粉师傅说得对，直接从history里面拿最好
+    	
+    	IHttpRequestResponse[]  historyMessages = Reverse(callbacks.getProxyHistory());
+    	//callbacks.printOutput("length of history: "+ historyMessages.length);
+    	String lastestCookie =null;
+    	for (IHttpRequestResponse historyMessage:historyMessages) {
+    		IRequestInfo hisAnalyzedRequest = helpers.analyzeRequest(historyMessage);
+    		String hisUrl = hisAnalyzedRequest.getUrl().toString();
+    		//String hisShortUrl = hisUrl.substring(0, hisUrl.indexOf("/", 8));
+    		String hisShortUrl = historyMessage.getHttpService().toString();
+    		//callbacks.printOutput(hisShortUrl);
+    		
+    		if (hisShortUrl.equals(shortUrl)) {
+    			List<String> hisHeaders = hisAnalyzedRequest.getHeaders();
+    			for (String hisHeader:hisHeaders) {
+    				if (hisHeader.toLowerCase().startsWith("cookie:")) {
+    					lastestCookie = hisHeader;
+            			if(lastestCookie != null) {
+            				return lastestCookie;
+            			}
+    				}
+    			}
+    		}
+    	}
+		return null;
+	}
 }
