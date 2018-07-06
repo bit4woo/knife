@@ -4,6 +4,10 @@ A extension that add some small function to context menu；
 
 一个将有用的小功能加入到右键菜单的burp suite插件。
 
+为啥取这名？
+
+burpsuite很强大，像个艺术品，而这个插件是为了小小的改进它，就像用小刀再雕刻雕刻。故取了这个名，和菜刀没有半毛钱关系啊！
+
 ### Author作者
 
 [bit4](https://github.com/bit4woo)
@@ -19,20 +23,27 @@ A extension that add some small function to context menu；
 2. get lastest cookie
 
    从proxy history中获取与当前域的最新cookie值。个人觉得这个很有有用，特别是当repeater等请求中的cookie过期，而又需要重放复现时。感谢cf_hb师傅的idea。
+
 3. update cookie
 
    在“get latest cookie”的基础上更进一步，直接更新当前请求的cookie，主要用于repeater中。get lastest cookie仍有其用武之地，当需要把最新cookie copy到burp以外的环境时。
 
-3. add host to scope
+4. add host to scope
 
    将当前请求的host添加到burp的scope中，我们常常需要的时将整个网站加到scope而不是一个具体的URL。
 
-4. U2C
+5. U2C
 
    尝试对选中的内容进行【Unicode转中文的操作】，只有当选中的内容是response中的内容事才会显示该菜单。专门用于【Unicode转中文】的插件可以关注[U2C](https://github.com/bit4woo/u2c)
 
+### 功能展示
+
+Chinese to Unicode
+
 ![U2C](img/U2C.png)
 
+update cookie:
 
+![updatecookie](img/updatecookie.png)
 
 如有任何小的改进和想要实现的小功能点，都欢迎提交给我，谢谢！
