@@ -35,7 +35,7 @@ import U2C.Unicode;
 
 public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory,IHttpListener
 {
-	public String ExtenderName = "knife v0.3";
+	public String ExtenderName = "knife v0.4";
 	public String github = "https://github.com/bit4woo/knife";
 	public IBurpCollaboratorClientContext ccc;
 	public IExtensionHelpers helpers;
@@ -349,14 +349,16 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	        	for(String header:headers) {
 	        		if(header.toLowerCase().startsWith("cookie:")) {
 	        			cookie = header;
-	        		}
-	        		if(cookie !=null) {
-	        			int index = headers.indexOf(cookie);
-	        			headers.remove(index);
-	    	        	headers.add(index,latestCookie);
-	    	        	break;
+	        			break;
 	        		}
 	        	}
+        		if(cookie !=null) {
+        			int index = headers.indexOf(cookie);
+        			headers.remove(index);
+    	        	headers.add(index,latestCookie);
+        		}else {
+        			headers.add(latestCookie);
+        		}
 	        	
 	        	
 	        	byte[] body= Arrays.copyOfRange(selectedRequest, analyzedRequest.getBodyOffset(), selectedRequest.length);
