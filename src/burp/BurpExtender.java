@@ -344,7 +344,8 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 			
 			if (latestCookie !=null) {
 	        	IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
-	        	List<String> headers = analyzedRequest.getHeaders();
+	        	List<String> headers = analyzedRequest.getHeaders();//a bug here,report to portswigger
+	        	//callbacks.printOutput(headers.toString());
 	        	String cookie =null;
 	        	for(String header:headers) {
 	        		if(header.toLowerCase().startsWith("cookie:")) {
@@ -359,6 +360,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
         		}else {
         			headers.add(latestCookie);
         		}
+        		//callbacks.printOutput(headers.toString());
 	        	
 	        	
 	        	byte[] body= Arrays.copyOfRange(selectedRequest, analyzedRequest.getBodyOffset(), selectedRequest.length);
