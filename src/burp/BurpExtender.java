@@ -17,6 +17,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	public String github = "https://github.com/bit4woo/knife";
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
+	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	//一键复测和让某个URL不在burp http proxy 中显示，这2个功能还无法实现，由于burp本身的限制。
 
@@ -24,6 +25,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks)
 	{
 		stdout = new PrintWriter(callbacks.getStdout(), true);
+		stderr = new PrintWriter(callbacks.getStderr(), true);
 		stdout.println(ExtenderName);
 		stdout.println(github);
 		this.callbacks=callbacks;
@@ -81,7 +83,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	        }
 	        catch (Exception e1)
 	        {
-	            BurpExtender.this.callbacks.printError(e1.getMessage());
+	            e1.printStackTrace(stderr);
 	        }
 	    }
 	}
