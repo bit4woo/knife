@@ -55,7 +55,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 		}
 	    
 		
-		JMenuItem menuItemAddHostScope = new JMenuItem("^-^ Add host to scope");//适用于最小scope的情况，
+		JMenuItem menuItemAddHostScope = new JMenuItem("^_^ Add host to scope");//适用于最小scope的情况，
 		menuItemAddHostScope.addActionListener(new addHostToScope(invocation));
 		list.add(menuItemAddHostScope);
 
