@@ -49,7 +49,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 		byte context = invocation.getInvocationContext();
 		//只有当选中的内容是响应包的时候才显示U2C
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-		    JMenuItem menuItemUpdateCookie = new JMenuItem("^-^ Update cookie");
+		    JMenuItem menuItemUpdateCookie = new JMenuItem("^_^ Update cookie");
 			menuItemUpdateCookie.addActionListener(new updateCookie(invocation));	
 			list.add(menuItemUpdateCookie);
 		}
