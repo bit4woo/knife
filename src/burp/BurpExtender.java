@@ -10,10 +10,12 @@ import java.util.List;
 
 import javax.swing.JMenuItem;
 
+import U2C.U2CTab;
 
-public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory
+
+public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory, IMessageEditorTabFactory
 {
-	public String ExtenderName = "knife v0.5";
+	public String ExtenderName = "knife v0.6";
 	public String github = "https://github.com/bit4woo/knife";
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -32,6 +34,7 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 		callbacks.setExtensionName(ExtenderName);
 		callbacks.registerExtensionStateListener(this);
 		callbacks.registerContextMenuFactory(this);
+		callbacks.registerMessageEditorTabFactory(this);
 		helpers = callbacks.getHelpers();
 	}
 
@@ -60,6 +63,13 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 		list.add(menuItemAddHostScope);
 
     	return list;
+	}
+	
+
+		
+	@Override
+	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
+		return new U2CTab(controller, false, helpers, callbacks);
 	}
 	
 	

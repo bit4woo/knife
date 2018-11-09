@@ -8,7 +8,9 @@ A extension that add some small function[ one key to update cookie, one key add 
 
 [bit4](https://github.com/bit4woo)
 
-### Menus (simple is beautiful,some menu deleted)
+### Functions
+
+##### Menus (simple is beautiful,some menu deleted)
 
 1. update cookie
 
@@ -17,6 +19,12 @@ A extension that add some small function[ one key to update cookie, one key add 
 2. add host to scope
 
    add current request host to burp scope not URL.
+
+##### Tab
+
+1. U2C
+
+   convert Unicode To Chinese (eg. `\u4e2d\u6587`-->`中文`) 
 
 ### Screen shot
 
