@@ -1,10 +1,10 @@
 #Fat Jar Configuration File
-#Fri Nov 09 17:09:01 CST 2018
+#Fri Dec 14 14:17:10 CST 2018
 onejar.license.required=true
 manifest.classpath=
 manifest.removesigners=true
 onejar.checkbox=false
-jarname=D\:\\github\\knife\\knife.v0.6.jar
+jarname=D\:\\github\\knife\\knife.v0.7.jar
 manifest.mergeall=true
 manifest.mainclass=
 manifest.file=<createnew>

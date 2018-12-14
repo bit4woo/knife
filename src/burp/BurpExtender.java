@@ -6,8 +6,10 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import U2C.U2CTab;
@@ -15,7 +17,7 @@ import U2C.U2CTab;
 
 public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory, IMessageEditorTabFactory
 {
-	public String ExtenderName = "knife v0.6";
+	public String ExtenderName = "knife v0.7";
 	public String github = "https://github.com/bit4woo/knife";
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -53,8 +55,20 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 		//只有当选中的内容是响应包的时候才显示U2C
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 		    JMenuItem menuItemUpdateCookie = new JMenuItem("^_^ Update cookie");
-			menuItemUpdateCookie.addActionListener(new updateCookie(invocation));	
+			menuItemUpdateCookie.addActionListener(new updateHeader(invocation,"cookie"));	
 			list.add(menuItemUpdateCookie);
+		}
+		
+		List<String> pHeaders = possibleHeaderNames(invocation);
+		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST && !pHeaders.isEmpty()) {
+		    JMenu menuItemUpdateHeader = new JMenu("^_^ Update Header");
+		    for (String pheader:pHeaders) {
+		    	JMenuItem headerItem = new JMenuItem(pheader);
+		    	headerItem.addActionListener(new updateHeader(invocation,pheader));
+		    	menuItemUpdateHeader.add(headerItem);
+		    }
+			//menuItemUpdateCookie.addActionListener(new updateHeader(invocation,"cookie"));	
+			list.add(menuItemUpdateHeader);
 		}
 	    
 		
@@ -98,11 +112,13 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	    }
 	}
 
-	public class updateCookie implements ActionListener{
+	public class updateHeader implements ActionListener {
 		private IContextMenuInvocation invocation;
+		private String headerName;
 
-		public updateCookie(IContextMenuInvocation invocation) {
+		public updateHeader(IContextMenuInvocation invocation,String headerName) {
 			this.invocation  = invocation;
+			this.headerName = headerName;
 		}
 		
 		@Override
@@ -112,28 +128,26 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 			byte selectedInvocationContext = invocation.getInvocationContext();
 		
 			byte[] selectedRequest = selectedItems[0].getRequest();
-			
-			
 			String shorturl = selectedItems[0].getHttpService().toString();
-			String latestCookie = getLatestCookieFromHistory(shorturl);
+			String latestHeader = getLatestHeaderFromHistory(shorturl,headerName);
 			
-			if (latestCookie !=null) {
+			if (latestHeader !=null) {
 	        	IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
 	        	List<String> headers = analyzedRequest.getHeaders();//a bug here,report to portswigger
 	        	//callbacks.printOutput(headers.toString());
-	        	String cookie =null;
+	        	String oldHeader =null;
 	        	for(String header:headers) {
-	        		if(header.toLowerCase().startsWith("cookie:")) {
-	        			cookie = header;
+	        		if(header.toLowerCase().startsWith(headerName.toLowerCase())) {
+	        			oldHeader = header;
 	        			break;
 	        		}
 	        	}
-        		if(cookie !=null) {
-        			int index = headers.indexOf(cookie);
+        		if(oldHeader !=null) {
+        			int index = headers.indexOf(oldHeader);
         			headers.remove(index);
-    	        	headers.add(index,latestCookie);
+    	        	headers.add(index,latestHeader);
         		}else {
-        			headers.add(latestCookie);
+        			headers.add(latestHeader);
         		}
         		//callbacks.printOutput(headers.toString());
 	        	
@@ -158,12 +172,12 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
 	    return input;
 	}
 	
-	public String getLatestCookieFromHistory(String shortUrl){
+	public String getLatestHeaderFromHistory(String shortUrl,String headerName){
     	//还是草粉师傅说得对，直接从history里面拿最好
     	
     	IHttpRequestResponse[]  historyMessages = Reverse(callbacks.getProxyHistory());
     	//callbacks.printOutput("length of history: "+ historyMessages.length);
-    	String lastestCookie =null;
+
     	for (IHttpRequestResponse historyMessage:historyMessages) {
     		IRequestInfo hisAnalyzedRequest = helpers.analyzeRequest(historyMessage);
     		//String hisShortUrl = hisUrl.substring(0, hisUrl.indexOf("/", 8));
@@ -173,15 +187,55 @@ public class BurpExtender extends Thread implements IBurpExtender, IExtensionSta
     		if (hisShortUrl.equals(shortUrl)) {
     			List<String> hisHeaders = hisAnalyzedRequest.getHeaders();
     			for (String hisHeader:hisHeaders) {
-    				if (hisHeader.toLowerCase().startsWith("cookie:")) {
-    					lastestCookie = hisHeader;
-            			if(lastestCookie != null) {
-            				return lastestCookie;
-            			}
+    				if (hisHeader.toLowerCase().startsWith(headerName.toLowerCase()) && hisHeader.length()>headerName.length()+1) {
+    					//callbacks.printOutput(hisHeader);
+            			return hisHeader;
     				}
     			}
     		}
     	}
 		return null;
 	}
+	
+	public List<String> possibleHeaderNames(IContextMenuInvocation invocation){
+		
+		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
+		//byte selectedInvocationContext = invocation.getInvocationContext();
+	
+		byte[] selectedRequest = selectedItems[0].getRequest();
+		List<String> headers = helpers.analyzeRequest(selectedRequest).getHeaders();
+		
+		List<String> keywords = new ArrayList<String>();
+		List<String> ResultHeaders = new ArrayList<String>();
+		keywords.add("token");
+		keywords.add("Authorization");
+		keywords.add("Auth");
+		
+		Iterator<String> it = headers.iterator();
+		while (it.hasNext()) {
+			String item = it.next();
+			String itemName = item.split(":",0)[0];
+			if (containOneOfKeywords(itemName,keywords,false)) {
+				ResultHeaders.add(itemName.toLowerCase());
+			}
+		}
+		return ResultHeaders;
+		
+	}
+	
+	
+	public boolean containOneOfKeywords(String x,List<String> keywords,boolean isCaseSensitive) {
+		for (String keyword:keywords) {
+			if (isCaseSensitive == false) {
+				x = x.toLowerCase();
+				keyword = keyword.toLowerCase();
+			}
+			if (x.contains(keyword)){
+				return true;
+			}
+		}
+		return false;
+	}
 }
+
+	

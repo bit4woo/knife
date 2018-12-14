@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.bit4woo.burp</groupId>
   <artifactId>knife</artifactId>
-  <version>0.3</version>
+  <version>0.7</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
