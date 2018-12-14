@@ -20,6 +20,11 @@ A extension that add some small function[ one key to update cookie, one key add 
 
    add current request host to burp scope not URL.
 
+3. update header
+
+	update Header that likes token,authorization .
+
+
 ##### Tab
 
 1. U2C
@@ -31,5 +36,9 @@ A extension that add some small function[ one key to update cookie, one key add 
 update cookie:
 
 ![updatecookie](img/updatecookie.png)
+
+update header：
+
+![](img/updateheader.png)
 
 any issue, advice, suggestion are welcome, Thanks！
