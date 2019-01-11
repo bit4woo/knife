@@ -146,11 +146,21 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				String host = getter.getHost(messageInfo);
 				
 				byte[] body = getter.getBody(true, messageInfo);
-				HashMap<String, String> headers = getter.getHeaderMap(true, messageInfo);
-				
+				HashMap<String, String> headers = getter.getHeaderHashMap(true, messageInfo);//this will lost the first line
 				String[] removeHeaders = config.basicConfigs.get("removeHeaders").split(",");
 				List<String> removeHeaderList= Arrays.asList(removeHeaders);
 				
+/*				//debug
+				stdout.println("//////////original headers before edit//////////////");
+				//contains  GET /cps.gec/limit/information.html HTTP/1.1
+				List<String> originheaders = getter.getHeaderList(true, messageInfo);
+				Iterator<String> oit = originheaders.iterator();
+				while(oit.hasNext()){
+					String entry = oit.next();
+					stdout.println(entry);
+				}*/
+				
+				//remove header
 				Iterator<Entry<String, String>> it = headers.entrySet().iterator();
 				while(it.hasNext()){
 					Entry<String, String> entry = it.next();
@@ -160,6 +170,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					}
 				}
 				
+				//add/update/append header
 				if((config.onlyForScope == true && callbacks.isInScope(url)==true)
 						|| config.onlyForScope==false) {
 					try{
@@ -168,14 +179,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							Entry<String, String> entry = it.next();
 							String key = entry.getKey();
 							String value = entry.getValue();
-							if (key.startsWith("<add-or-replace>")) {
-								key = key.replace("<add-or-replace>", "");
-							}else if (key.startsWith("<append>")) {
-								key = key.replace("<append>", "");
-								//stdout.println("1111"+headers.get(key));
-								value = headers.get(key)+value;
-								//stdout.println("2222"+value);
-							}
 							
 							if (value.contains("%host")){
 								value = value.replaceAll("%host", "%s");
@@ -184,18 +187,37 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 								//stdout.println("4444"+value);
 							}
 							
-							headers.put(key, value);
+							if (key.startsWith("<add-or-replace>")) {
+								key = key.replace("<add-or-replace>", "");
+								headers.put(key, value);
+							}else if (key.startsWith("<append>")) {
+								key = key.replace("<append>", "");
+								//stdout.println("1111"+headers.get(key));
+								value = headers.get(key)+value;
+								headers.put(key, value);
+								//stdout.println("2222"+value);
+							}
 						}
 						
-						byte[] new_Request = helpers.buildHttpMessage(getter.MapToList(headers),body);
-						//debug
-						stdout.println(helpers.analyzeRequest(new_Request).getHeaders());
+						List<String> Listheaders = getter.MapToList(headers);
+						String firstline = getter.getHeaderList(true, messageInfo).get(0);
+						Listheaders.add(0, firstline);//add the first line (GET /cps.gec/limit/information.html HTTP/1.1)
+						byte[] new_Request = helpers.buildHttpMessage(Listheaders,body);
 						messageInfo.setRequest(new_Request);
+						//debug
+						stdout.println("//////////edited headers by knife//////////////");
+						List<String> finalheaders = getter.getHeaderList(true, messageInfo);
+						Iterator<String> finalit = finalheaders.iterator();
+						while(finalit.hasNext()){
+							String entry = finalit.next();
+							stdout.println(entry);
+						}
 					}
 					catch(Exception e){
 						e.printStackTrace(stderr);
 					}
 				}
+
 			}
 		}
 		

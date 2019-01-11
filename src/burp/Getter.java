@@ -13,7 +13,7 @@ public class Getter {
     /*
      * 获取header的字符串数组，是构造burp中请求需要的格式。
      */
-	public List<String> getHeaders(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
+	public List<String> getHeaderList(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
 		if(messageIsRequest) {
 			IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
 			List<String> headers = analyzeRequest.getHeaders();
@@ -52,9 +52,9 @@ public class Getter {
 	/*
 	 * 获取header的map格式，key:value形式
 	 * 这种方式可以用put函数轻松实现：如果有则update，如果无则add。
-	 * 
+	 * ！！！注意：这个方法获取到的map，会少了协议头GET /cps.gec/limit/information.html HTTP/1.1
 	 */
-	public HashMap<String,String> getHeaderMap(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
+	public HashMap<String,String> getHeaderHashMap(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
 		List<String> headers=null;
 		HashMap<String,String> result = new HashMap<String, String>();
 		if(messageIsRequest) {
@@ -73,7 +73,6 @@ public class Getter {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-            
         }
         return result;
 	}
@@ -90,7 +89,7 @@ public class Getter {
 	/*
 	 * 获取某个header的值，如果没有此header，返回null。
 	 */
-	public String getHeaderValue(boolean messageIsRequest,IHttpRequestResponse messageInfo, String headerName) {
+	public String getHeaderValueOf(boolean messageIsRequest,IHttpRequestResponse messageInfo, String headerName) {
 		List<String> headers=null;
 		if(messageIsRequest) {
 			IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
@@ -156,7 +155,7 @@ public class Getter {
 	
     
     public String getHTTPBasicCredentials(IHttpRequestResponse messageInfo) throws Exception{
-        String authHeader  = getHeaderValue(true, messageInfo, "Authorization").trim(); 
+        String authHeader  = getHeaderValueOf(true, messageInfo, "Authorization").trim(); 
         String[] parts = authHeader.split("\\s");
         
         if (parts.length != 2)
