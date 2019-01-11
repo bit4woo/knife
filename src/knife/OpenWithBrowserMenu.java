@@ -73,21 +73,21 @@ class OpenWithBrowser_Action implements ActionListener{
 				}
 
 				int[] selectedIndex = invocation.getSelectionBounds();
-				stdout.println(selectedIndex[0]+":"+selectedIndex[1]);
+				//stdout.println(selectedIndex[0]+":"+selectedIndex[1]);
 
 				if(source!=null && selectedIndex !=null && selectedIndex[1]-selectedIndex[0]>=3) {
-					int selectedLength = selectedIndex[1]-selectedIndex[0]+1;
+					int selectedLength = selectedIndex[1]-selectedIndex[0];
 					byte[] selectedBytes = new byte[selectedLength];
 					System.arraycopy(source, selectedIndex[0], selectedBytes, 0, selectedLength);//新的内容替换选中内容
 					String selectedUrl = new String(selectedBytes);
-					stdout.println(selectedUrl);
+					//stdout.println(selectedUrl);
 					if(!isFullUrl(selectedUrl)) {
 						selectedUrl = message.getHttpService().toString()+"/"+selectedUrl;
 					}else if(selectedUrl.startsWith("//")) {
 						selectedUrl = message.getHttpService().getProtocol()+":"+selectedUrl;
 					}
 					open(selectedUrl,browserPath);
-					stdout.println(selectedUrl);
+					//stdout.println(selectedUrl);
 				}else {
 					open(hosturl,browserPath);
 				}
