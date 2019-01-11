@@ -90,8 +90,8 @@ public class U2CTab implements IMessageEditorTab
     	
     	if (matcher.find() ){
     		String found = matcher.group();
-    		//£¡@#£¤%¡­¡­&*£¨£©¡ª¡ª-=£¬¡££»£º¡°¡®{}¡¾¡¿+ 
-    		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b\\u0000";
+    		//ï¼@#ï¿¥%â€¦â€¦&*ï¼ˆï¼‰â€”â€”-=ï¼Œã€‚ï¼›ï¼šâ€œâ€˜{}ã€ã€‘+
+    		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b";
     		if (("\\u4e00").compareTo(found)<= 0 && found.compareTo("\\u9fa5")<=0)
     			return true;
     		else if(chineseCharacter.contains(found)){

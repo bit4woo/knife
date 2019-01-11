@@ -1,241 +1,204 @@
 package burp;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Component;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.alibaba.fastjson.JSON;
+
 import U2C.U2CTab;
+import config.ConfigObject;
+import config.GUI;
+import knife.AddHostToScopeMenu;
+import knife.OpenWithBrowserMenu;
+import knife.UpdateCookieMenu;
+import knife.UpdateHeaderMenu;
 
+public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener {
+    
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+    
+    public IBurpExtenderCallbacks callbacks;
+    public IExtensionHelpers helpers;
+    public PrintWriter stdout;
+    public PrintWriter stderr;
+    public IContextMenuInvocation context;
+    public Getter getter;
+    
+    @Override
+    public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+        this.callbacks = callbacks;
+        this.helpers = callbacks.getHelpers();
+        this.stdout = new PrintWriter(callbacks.getStdout(), true);
+        this.stderr = new PrintWriter(callbacks.getStderr(), true);
+        this.getter = new Getter(helpers);
+        this.callbacks.setExtensionName(this.ExtensionName);
+        this.callbacks.registerContextMenuFactory(this);// for menus
+        this.callbacks.registerMessageEditorTabFactory(this);// for U2C
+        this.callbacks.addSuiteTab(BurpExtender.this);
+        this.callbacks.registerHttpListener(this);
+        
+        this.stdout.println(ExtensionName);
+        this.stdout.println(github);
+        
+        String content = callbacks.loadExtensionSetting("knifeconfig");
+        if (content!=null) {
+    		config = JSON.parseObject(content, ConfigObject.class);
+    		showToUI(config);
+        }else {
+        	showToUI(new ConfigObject("default"));
+        }
+        
+		
+    }
 
-public class BurpExtender extends Thread implements IBurpExtender, IExtensionStateListener,IContextMenuFactory, IMessageEditorTabFactory
-{
-	public String ExtenderName = "knife v0.7";
-	public String github = "https://github.com/bit4woo/knife";
-	public IExtensionHelpers helpers;
-	public PrintWriter stdout;
-	public PrintWriter stderr;
-	public IBurpExtenderCallbacks callbacks;
-	//一键复测和让某个URL不在burp http proxy 中显示，这2个功能还无法实现，由于burp本身的限制。
-
-	@Override
-	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks)
-	{
-		stdout = new PrintWriter(callbacks.getStdout(), true);
-		stderr = new PrintWriter(callbacks.getStderr(), true);
-		stdout.println(ExtenderName);
-		stdout.println(github);
-		this.callbacks=callbacks;
-		callbacks.setExtensionName(ExtenderName);
-		callbacks.registerExtensionStateListener(this);
-		callbacks.registerContextMenuFactory(this);
-		callbacks.registerMessageEditorTabFactory(this);
-		helpers = callbacks.getHelpers();
-	}
-
-	@Override
-	public void extensionUnloaded() {
-		stdout.println(ExtenderName+" unloaded!");
-	}
-	
-	
-	@Override
-	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation)
-	{ //需要在签名注册！！callbacks.registerContextMenuFactory(this);
-	    List<JMenuItem> list = new ArrayList<JMenuItem>();
-	    
+    
+    @Override
+    public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
+        this.context = invocation;
+        
+        ArrayList<JMenuItem> menu_list = new ArrayList<JMenuItem>();
+        
+        
 		byte context = invocation.getInvocationContext();
-		//只有当选中的内容是响应包的时候才显示U2C
+		//鍙湁褰撻�変腑鐨勫唴瀹规槸鍝嶅簲鍖呯殑鏃跺�欐墠鏄剧ずU2C
+		
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-		    JMenuItem menuItemUpdateCookie = new JMenuItem("^_^ Update cookie");
-			menuItemUpdateCookie.addActionListener(new updateHeader(invocation,"cookie"));	
-			list.add(menuItemUpdateCookie);
+			menu_list.add(new UpdateCookieMenu(this));
+		}
+        
+		
+		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST ) {
+			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
+			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
+			/*menu_list.add(uhmenu);*/
+			if(!pHeaders.isEmpty()) {
+				menu_list.add(uhmenu);
+			}
 		}
 		
-		List<String> pHeaders = possibleHeaderNames(invocation);
-		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST && !pHeaders.isEmpty()) {
-		    JMenu menuItemUpdateHeader = new JMenu("^_^ Update Header");
-		    for (String pheader:pHeaders) {
-		    	JMenuItem headerItem = new JMenuItem(pheader);
-		    	headerItem.addActionListener(new updateHeader(invocation,pheader));
-		    	menuItemUpdateHeader.add(headerItem);
-		    }
-			//menuItemUpdateCookie.addActionListener(new updateHeader(invocation,"cookie"));	
-			list.add(menuItemUpdateHeader);
-		}
-	    
-		
-		JMenuItem menuItemAddHostScope = new JMenuItem("^_^ Add host to scope");//适用于最小scope的情况，
-		menuItemAddHostScope.addActionListener(new addHostToScope(invocation));
-		list.add(menuItemAddHostScope);
-
-    	return list;
-	}
-	
-
-		
+		menu_list.add(new AddHostToScopeMenu(this));
+		menu_list.add(new OpenWithBrowserMenu(this));
+        
+        
+        JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
+        Hack_Bar_Menu.add(new SQL_Menu(this));
+        Hack_Bar_Menu.add(new SQL_Error(this));
+        Hack_Bar_Menu.add(new SQli_LoginBypass(this));
+        
+        Hack_Bar_Menu.add(new XSS_Menu(this));
+        Hack_Bar_Menu.add(new XXE_Menu(this));
+        Hack_Bar_Menu.add(new LFI_Menu(this));//learn from this
+        Hack_Bar_Menu.add(new SSTI_Menu(this));
+        
+        Hack_Bar_Menu.add(new WebShell_Menu(this));
+        Hack_Bar_Menu.add(new Reverse_Shell_Menu(this));
+        
+        Hack_Bar_Menu.add(new File_Payload_Menu(this));
+        Hack_Bar_Menu.add(new Custom_Payload_Menu(this));
+        
+        menu_list.add(Hack_Bar_Menu);
+        return menu_list;
+    }
+    
+    //U2C
 	@Override
 	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
 		return new U2CTab(controller, false, helpers, callbacks);
 	}
-	
-	
-	public class addHostToScope implements ActionListener{
-		//scope matching is actually String matching!!
-		private IContextMenuInvocation invocation;
-		//callbacks.printOutput(Integer.toString(invocation.getToolFlag()));//issue tab of target map is 16
-		public addHostToScope(IContextMenuInvocation invocation) {
-			this.invocation  = invocation;
-		}
-		@Override
-		public void actionPerformed(ActionEvent e)
-	    {
-	       try{
-	        	IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-	        	for(IHttpRequestResponse message:messages) {
-	        		String url = message.getHttpService().toString();
-					URL shortUrl = new URL(url);
-		        	callbacks.includeInScope(shortUrl);
-	        	}
-	        }
-	        catch (Exception e1)
-	        {
-	            e1.printStackTrace(stderr);
-	        }
-	    }
+
+
+	@Override
+	public String getTabCaption() {
+		return ("Knife");
 	}
 
-	public class updateHeader implements ActionListener {
-		private IContextMenuInvocation invocation;
-		private String headerName;
 
-		public updateHeader(IContextMenuInvocation invocation,String headerName) {
-			this.invocation  = invocation;
-			this.headerName = headerName;
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent event) {
-			
-			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-			byte selectedInvocationContext = invocation.getInvocationContext();
-		
-			byte[] selectedRequest = selectedItems[0].getRequest();
-			String shorturl = selectedItems[0].getHttpService().toString();
-			String latestHeader = getLatestHeaderFromHistory(shorturl,headerName);
-			
-			if (latestHeader !=null) {
-	        	IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
-	        	List<String> headers = analyzedRequest.getHeaders();//a bug here,report to portswigger
-	        	//callbacks.printOutput(headers.toString());
-	        	String oldHeader =null;
-	        	for(String header:headers) {
-	        		if(header.toLowerCase().startsWith(headerName.toLowerCase())) {
-	        			oldHeader = header;
-	        			break;
-	        		}
-	        	}
-        		if(oldHeader !=null) {
-        			int index = headers.indexOf(oldHeader);
-        			headers.remove(index);
-    	        	headers.add(index,latestHeader);
-        		}else {
-        			headers.add(latestHeader);
-        		}
-        		//callbacks.printOutput(headers.toString());
-	        	
-	        	
-	        	byte[] body= Arrays.copyOfRange(selectedRequest, analyzedRequest.getBodyOffset(), selectedRequest.length);
-	        	//https://github.com/federicodotta/HandyCollaborator/blob/master/src/main/java/burp/BurpExtender.java
-	        	byte[] newRequestBytes = helpers.buildHttpMessage(headers, body);
+	@Override
+	public Component getUiComponent() {
+		return this.getContentPane();
+	}
+	
+	@Override
+	public void saveConfig() {
+		config = getConfigFromUI();//must use global config.
+		callbacks.saveExtensionSetting("knifeconfig", JSON.toJSONString(config));
+	}
+
+
+	@Override
+	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+		if (toolFlag == (toolFlag&checkEnabledFor())){
+			if (messageIsRequest){
+				URL url =getter.getURL(messageInfo);
+				String host = getter.getHost(messageInfo);
 				
-				if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-					selectedItems[0].setRequest(newRequestBytes);
+				byte[] body = getter.getBody(true, messageInfo);
+				HashMap<String, String> headers = getter.getHeaderMap(true, messageInfo);
+				
+				String[] removeHeaders = config.basicConfigs.get("removeHeaders").split(",");
+				List<String> removeHeaderList= Arrays.asList(removeHeaders);
+				
+				Iterator<Entry<String, String>> it = headers.entrySet().iterator();
+				while(it.hasNext()){
+					Entry<String, String> entry = it.next();
+					String key = entry.getKey();
+					if(removeHeaderList.contains(key)) {
+						it.remove();
+					}
+				}
+				
+				if((config.onlyForScope == true && callbacks.isInScope(url)==true)
+						|| config.onlyForScope==false) {
+					try{
+						it = config.basicConfigs.entrySet().iterator();
+						while(it.hasNext()){
+							Entry<String, String> entry = it.next();
+							String key = entry.getKey();
+							String value = entry.getValue();
+							if (key.startsWith("<add-or-replace>")) {
+								key = key.replace("<add-or-replace>", "");
+							}else if (key.startsWith("<append>")) {
+								key = key.replace("<append>", "");
+								//stdout.println("1111"+headers.get(key));
+								value = headers.get(key)+value;
+								//stdout.println("2222"+value);
+							}
+							
+							if (value.contains("%host")){
+								value = value.replaceAll("%host", "%s");
+								//stdout.println("3333"+value);
+								value = String.format(value, host);
+								//stdout.println("4444"+value);
+							}
+							
+							headers.put(key, value);
+						}
+						
+						byte[] new_Request = helpers.buildHttpMessage(getter.MapToList(headers),body);
+						//debug
+						stdout.println(helpers.analyzeRequest(new_Request).getHeaders());
+						messageInfo.setRequest(new_Request);
+					}
+					catch(Exception e){
+						e.printStackTrace(stderr);
+					}
 				}
 			}
 		}
-	}
-	
-	public IHttpRequestResponse[] Reverse(IHttpRequestResponse[] input){
-	    for (int start = 0, end = input.length - 1; start < end; start++, end--) {
-	    	IHttpRequestResponse temp = input[end];
-	        input[end] = input[start];
-	        input[start] = temp;
-	    }
-	    return input;
-	}
-	
-	public String getLatestHeaderFromHistory(String shortUrl,String headerName){
-    	//还是草粉师傅说得对，直接从history里面拿最好
-    	
-    	IHttpRequestResponse[]  historyMessages = Reverse(callbacks.getProxyHistory());
-    	//callbacks.printOutput("length of history: "+ historyMessages.length);
-
-    	for (IHttpRequestResponse historyMessage:historyMessages) {
-    		IRequestInfo hisAnalyzedRequest = helpers.analyzeRequest(historyMessage);
-    		//String hisShortUrl = hisUrl.substring(0, hisUrl.indexOf("/", 8));
-    		String hisShortUrl = historyMessage.getHttpService().toString();
-    		//callbacks.printOutput(hisShortUrl);
-    		
-    		if (hisShortUrl.equals(shortUrl)) {
-    			List<String> hisHeaders = hisAnalyzedRequest.getHeaders();
-    			for (String hisHeader:hisHeaders) {
-    				if (hisHeader.toLowerCase().startsWith(headerName.toLowerCase()) && hisHeader.length()>headerName.length()+1) {
-    					//callbacks.printOutput(hisHeader);
-            			return hisHeader;
-    				}
-    			}
-    		}
-    	}
-		return null;
-	}
-	
-	public List<String> possibleHeaderNames(IContextMenuInvocation invocation){
-		
-		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-		//byte selectedInvocationContext = invocation.getInvocationContext();
-	
-		byte[] selectedRequest = selectedItems[0].getRequest();
-		List<String> headers = helpers.analyzeRequest(selectedRequest).getHeaders();
-		
-		List<String> keywords = new ArrayList<String>();
-		List<String> ResultHeaders = new ArrayList<String>();
-		keywords.add("token");
-		keywords.add("Authorization");
-		keywords.add("Auth");
-		
-		Iterator<String> it = headers.iterator();
-		while (it.hasNext()) {
-			String item = it.next();
-			String itemName = item.split(":",0)[0];
-			if (containOneOfKeywords(itemName,keywords,false)) {
-				ResultHeaders.add(itemName.toLowerCase());
-			}
-		}
-		return ResultHeaders;
 		
 	}
-	
-	
-	public boolean containOneOfKeywords(String x,List<String> keywords,boolean isCaseSensitive) {
-		for (String keyword:keywords) {
-			if (isCaseSensitive == false) {
-				x = x.toLowerCase();
-				keyword = keyword.toLowerCase();
-			}
-			if (x.contains(keyword)){
-				return true;
-			}
-		}
-		return false;
-	}
+    
 }
-
-	
