@@ -46,27 +46,59 @@ class OpenWithBrowser_Action implements ActionListener{
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent event) {	
-		
+	public void actionPerformed(ActionEvent event) {
 		try{
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-			URL url = helpers.analyzeRequest(messages[0]).getUrl();
-			String browserPath = burp.config.basicConfigs.get("browserPath");
-			if (browserPath==null) {//when no browserPath in config
-				open(url, "default");
-			}else if(new File(browserPath).exists() && new File(browserPath).isFile()) {
-				open(url, browserPath);
-			}else {
-				open(url, "default");
+
+			if (messages !=null) {
+				IHttpRequestResponse message = messages[0];
+
+				String browserPath = burp.config.basicConfigs.get("browserPath");
+				if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
+
+				}else {//when no browserPath in config, the value will be null
+					browserPath = "default";
+				}
+
+				/////////////selected url/////////////////
+				byte[] source = null;
+
+				String hosturl =helpers.analyzeRequest(message).getUrl().toString();
+				int context = invocation.getInvocationContext();
+				if (context==IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST
+						|| context ==IContextMenuInvocation.CONTEXT_MESSAGE_VIEWER_REQUEST) {
+					source = message.getRequest();
+				}else {
+					source = message.getResponse();
+				}
+
+				int[] selectedIndex = invocation.getSelectionBounds();
+				stdout.println(selectedIndex[0]+":"+selectedIndex[1]);
+
+				if(source!=null && selectedIndex !=null && selectedIndex[1]-selectedIndex[0]>=3) {
+					int selectedLength = selectedIndex[1]-selectedIndex[0]+1;
+					byte[] selectedBytes = new byte[selectedLength];
+					System.arraycopy(source, selectedIndex[0], selectedBytes, 0, selectedLength);//新的内容替换选中内容
+					String selectedUrl = new String(selectedBytes);
+					stdout.println(selectedUrl);
+					if(!isFullUrl(selectedUrl)) {
+						selectedUrl = message.getHttpService().toString()+"/"+selectedUrl;
+					}else if(selectedUrl.startsWith("//")) {
+						selectedUrl = message.getHttpService().getProtocol()+":"+selectedUrl;
+					}
+					open(selectedUrl,browserPath);
+					stdout.println(selectedUrl);
+				}else {
+					open(hosturl,browserPath);
+				}
 			}
-			
 		}
 		catch (Exception e1)
 		{
 			e1.printStackTrace(stderr);
 		}
 	}
-	
+
 	public static void open(Object url,String browser) throws Exception{
 		String urlString = null;
 		URI uri = null;
@@ -89,5 +121,15 @@ class OpenWithBrowser_Action implements ActionListener{
 			//C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe
 		}
 
+	}
+
+	public static boolean isFullUrl(String url) {
+		if (url.startsWith("//") || url.startsWith("http://") || url.startsWith("https://")) {//    //misc.360buyimg.com/
+			return true;
+		}else if (url.startsWith("../") || url.startsWith("./") || url.startsWith("/")) {
+			return false;
+		}else {
+			return true;
+		}
 	}
 }
