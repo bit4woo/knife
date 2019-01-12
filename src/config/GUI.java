@@ -117,7 +117,7 @@ public class GUI extends JFrame {
 		fl_panel.setAlignment(FlowLayout.LEFT);
 		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
 
-		JLabel lblNewLabel = new JLabel("Enable Header Update/Add/Append for Request in : ");
+		JLabel lblNewLabel = new JLabel("Requests that in : [");
 		panel.add(lblNewLabel);
 
 		chckbx_proxy = new JCheckBox("Proxy");
@@ -152,7 +152,7 @@ public class GUI extends JFrame {
 		});
 		panel.add(chckbx_intruder);
 
-		chckbx_scanner = new JCheckBox("Scanner");
+		chckbx_scanner = new JCheckBox("Scanner ]");
 		chckbx_scanner.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//config.enableStatus = checkEnabledFor();
@@ -162,10 +162,10 @@ public class GUI extends JFrame {
 		});
 		panel.add(chckbx_scanner);
 
-		JLabel lblNewLabel_display = new JLabel(" [AND] ");
+		JLabel lblNewLabel_display = new JLabel(" AND [");
 		panel.add(lblNewLabel_display);
 
-		chckbx_scope = new JCheckBox("For Items In Scope");
+		chckbx_scope = new JCheckBox("also In Scope ]");
 		chckbx_scope.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//config.onlyForScope = chckbx_scope.isSelected();
@@ -176,6 +176,8 @@ public class GUI extends JFrame {
 		chckbx_scope.setSelected(false);
 		panel.add(chckbx_scope);
 		
+		JLabel lblNewLabel_display1 = new JLabel(" will be auto updated with <append> <add-or-replace> items");
+		panel.add(lblNewLabel_display1);
 		
 		////////////////////////////////////config area///////////////////////////////////////////////////////
 		
