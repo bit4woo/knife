@@ -166,4 +166,9 @@ public class Getter {
 
         return parts[1]; 
     }
+    
+    public static void main(String args[]) {
+    	String a= "xxxxxxxxxxxx";
+    	System.out.println(a.split(":")[0]+a.split(":")[1]);
+    }
 }

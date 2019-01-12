@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
+import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -28,7 +30,7 @@ public class UpdateHeaderMenu extends JMenu {
     	this.invocation = burp.context;
     	this.burp = burp;
     	
-    	List<String> pHeaders = possibleHeaderNames(invocation);
+    	List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
         this.setText("^_^ Update Header");
 	    for (String pheader:pHeaders) {
 	    	JMenuItem headerItem = new JMenuItem(pheader);
@@ -40,19 +42,17 @@ public class UpdateHeaderMenu extends JMenu {
     public List<String> possibleHeaderNames(IContextMenuInvocation invocation) {
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 		//byte selectedInvocationContext = invocation.getInvocationContext();
-	
-		byte[] selectedRequest = selectedItems[0].getRequest();
-		List<String> headers = burp.helpers.analyzeRequest(selectedRequest).getHeaders();
+		Getter getter = new Getter(burp.callbacks.getHelpers());
+		HashMap<String, String> headers = getter.getHeaderHashMap(true, selectedItems[0]);
 		
 		List<String> keywords = Arrays.asList(burp.config.getBasicConfigs().get("tokenHeaders").split(","));
 		List<String> ResultHeaders = new ArrayList<String>();
 		
-		Iterator<String> it = headers.iterator();
+		Iterator<String> it = headers.keySet().iterator();
 		while (it.hasNext()) {
 			String item = it.next();
-			String itemName = item.split(":",0)[0];
-			if (containOneOfKeywords(itemName,keywords,false)) {
-				ResultHeaders.add(itemName.toLowerCase());
+			if (containOneOfKeywords(item,keywords,false)) {
+				ResultHeaders.add(item);
 			}
 		}
 		return ResultHeaders;
@@ -90,8 +90,6 @@ class UpdateHeader_Action implements ActionListener{
         this.headerName = headerName;
 	}
 	
-
-	
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		
@@ -102,15 +100,15 @@ class UpdateHeader_Action implements ActionListener{
 		
 		
 		String shorturl = selectedItems[0].getHttpService().toString();
-		String latestCookie = getLatestHeaderFromHistory(shorturl,headerName);
+		String latestToken = getLatestHeaderFromHistory(shorturl,headerName);
 		
-		if (latestCookie !=null) {
+		if (latestToken !=null) {
         	IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
         	List<String> headers = analyzedRequest.getHeaders();//a bug here,report to portswigger
         	//callbacks.printOutput(headers.toString());
         	String cookie =null;
         	for(String header:headers) {
-        		if(header.toLowerCase().startsWith(headerName.toLowerCase())) {
+        		if(header.startsWith(headerName)) {
         			cookie = header;
         			break;
         		}
@@ -118,9 +116,9 @@ class UpdateHeader_Action implements ActionListener{
     		if(cookie !=null) {
     			int index = headers.indexOf(cookie);
     			headers.remove(index);
-	        	headers.add(index,latestCookie);
+	        	headers.add(index,latestToken);
     		}else {
-    			headers.add(latestCookie);
+    			headers.add(latestToken);
     		}
     		//callbacks.printOutput(headers.toString());
         	
