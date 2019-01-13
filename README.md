@@ -1,6 +1,6 @@
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)  [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
-### [knife](https://github.com/bit4woo/knife)
+### [knife](https://github.com/bit4woo/knife) (中文说明请点[这里](https://github.com/bit4woo/knife/blob/master/README-zh.md))
 
 A extension that add some small function[ one key to update cookie, one key add host to scope] to right click context menu.
 
