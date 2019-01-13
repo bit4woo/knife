@@ -168,7 +168,7 @@ public class Getter {
     }
     
     public static void main(String args[]) {
-    	String a= "xxxxxxxxxxxx";
-    	System.out.println(a.split(":")[0]+a.split(":")[1]);
+    	String a= "xxxxx%s%bxxxxxxx";
+    	System.out.println(String.format(a, "111"));
     }
 }
