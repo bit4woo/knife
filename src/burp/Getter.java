@@ -69,6 +69,7 @@ public class Getter {
         	try {
 				String headerName = header.split(": ", 0)[0];
 				String headerValue = header.split(": ", 0)[1];
+				//POST /login.pub HTTP/1.1  the first line of header will tirgger error here
 				result.put(headerName, headerValue);
 			} catch (Exception e) {
 				e.printStackTrace();
