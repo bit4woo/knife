@@ -23,6 +23,7 @@ import config.GUI;
 import knife.AddHostToScopeMenu;
 import knife.OpenWithBrowserMenu;
 import knife.UpdateCookieMenu;
+import knife.UpdateCookieWithMenu;
 import knife.UpdateHeaderMenu;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener {
@@ -79,6 +80,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			menu_list.add(new UpdateCookieMenu(this));
+			menu_list.add(new UpdateCookieWithMenu(this));
 		}
 
 

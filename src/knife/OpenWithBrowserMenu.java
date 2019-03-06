@@ -66,7 +66,12 @@ class OpenWithBrowser_Action implements ActionListener{
 				String hosturl =helpers.analyzeRequest(message).getUrl().toString();
 				int context = invocation.getInvocationContext();
 				if (context==IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST
-						|| context ==IContextMenuInvocation.CONTEXT_MESSAGE_VIEWER_REQUEST) {
+						|| context ==IContextMenuInvocation.CONTEXT_MESSAGE_VIEWER_REQUEST
+						|| context == IContextMenuInvocation.CONTEXT_PROXY_HISTORY
+						|| context == IContextMenuInvocation.CONTEXT_INTRUDER_ATTACK_RESULTS
+						|| context == IContextMenuInvocation.CONTEXT_SEARCH_RESULTS
+						|| context == IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TABLE
+						|| context == IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TREE) {
 					source = message.getRequest();
 				}else {
 					source = message.getResponse();
