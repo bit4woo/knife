@@ -54,44 +54,7 @@ class UpdateCookie_Action implements ActionListener{
 		String latestCookie = getLatestCookieFromHistory(shorturl);
 
 		if (latestCookie == null) {//when host is ip address, need manually input domain to get the cookie
-			String domain = Methods.prompt_and_validate_input("update cookie with cookie of ", null);
-			String url1 = "";
-			String url2 = "";
-			String successURL = "";
-			try{
-				if (domain.startsWith("http://") || domain.startsWith("https://")) {
-					url1 = domain;
-				}else {
-					url1 = "http://"+domain;
-					url2 = "https://"+domain;
-				}
-
-				try {
-					latestCookie = getLatestCookieFromHistory(url1);
-					if (latestCookie != null){
-						successURL = url1;
-					}
-				} catch (Exception e) {
-
-				}
-
-				if (latestCookie == null){
-					try {
-						latestCookie = getLatestCookieFromHistory(url2);
-						if (latestCookie != null){
-							successURL = url2;
-						}
-					} catch (Exception e) {
-
-					}
-				}
-
-			}catch(NumberFormatException nfe){
-				Methods.show_message("Enter proper domain!!!", "Input Not Valid");
-			}
-			if (latestCookie != null && successURL.startsWith("http")) {
-				this.burp.config.getBasicConfigs().put("UsedCookie", successURL+"::::"+latestCookie);
-			}
+			latestCookie = getLatestCookieFromSpeicified();
 		}
 
 		if (latestCookie !=null) {
@@ -105,6 +68,12 @@ class UpdateCookie_Action implements ActionListener{
 					break;
 				}
 			}
+			
+			if (latestCookie.equals(cookie)) {//if cookie is same, request input to find again
+				latestCookie = getLatestCookieFromSpeicified();
+			}
+			
+			//update cookie
 			if(cookie !=null) {
 				int index = headers.indexOf(cookie);
 				headers.remove(index);
@@ -160,4 +129,48 @@ class UpdateCookie_Action implements ActionListener{
 		}
 		return null;
 	}
+	
+	public String getLatestCookieFromSpeicified() {
+		String latestCookie = null;
+		String domain = Methods.prompt_and_validate_input("update cookie with cookie of ", null);
+		String url1 = "";
+		String url2 = "";
+		String successURL = "";
+		try{
+			if (domain.startsWith("http://") || domain.startsWith("https://")) {
+				url1 = domain;
+			}else {
+				url1 = "http://"+domain;
+				url2 = "https://"+domain;
+			}
+
+			try {
+				latestCookie = getLatestCookieFromHistory(url1);
+				if (latestCookie != null){
+					successURL = url1;
+				}
+			} catch (Exception e) {
+
+			}
+
+			if (latestCookie == null){
+				try {
+					latestCookie = getLatestCookieFromHistory(url2);
+					if (latestCookie != null){
+						successURL = url2;
+					}
+				} catch (Exception e) {
+
+				}
+			}
+
+		}catch(NumberFormatException nfe){
+			Methods.show_message("Enter proper domain!!!", "Input Not Valid");
+		}
+		if (latestCookie != null && successURL.startsWith("http")) {
+			this.burp.config.getBasicConfigs().put("UsedCookie", successURL+"::::"+latestCookie);
+		}
+		return latestCookie;
+	} 
+	
 }
