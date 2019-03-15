@@ -14,6 +14,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import config.ConfigEntry;
 
 public class OpenWithBrowserMenu extends JMenuItem {
 	/**
@@ -53,7 +54,7 @@ class OpenWithBrowser_Action implements ActionListener{
 			if (messages !=null) {
 				IHttpRequestResponse message = messages[0];
 
-				String browserPath = burp.config.basicConfigs.get("browserPath");
+				String browserPath = burp.tableModel.getConfigByKey("browserPath");
 				if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
 
 				}else {//when no browserPath in config, the value will be null

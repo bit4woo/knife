@@ -41,7 +41,7 @@ class XXEItemListener implements ActionListener {
     
     public byte[] GetNewRequest(byte[] request,int[] selectedIndex, String action){
 		String selectedString =null;
-		String dnslog = myburp.config.getBasicConfigs().get("DNSlogServer");
+		String dnslog = myburp.tableModel.getConfigByKey("DNSlogServer");
 		switch(action){
             case "Basic Test":
                 selectedString  =    "<!--?xml version=\"1.0\" ?-->\n" +

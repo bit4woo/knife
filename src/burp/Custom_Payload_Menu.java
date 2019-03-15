@@ -2,15 +2,14 @@ package burp;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JMenu;
+
+import config.ConfigEntry;
 
 /**
  *
@@ -32,15 +31,12 @@ public class Custom_Payload_Menu extends JMenu {
 		this.setText("Custom Payload");
 		this.myburp = burp;
 
-		HashMap<String,String> config = burp.config.getBasicConfigs();
-		Iterator<String> it = config.keySet().iterator();
+		List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
+		Iterator<ConfigEntry> it = configs.iterator();
 		List<String> tmp = new ArrayList<String>();
 		while (it.hasNext()) {
-			String item = it.next();
-			if (item.startsWith("<payload>")) {
-				item = item.replace("<payload>", "");
-				tmp.add(item);
-			}
+			ConfigEntry item = it.next();
+			tmp.add(item.getKey());//custom payload name
 		}
 
 		Custom_Payload_Menu = tmp.toArray(new String[0]);
@@ -70,25 +66,12 @@ class CustomPayloadItemListener implements ActionListener {
 		req.setRequest(newRequest);
 	}
 
-	public byte[] GetNewRequest(byte[] request,int[] selectedIndex, String action){
+	public byte[] GetNewRequest(byte[] request,int[] selectedIndex, String action){//action is the payload name
 
 		//debug
 		//PrintWriter stderr = new PrintWriter(myburp.callbacks.getStderr(), true);
 
-		HashMap<String,String> payloadMap = new HashMap<String,String>();
-		HashMap<String,String> config = myburp.config.getBasicConfigs();
-		Iterator<Entry<String,String>> it = config.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<String,String> entry = it.next();
-			String key = entry.getKey();
-			String value = entry.getValue();
-			if (key.startsWith("<payload>")) {
-				key = key.replace("<payload>", "");
-			}
-			payloadMap.put(key, value);
-		}
-
-		String payload =payloadMap.get(action);
+		String payload =myburp.tableModel.getConfigByKey(action);
 
 		String host = myburp.context.getSelectedMessages()[0].getHttpService().getHost();
 
@@ -100,7 +83,7 @@ class CustomPayloadItemListener implements ActionListener {
 		//stderr.println(payload);
 
 		if(payload.toLowerCase().contains("%dnslogserver")) {
-			String dnslog = config.get("DNSlogServer");
+			String dnslog = myburp.tableModel.getConfigByKey("DNSlogServer");
 			Pattern p = Pattern.compile("(?u)%dnslogserver");
 			Matcher m  = p.matcher(payload);
 

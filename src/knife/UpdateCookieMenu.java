@@ -168,7 +168,7 @@ class UpdateCookie_Action implements ActionListener{
 			Methods.show_message("Enter proper domain!!!", "Input Not Valid");
 		}
 		if (latestCookie != null && successURL.startsWith("http")) {
-			this.burp.config.getBasicConfigs().put("UsedCookie", successURL+"::::"+latestCookie);
+			this.burp.config.getTmpMap().put("UsedCookie", successURL+"::::"+latestCookie);
 		}
 		return latestCookie;
 	} 

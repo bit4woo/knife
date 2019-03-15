@@ -15,11 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-import java.util.Vector;
-
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -35,10 +33,7 @@ import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -47,7 +42,6 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
 import burp.IBurpExtenderCallbacks;
-import config.ConfigObject;
 
 public class GUI extends JFrame {
 
@@ -58,18 +52,18 @@ public class GUI extends JFrame {
 	public String ExtensionName = "Knife v0.9 by bit4woo";
 	public String github = "https://github.com/bit4woo/knife";
 
-	public ConfigObject config = new ConfigObject("default");
+	public Config config = new Config("default");
 
 	public PrintWriter stdout;
 	public PrintWriter stderr;
-	private DefaultTableModel tableModel; 
+	//public ConfigTableModel tableModel; 
 
 	private JPanel contentPane;
 	private JPanel FooterPanel;
 	private JLabel lblNewLabel_2;
-	private JScrollPane configPanel;
+	protected JScrollPane configPanel;
 	private SortOrder sortedMethod;
-	private JTable table;
+	public JTable table;
 	private JButton RemoveButton;
 	private JButton AddButton;
 	private JSplitPane TargetSplitPane;
@@ -80,7 +74,6 @@ public class GUI extends JFrame {
 	private JCheckBox chckbx_scanner;
 	private JCheckBox chckbx_scope;
 
-	private boolean DoNotTrigger = true;
 	private JButton RestoreButton;
 	private JPanel panel_1;
 
@@ -92,7 +85,7 @@ public class GUI extends JFrame {
 			public void run() {
 				try {
 					GUI frame = new GUI();
-					frame.showToUI(new ConfigObject(""));
+					frame.showToUI(new Config(""));
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -130,10 +123,7 @@ public class GUI extends JFrame {
 		chckbx_proxy = new JCheckBox("Proxy");
 		chckbx_proxy.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//config.enableStatus = checkEnabledFor();
-				//saveConfig have done this
-				saveConfig();
-				stdout.println("Proxy: "+JSON.toJSONString(config));
+				config.setEnableStatus(checkEnabledFor());
 			}
 		});
 		chckbx_proxy.setSelected(true);
@@ -142,9 +132,7 @@ public class GUI extends JFrame {
 		chckbx_repeater = new JCheckBox("Repeater");
 		chckbx_repeater.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//config.enableStatus = checkEnabledFor();
-				//saveConfig have done this
-				saveConfig();
+				config.setEnableStatus(checkEnabledFor());
 			}
 		});
 		panel.add(chckbx_repeater);
@@ -152,9 +140,7 @@ public class GUI extends JFrame {
 		chckbx_intruder = new JCheckBox("Intruder");
 		chckbx_intruder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//config.enableStatus = checkEnabledFor();
-				//saveConfig have done this
-				saveConfig();
+				config.setEnableStatus(checkEnabledFor());
 			}
 		});
 		panel.add(chckbx_intruder);
@@ -162,9 +148,7 @@ public class GUI extends JFrame {
 		chckbx_scanner = new JCheckBox("Scanner ]");
 		chckbx_scanner.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//config.enableStatus = checkEnabledFor();
-				//saveConfig have done this
-				saveConfig();
+				config.setEnableStatus(checkEnabledFor());
 			}
 		});
 		panel.add(chckbx_scanner);
@@ -175,15 +159,13 @@ public class GUI extends JFrame {
 		chckbx_scope = new JCheckBox("also In Scope ]");
 		chckbx_scope.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//config.onlyForScope = chckbx_scope.isSelected();
-				//saveConfig have done this
-				saveConfig();
+				config.setOnlyForScope(chckbx_scope.isSelected());
 			}
 		});
 		chckbx_scope.setSelected(false);
 		panel.add(chckbx_scope);
 
-		JLabel lblNewLabel_display1 = new JLabel(" will be auto updated with <append> <add-or-replace> items");
+		JLabel lblNewLabel_display1 = new JLabel(" will be auto updated");
 		panel.add(lblNewLabel_display1);
 
 		////////////////////////////////////config area///////////////////////////////////////////////////////
@@ -212,28 +194,22 @@ public class GUI extends JFrame {
 			}
 		});
 
-		tableModel = new DefaultTableModel(
-				new Object[][] {
-					//{"1", "1","1"},
-				},
-				new String[] {
-						"key", "value"//, "Source"
-				}
-				);
-		table.setModel(tableModel);
-		tableModel.addTableModelListener(new TableModelListener(){
-			@Override
-			public void tableChanged(TableModelEvent e) {
-				if (DoNotTrigger) {
-
-				}else {
-					stdout.println("tableChanged1: "+JSON.toJSONString(config));
-					//config.basicConfigs = getTableMap(); //saveConfig have done this
-					saveConfig();
-					stdout.println("tableChanged2: "+JSON.toJSONString(config));
-				}
-			}
-		});
+		/*
+		 * tableModel = new DefaultTableModel( new Object[][] { //{"1", "1","1"}, }, new
+		 * String[] { "key", "value","type","enable"//, "Source" } );
+		 */
+		
+		/*
+		 * tableModel = new ConfigTableModel(burp); table.setModel(tableModel);
+		 * tableModel.addTableModelListener(new TableModelListener(){
+		 * 
+		 * @Override public void tableChanged(TableModelEvent e) { if (DoNotTrigger) {
+		 * 
+		 * }else { stdout.println("tableChanged1: "+JSON.toJSONString(config));
+		 * //config.basicConfigs = getTableMap(); //saveConfig have done this
+		 * saveConfig(); stdout.println("tableChanged2: "+JSON.toJSONString(config)); }
+		 * } });
+		 */
 
 
 
@@ -270,13 +246,13 @@ public class GUI extends JFrame {
 				JsonFileFilter jsonFilter = new JsonFileFilter(); //excel过滤器  
 				fc.addChoosableFileFilter(jsonFilter);
 				fc.setFileFilter(jsonFilter);
-				fc.setDialogTitle("Chose Domain Hunter Project File");
+				fc.setDialogTitle("Chose knife config File");
 				fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
 				if(fc.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
 					try {
 						File file=fc.getSelectedFile();
 						String contents = Files.toString(file, Charsets.UTF_8);
-						config = JSON.parseObject(contents, ConfigObject.class);
+						config = JSON.parseObject(contents, Config.class);
 						stdout.println("Load knife config from"+ file.getName());
 						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
 						showToUI(config);
@@ -301,10 +277,10 @@ public class GUI extends JFrame {
 		AddButton = new JButton("Add");
 		AddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				tableModel.addRow(new Object[]{"",""});
+				tableModel.addNewConfigEntry(new ConfigEntry());
 				stdout.println("add: "+JSON.toJSONString(config));
 				//会触发modelListener 更新config。所以需要调用showToUI。
-				showToUI(config);
+				//showToUI(config);
 			}
 		});
 		panel_1.add(AddButton);
@@ -320,15 +296,8 @@ public class GUI extends JFrame {
 					rowindexs[i] = table.convertRowIndexToModel(rowindexs[i]);//转换为Model的索引，否则排序后索引不对应〿
 				}
 				Arrays.sort(rowindexs);
-
-				tableModel = (DefaultTableModel) table.getModel();
-				for(int i=rowindexs.length-1;i>=0;i--){
-					tableModel.removeRow(rowindexs[i]);
-				}
-				// will trigger tableModel listener
-
-				config.basicConfigs = getTableMap();
-				showToUI(config);
+				
+				tableModel.removeRows(rowindexs);
 			}
 		});
 
@@ -336,12 +305,11 @@ public class GUI extends JFrame {
 		RestoreButton.setToolTipText("Restore all config to default!");
 		RestoreButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				config = new ConfigObject("default");
-				showToUI(config);
+				showToUI(new Config().FromJson(initConfig()));
 			}
 		});
 		panel_1.add(RestoreButton);
-
+		
 
 
 		///////////////////////////FooterPanel//////////////////
@@ -384,77 +352,42 @@ public class GUI extends JFrame {
 
 	//////////////////////////////methods//////////////////////////////////////
 
-
-	public void showToUI(ConfigObject config) {//this also trigger tableModel listener 
-		DoNotTrigger = true;
-
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
-		model.setRowCount(0);
+	public void showToUI(Config config) {//this also trigger tableModel listener 
+		
+		tableModel.setConfigEntries(new ArrayList<ConfigEntry>());
 		//clearTable
-
-		stdout.println("showToUI:"+JSON.toJSONString(config));
-
-		for (Entry<String, String> entry:config.basicConfigs.entrySet()) {
-			tableModel.addRow(new Object[]{entry.getKey(),entry.getValue()});
+		for (String stringEntry:config.getStringConfigEntries()) {
+			ConfigEntry entry  = new ConfigEntry().FromJson(stringEntry);
+			tableModel.addNewConfigEntry(entry);
 		}
+		
 
-		if (IBurpExtenderCallbacks.TOOL_INTRUDER ==(config.enableStatus & IBurpExtenderCallbacks.TOOL_INTRUDER)) {
+		if (IBurpExtenderCallbacks.TOOL_INTRUDER ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_INTRUDER)) {
 			chckbx_intruder.setSelected(true);
 		}else {
 			chckbx_intruder.setSelected(false);
 		}
-		if (IBurpExtenderCallbacks.TOOL_PROXY ==(config.enableStatus & IBurpExtenderCallbacks.TOOL_PROXY)) {
+		if (IBurpExtenderCallbacks.TOOL_PROXY ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_PROXY)) {
 			chckbx_proxy.setSelected(true);
 		}else {
 			chckbx_proxy.setSelected(false);
 		}
-		if (IBurpExtenderCallbacks.TOOL_REPEATER ==(config.enableStatus & IBurpExtenderCallbacks.TOOL_REPEATER)) {
+		if (IBurpExtenderCallbacks.TOOL_REPEATER ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_REPEATER)) {
 			chckbx_repeater.setSelected(true);
 		}else {
 			chckbx_repeater.setSelected(false);
 		}
-		if (IBurpExtenderCallbacks.TOOL_SCANNER ==(config.enableStatus & IBurpExtenderCallbacks.TOOL_SCANNER)) {
+		if (IBurpExtenderCallbacks.TOOL_SCANNER ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_SCANNER)) {
 			chckbx_scanner.setSelected(true);
 		}else {
 			chckbx_scanner.setSelected(false);
 		}
-		chckbx_scope.setSelected(config.onlyForScope);
-		DoNotTrigger = false;
+		chckbx_scope.setSelected(config.isOnlyForScope());
 	}
 
-	public ConfigObject getConfigFromUI() {
-		config.basicConfigs = getTableMap();
-		config.enableStatus = checkEnabledFor();
-		config.onlyForScope = chckbx_scope.isSelected();
-		return config;
-	}
-
-	public void saveConfig() {
-		//burp need to override this function to save extension config
-	}
-
-	public LinkedHashMap<String, String> getTableMap() {
-		DoNotTrigger = true;
-		LinkedHashMap<String,String> tableMap= new LinkedHashMap<String,String>();
-
-		/*		for(int x=0;x<table.getRowCount();x++){
-			String key =(String) table.getValueAt(x, 0);
-			String value = (String) table.getValueAt(x, 1); //encountered a "ArrayIndexOutOfBoundsException" error here~~ strange!
-			tableMap.put(key,value);
-		}
-		return tableMap;*/
-
-		Vector data = tableModel.getDataVector();
-		for (Object o : data) {
-			Vector v = (Vector) o;
-			String key = (String) v.elementAt(0);
-			String value = (String) v.elementAt(1);
-			if (key != null && value != null) {
-				tableMap.put(key, value);
-			}
-		}
-		DoNotTrigger = false;
-		return tableMap;
+	public String getAllConfig() {
+		config.setStringConfigEntries(tableModel.getConfigJsons());
+		return config.ToJson();
 	}
 
 	public int checkEnabledFor(){
@@ -490,7 +423,7 @@ public class GUI extends JFrame {
 				file=new File(fc.getCurrentDirectory(),file.getName()+".json");
 			}
 
-			String content= JSON.toJSONString(config);
+			String content= getAllConfig();
 			try{
 				if(file.exists()){
 					int result = JOptionPane.showConfirmDialog(null,"Are you sure to overwrite this file ?");
@@ -508,6 +441,11 @@ public class GUI extends JFrame {
 				e1.printStackTrace(stderr);
 			}
 		}
+	}
+	
+	public String initConfig() {
+		// need to override
+		return null;
 	}
 
 

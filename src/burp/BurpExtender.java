@@ -18,7 +18,9 @@ import javax.swing.JMenuItem;
 import com.alibaba.fastjson.JSON;
 
 import U2C.U2CTab;
-import config.ConfigObject;
+import config.Config;
+import config.ConfigEntry;
+import config.ConfigTableModel;
 import config.GUI;
 import knife.AddHostToScopeMenu;
 import knife.OpenWithBrowserMenu;
@@ -55,15 +57,18 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		this.stdout.println(ExtensionName);
 		this.stdout.println(github);
+		
+		tableModel = new ConfigTableModel(this);
+		table.setModel(tableModel);
+		configPanel.setViewportView(table);
 
 		String content = callbacks.loadExtensionSetting("knifeconfig");
 		if (content!=null) {
-			config = JSON.parseObject(content, ConfigObject.class);
+			config = JSON.parseObject(content, Config.class);
 			showToUI(config);
 		}else {
-			showToUI(new ConfigObject("default"));
+			showToUI(JSON.parseObject(initConfig(), Config.class));
 		}
-
 
 	}
 
@@ -135,10 +140,15 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return this.getContentPane();
 	}
 
+	public void saveConfigToExtension() {
+		callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
+	}
+	
 	@Override
-	public void saveConfig() {
-		config = getConfigFromUI();//must use global config.
-		callbacks.saveExtensionSetting("knifeconfig", JSON.toJSONString(config));
+	public String initConfig() {
+		config = new Config("default");
+		tableModel = new ConfigTableModel(this);
+		return getAllConfig();
 	}
 
 
@@ -162,8 +172,15 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}*/
 
 			//remove header
-			String[] removeHeaders = config.basicConfigs.get("removeHeaders").split(",");
-			List<String> removeHeaderList= Arrays.asList(removeHeaders);
+			ArrayList<String> removeHeaderList = new ArrayList<String>();
+			List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
+			Iterator<ConfigEntry> it1 = configEntries.iterator();
+			while(it1.hasNext()){
+				ConfigEntry entry = it1.next();
+				String key = entry.getKey();
+				removeHeaderList.add(key);
+			}
+				
 			Iterator<Entry<String, String>> it = headers.entrySet().iterator();
 			while(it.hasNext()){
 				Entry<String, String> entry = it.next();
@@ -179,12 +196,13 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			
 			//add/update/append header
 			if (toolFlag == (toolFlag&checkEnabledFor())){
-				if((config.onlyForScope == true && callbacks.isInScope(url)==true)
-						|| config.onlyForScope==false) {
+				if((config.isOnlyForScope() == true && callbacks.isInScope(url)==true)
+						|| config.isOnlyForScope()==false) {
 					try{
-						it = config.basicConfigs.entrySet().iterator();
-						while(it.hasNext()){
-							Entry<String, String> entry = it.next();
+						List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
+						Iterator<ConfigEntry> it2 = updateOrAddEntries.iterator();
+						while(it2.hasNext()){
+							ConfigEntry entry = it2.next();
 							String key = entry.getKey();
 							String value = entry.getValue();
 
@@ -194,7 +212,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							}
 
 							if(value.toLowerCase().contains("%dnslogserver")) {
-								String dnslog = config.basicConfigs.get("DNSlogServer");
+								String dnslog = tableModel.getConfigByKey("DNSlogServer");
 								Pattern p = Pattern.compile("(?u)%dnslogserver");
 								Matcher m  = p.matcher(value);
 
@@ -204,13 +222,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 								}
 							}
 
-							if (key.startsWith("<add-or-replace>")) {
-								key = key.replace("<add-or-replace>", "");
+							if (entry.getKey().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
 								headers.put(key, value);
 								isHeaderChanaged = true;
-							}else if (key.startsWith("<append>")) {
-								key = key.replace("<append>", "");
-								//stdout.println("1111"+headers.get(key));
+							}else if (entry.getKey().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
 								value = headers.get(key)+value;
 								headers.put(key, value);
 								isHeaderChanaged = true;

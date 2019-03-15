@@ -17,8 +17,8 @@ import burp.IRequestInfo;
 public class UpdateCookieWithMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public UpdateCookieWithMenu(BurpExtender burp){
-		if (burp.config.getBasicConfigs().containsKey("UsedCookie")) {
-			String cookieValue = burp.config.getBasicConfigs().get("UsedCookie");
+		if (burp.config.getTmpMap().containsKey("UsedCookie")) {
+			String cookieValue = burp.config.getTmpMap().get("UsedCookie");
 			int SpliteratorIndex = cookieValue.indexOf("::::");
 			String url = cookieValue.substring(0,SpliteratorIndex);
 			String trueCookie = cookieValue.substring(SpliteratorIndex+4);

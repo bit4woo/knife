@@ -2,10 +2,7 @@ package burp;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.nio.file.Files;
-
 import javax.swing.JMenu;
-import java.io.File;
 
 
 /**
@@ -57,7 +54,7 @@ class File_Upload_Menu_ItemListener implements ActionListener {
 	}
 
 	public byte[] GetNewRequest(byte[] request,int[] selectedIndex, String action){
-		String dnslog = myburp.config.getBasicConfigs().get("DNSlogServer");
+		String dnslog = myburp.tableModel.getConfigByKey("DNSlogServer");
 		String payload =null;
 		byte[] payloadByte =null;
 		switch(action){
