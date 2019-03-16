@@ -142,13 +142,23 @@ public class ConfigTableModel extends AbstractTableModel{
 		{
 		case 0:
 			entry.setKey((String) value);
+			break;
 		case 1:
 			entry.setValue((String) value);
+			break;
 		case 2:
 			entry.setType((String) value);
-		case 3:
-			entry.setEnable((boolean) value);
+			break;
+		case 3://当显示true/false的时候，实质是字符串，需要转换。当使用勾选框的时候就是boolen
+//			if (((String)value).equals("true")) {
+//				entry.setEnable(true);
+//			}else {
+//				entry.setEnable(false);
+//			}
+			entry.setEnable((boolean)value);
+			break;
 		default:
+			break;
 		}
         fireTableCellUpdated(row, col);
     }

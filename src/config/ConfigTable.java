@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 import javax.swing.DefaultCellEditor;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -14,6 +15,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import burp.BurpExtender;
@@ -41,7 +43,8 @@ public class ConfigTable extends JTable
 
 		addClickSort();
 		registerListeners();
-		//setUpTypeColumn(this,this.getColumnModel().getColumn(2));
+		//switchEnable();//no need 
+		//table.setupTypeColumn()//can't set here, only can after table data loaded.
 	}
 
 	@Override
@@ -83,6 +86,35 @@ public class ConfigTable extends JTable
 			}
 		});
 	}
+	
+	
+	private void switchEnable() {
+		this.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() == 2)// 实现双击
+				{
+					int row = ((ConfigTable) e.getSource()).rowAtPoint(e.getPoint()); // 获得行位置
+					int col = ((ConfigTable) e.getSource()).columnAtPoint(e.getPoint()); // 获得列位置
+					row = convertRowIndexToModel(row);
+					
+					String cellVal = (String) (ConfigTableModel.getValueAt(row, col)); // 获得点击单元格数据
+
+					if(col==3) {
+						if (cellVal.equalsIgnoreCase("true")) {
+							ConfigTableModel.setValueAt("false", row, col);
+						}else {
+							ConfigTableModel.setValueAt("true", row, col);
+						}
+						ConfigTableModel.fireTableRowsInserted(row, row);
+					}
+				}
+			}
+		});
+	}
+	
+
+
 
 	private void registerListeners(){
 		final ConfigTable _this = this;
@@ -105,22 +137,23 @@ public class ConfigTable extends JTable
 	}
 
 
-	public void setUpTypeColumn(ConfigTable table,
-			TableColumn typeColumn) {
-		//Set up the editor for the sport cells.
-		JComboBox comboBox = new JComboBox();
-		comboBox.addItem("Snowboarding");
-		comboBox.addItem("Rowing");
-		comboBox.addItem("Knitting");
-		comboBox.addItem("Speed reading");
-		comboBox.addItem("Pool");
-		comboBox.addItem("None of the above");
-		typeColumn.setCellEditor(new DefaultCellEditor(comboBox));
+	public void setupTypeColumn() {
+		//call this function must after table data loaded !!!!
+		JComboBox<String> comboBox = new JComboBox<String>();
+		comboBox.addItem(ConfigEntry.Action_Add_Or_Replace_Header);
+		comboBox.addItem(ConfigEntry.Action_Append_To_header_value);
+		comboBox.addItem(ConfigEntry.Action_Remove_From_Headers);
+		comboBox.addItem(ConfigEntry.Config_Basic_Variable);
+		comboBox.addItem(ConfigEntry.Config_Custom_Payload);
+		TableColumnModel typeColumn = this.getColumnModel();
+		typeColumn.getColumn(2).setCellEditor(new DefaultCellEditor(comboBox));
 
-		//Set up tool tips for the sport cells.
-		DefaultTableCellRenderer renderer =
-				new DefaultTableCellRenderer();
-		renderer.setToolTipText("Click for combo box");
-		typeColumn.setCellRenderer(renderer);
+		JCheckBox jc1 = new JCheckBox();
+		typeColumn.getColumn(3).setCellEditor(new DefaultCellEditor(jc1));
+//		//Set up tool tips for the sport cells.
+//		DefaultTableCellRenderer renderer =
+//				new DefaultTableCellRenderer();
+//		renderer.setToolTipText("Click for combo box");
+//		typeColumn.setCellRenderer(renderer);
 	}
 }

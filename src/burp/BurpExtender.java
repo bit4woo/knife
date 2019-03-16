@@ -11,8 +11,11 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.table.TableColumnModel;
 
 import com.alibaba.fastjson.JSON;
 
@@ -73,7 +76,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}else {
 			showToUI(JSON.parseObject(initConfig(), Config.class));
 		}
-
+		table.setupTypeColumn();//call this function must after table data loaded !!!!
 	}
 
 

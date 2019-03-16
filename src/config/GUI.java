@@ -41,6 +41,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
+import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 
 public class GUI extends JFrame {
@@ -262,8 +263,15 @@ public class GUI extends JFrame {
 		});
 		panel_1.add(RestoreButton);
 		
-
-
+		JButton testButton = new JButton("test");
+		testButton.setToolTipText("test");
+		testButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		//panel_1.add(testButton);
+		
 		///////////////////////////FooterPanel//////////////////
 
 
@@ -304,14 +312,16 @@ public class GUI extends JFrame {
 
 	//////////////////////////////methods//////////////////////////////////////
 
-	public void showToUI(Config config) {//this also trigger tableModel listener 
-		tableModel = (ConfigTableModel) table.getModel();
+	public void showToUI(Config config) {
+		tableModel = table.getModel();
 		tableModel.setConfigEntries(new ArrayList<ConfigEntry>());
 		//clearTable
+		
 		for (String stringEntry:config.getStringConfigEntries()) {
 			ConfigEntry entry  = new ConfigEntry().FromJson(stringEntry);
 			tableModel.addNewConfigEntry(entry);
 		}
+		table.setupTypeColumn();// must setup again when data cleaned
 		
 
 		if (IBurpExtenderCallbacks.TOOL_INTRUDER ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_INTRUDER)) {
