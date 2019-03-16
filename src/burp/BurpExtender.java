@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +19,7 @@ import com.alibaba.fastjson.JSON;
 import U2C.U2CTab;
 import config.Config;
 import config.ConfigEntry;
+import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
 import knife.AddHostToScopeMenu;
@@ -35,16 +35,21 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public IBurpExtenderCallbacks callbacks;
+	public static IBurpExtenderCallbacks callbacks;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public Getter getter;
+	
+	public BurpExtender getExtender() {
+		return this;
+	}
+	
 
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-		this.callbacks = callbacks;
+		BurpExtender.callbacks = callbacks;
 		this.helpers = callbacks.getHelpers();
 		this.stdout = new PrintWriter(callbacks.getStdout(), true);
 		this.stderr = new PrintWriter(callbacks.getStderr(), true);
@@ -58,8 +63,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		this.stdout.println(ExtensionName);
 		this.stdout.println(github);
 		
-		tableModel = new ConfigTableModel(this);
-		table.setModel(tableModel);
+		table = new ConfigTable(new ConfigTableModel());
 		configPanel.setViewportView(table);
 
 		String content = callbacks.loadExtensionSetting("knifeconfig");
@@ -147,7 +151,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	@Override
 	public String initConfig() {
 		config = new Config("default");
-		tableModel = new ConfigTableModel(this);
+		tableModel = new ConfigTableModel();
 		return getAllConfig();
 	}
 

@@ -63,7 +63,8 @@ public class GUI extends JFrame {
 	private JLabel lblNewLabel_2;
 	protected JScrollPane configPanel;
 	private SortOrder sortedMethod;
-	public JTable table;
+	public ConfigTable table;//create in burpextender.java
+	public ConfigTableModel tableModel;//create in burpextender.java
 	private JButton RemoveButton;
 	private JButton AddButton;
 	private JSplitPane TargetSplitPane;
@@ -174,54 +175,10 @@ public class GUI extends JFrame {
 		configPanel = new JScrollPane();
 		configPanel.setViewportBorder(new LineBorder(new Color(0, 0, 0)));
 		//contentPane.add(TargetPanel, BorderLayout.WEST);
-
-		table = new JTable();
-		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		table.setBorder(new LineBorder(new Color(0, 0, 0)));
-
-		table.getTableHeader().addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				try {
-					table.getRowSorter().getSortKeys().get(0).getColumn();
-					//System.out.println(sortedColumn);
-					sortedMethod = table.getRowSorter().getSortKeys().get(0).getSortOrder();
-					System.out.println(sortedMethod); //ASCENDING   DESCENDING
-				} catch (Exception e1) {
-					sortedMethod = null;
-					e1.printStackTrace(stderr);
-				}
-			}
-		});
-
-		/*
-		 * tableModel = new DefaultTableModel( new Object[][] { //{"1", "1","1"}, }, new
-		 * String[] { "key", "value","type","enable"//, "Source" } );
-		 */
 		
-		/*
-		 * tableModel = new ConfigTableModel(burp); table.setModel(tableModel);
-		 * tableModel.addTableModelListener(new TableModelListener(){
-		 * 
-		 * @Override public void tableChanged(TableModelEvent e) { if (DoNotTrigger) {
-		 * 
-		 * }else { stdout.println("tableChanged1: "+JSON.toJSONString(config));
-		 * //config.basicConfigs = getTableMap(); //saveConfig have done this
-		 * saveConfig(); stdout.println("tableChanged2: "+JSON.toJSONString(config)); }
-		 * } });
-		 */
-
-
-
-		RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(tableModel);
-		table.setRowSorter(sorter);
-
-		table.setColumnSelectionAllowed(true);
-		table.setCellSelectionEnabled(true);
-		table.setSurrendersFocusOnKeystroke(true);
-		table.setFillsViewportHeight(true);
-		table.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-		configPanel.setViewportView(table);
+		//table and tableModel created in burpextender.java
+		//table = new ConfigTable(new ConfigTableModel());
+		
 
 		TargetSplitPane = new JSplitPane();
 		TargetSplitPane.setResizeWeight(0.5);
@@ -277,7 +234,8 @@ public class GUI extends JFrame {
 		AddButton = new JButton("Add");
 		AddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				tableModel.addNewConfigEntry(new ConfigEntry());
+				//tableModel = table.getModel();
+				tableModel.addNewConfigEntry(new ConfigEntry("","","",true));
 				stdout.println("add: "+JSON.toJSONString(config));
 				//会触发modelListener 更新config。所以需要调用showToUI。
 				//showToUI(config);
@@ -290,13 +248,7 @@ public class GUI extends JFrame {
 		panel_1.add(RemoveButton);
 		RemoveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
-				int[] rowindexs = table.getSelectedRows();
-				for (int i=0; i < rowindexs.length; i++){
-					rowindexs[i] = table.convertRowIndexToModel(rowindexs[i]);//转换为Model的索引，否则排序后索引不对应〿
-				}
-				Arrays.sort(rowindexs);
-				
+				int[] rowindexs = table.getSelectedModelRows();
 				tableModel.removeRows(rowindexs);
 			}
 		});
@@ -353,7 +305,7 @@ public class GUI extends JFrame {
 	//////////////////////////////methods//////////////////////////////////////
 
 	public void showToUI(Config config) {//this also trigger tableModel listener 
-		
+		tableModel = (ConfigTableModel) table.getModel();
 		tableModel.setConfigEntries(new ArrayList<ConfigEntry>());
 		//clearTable
 		for (String stringEntry:config.getStringConfigEntries()) {
