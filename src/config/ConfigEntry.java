@@ -17,6 +17,7 @@ public class ConfigEntry {
 	
 	public static final String Config_Custom_Payload = "Config_Custom_Payload";;
 	public static final String Config_Basic_Variable = "Config_Basic_Variable";
+	public static final String Config_Chunked_Variable = "Config_Chunked_Variable";
     
 	ConfigEntry(){
     	//to resolve "default constructor not found" error

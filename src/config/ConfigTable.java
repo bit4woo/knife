@@ -12,9 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -145,6 +143,7 @@ public class ConfigTable extends JTable
 		comboBox.addItem(ConfigEntry.Action_Remove_From_Headers);
 		comboBox.addItem(ConfigEntry.Config_Basic_Variable);
 		comboBox.addItem(ConfigEntry.Config_Custom_Payload);
+		comboBox.addItem(ConfigEntry.Config_Chunked_Variable);
 		TableColumnModel typeColumn = this.getColumnModel();
 		typeColumn.getColumn(2).setCellEditor(new DefaultCellEditor(comboBox));
 

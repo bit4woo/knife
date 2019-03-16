@@ -103,10 +103,10 @@ public class Getter {
 		}
 		
 		
-        headerName = headerName.toLowerCase().replace(":", "");
+        headerName = headerName.toLowerCase().replace(": ", "");
         for (String header : headers) {
             if (header.toLowerCase().startsWith(headerName)) {
-                return header.split(":", 0)[1];
+                return header.split(": ", 0)[1];
             }
         }
         return null;

@@ -1,0 +1,116 @@
+package knife;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.JMenuItem;
+
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.Methods;
+
+
+public class ChunkedEncodingMenu extends JMenuItem {
+	//JMenuItem vs. JMenu
+	public BurpExtender burp;
+	public IContextMenuInvocation invocation;
+	public Getter getter;
+    public ChunkedEncodingMenu(BurpExtender burp){
+    	
+    	this.invocation = burp.context;
+    	this.burp = burp;
+    	this.getter = new Getter(burp.helpers);
+    	String chunked = getter.getHeaderValueOf(true, this.invocation.getSelectedMessages()[0], "Transfer-Encoding");
+    	if (chunked == null || !chunked.equalsIgnoreCase("chunked") ) {
+    		this.setText("^_^ Chunked Encoding");
+    	}else {
+    		this.setText("^_^ Chunked Decoding");
+    	}
+        this.addActionListener(new ChunkedEncoding_Action(burp,invocation));
+    }
+}
+
+class ChunkedEncoding_Action implements ActionListener{
+	private IContextMenuInvocation invocation;
+	public IExtensionHelpers helpers;
+	public PrintWriter stdout;
+	public PrintWriter stderr;
+	public IBurpExtenderCallbacks callbacks;
+	private BurpExtender burp;
+	
+	public ChunkedEncoding_Action(BurpExtender burp,IContextMenuInvocation invocation) {
+		this.burp = burp;
+		this.invocation  = invocation;
+        this.helpers = burp.helpers;
+        this.callbacks = burp.callbacks;
+        this.stderr = burp.stderr;
+        this.stdout = burp.stdout;
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent event) {
+		
+		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
+		IHttpRequestResponse messageInfo = selectedItems[0];
+		
+		Getter getter = new Getter(helpers);
+		
+    	List<String> headers = getter.getHeaderList(true, messageInfo);
+    	byte[] body = getter.getBody(true, messageInfo);
+    	
+    	if (event.getActionCommand().equals("^_^ Chunked Encoding")) {
+            Iterator<String> iter = headers.iterator();
+            while (iter.hasNext()) {
+                if (((String)iter.next()).contains("Transfer-Encoding")) {
+                    iter.remove();
+                }
+            }
+            headers.add("Transfer-Encoding: chunked");
+        	
+            try {
+            	boolean useComment =false;
+            	if (burp.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+            		useComment = true;
+            	}
+            	String lenStr = burp.tableModel.getConfigByKey("Chunked-Length");
+            	int len =10;
+            	if (lenStr !=null) {
+            		len = Integer.parseInt(lenStr);
+            	}
+    			body = Methods.encoding(body,len,useComment);
+    		} catch (UnsupportedEncodingException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}else if (event.getActionCommand().equals("^_^ Chunked Decoding")) {
+            Iterator<String> iter = headers.iterator();
+            while (iter.hasNext()) {
+                if (((String)iter.next()).contains("Transfer-Encoding")) {
+                    iter.remove();
+                }
+            }
+        	
+            try {
+    			body = Methods.decoding(body);
+    		} catch (UnsupportedEncodingException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}
+
+    	byte[] newRequestBytes = helpers.buildHttpMessage(headers, body);
+    	
+    	selectedItems[0].setRequest(newRequestBytes);
+	}
+	
+	
+
+}

@@ -2,6 +2,7 @@ package burp;
 
 import java.awt.Component;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
 import knife.AddHostToScopeMenu;
+import knife.ChunkedEncodingMenu;
 import knife.OpenWithBrowserMenu;
 import knife.UpdateCookieMenu;
 import knife.UpdateCookieWithMenu;
@@ -44,10 +46,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public Getter getter;
-	
-	public BurpExtender getExtender() {
-		return this;
-	}
 	
 
 	@Override
@@ -107,6 +105,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		menu_list.add(new AddHostToScopeMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
+		menu_list.add(new ChunkedEncodingMenu(this));
 
 
 		JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
@@ -162,7 +161,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
 		if (messageIsRequest){
-			boolean isHeaderChanaged = false;
+			boolean isRequestChanaged = false;
 			URL url =getter.getURL(messageInfo);
 			String host = getter.getHost(messageInfo);
 			byte[] body = getter.getBody(true, messageInfo);
@@ -194,7 +193,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				String key = entry.getKey();
 				if(removeHeaderList.contains(key)) {
 					it.remove();
-					isHeaderChanaged =true;
+					isRequestChanaged =true;
 					//debug
 					//stdout.println(key+": "+entry.getValue()+" removed");
 				}
@@ -229,14 +228,33 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 								}
 							}
 
-							if (entry.getKey().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
+							if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
 								headers.put(key, value);
-								isHeaderChanaged = true;
-							}else if (entry.getKey().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
+								isRequestChanaged = true;
+							}else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
 								value = headers.get(key)+value;
 								headers.put(key, value);
-								isHeaderChanaged = true;
+								isRequestChanaged = true;
 								//stdout.println("2222"+value);
+							}else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
+					            headers.put("Transfer-Encoding","chunked");
+					        	
+					            try {
+					            	boolean useComment =false;
+					            	if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+					            		useComment = true;
+					            	}
+					            	String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
+					            	int len =10;
+					            	if (lenStr !=null) {
+					            		len = Integer.parseInt(lenStr);
+					            	}
+					    			body = Methods.encoding(body,len,useComment);
+					    		} catch (UnsupportedEncodingException e) {
+					    			// TODO Auto-generated catch block
+					    			e.printStackTrace();
+					    		}
+					            isRequestChanaged = true;
 							}
 						}
 					}
@@ -246,7 +264,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				}
 			}
 			//set final request
-			if (isHeaderChanaged) {
+			if (isRequestChanaged) {
 				List<String> Listheaders = getter.MapToList(headers);
 				String firstline = getter.getHeaderList(true, messageInfo).get(0);
 				Listheaders.add(0, firstline);//add the first line (GET /cps.gec/limit/information.html HTTP/1.1)
