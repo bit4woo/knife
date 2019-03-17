@@ -5,10 +5,12 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +48,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public Getter getter;
+	public int proxyServerIndex=-1;
 	
 
 	@Override
@@ -279,6 +282,25 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					String entry = finalit.next();
 					stdout.println(entry);
 				}
+			}
+			
+			String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
+			String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+
+			if (proxy != null) {//if enable is false, will return null.
+				List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
+				
+				if (mode != null) {//random mode
+					proxyServerIndex = (int)(Math.random() * proxyList.size());
+					//proxyServerIndex = new Random().nextInt(proxyList.size());
+				}else {
+					proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
+				}
+				String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
+				int port  = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
+				messageInfo.setHttpService(
+						helpers.buildHttpService(proxyhost,port,messageInfo.getHttpService().getProtocol()));
+				//success or failed,need to check?
 			}
 		}
 	}

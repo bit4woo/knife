@@ -144,6 +144,7 @@ public class ConfigTable extends JTable
 		comboBox.addItem(ConfigEntry.Config_Basic_Variable);
 		comboBox.addItem(ConfigEntry.Config_Custom_Payload);
 		comboBox.addItem(ConfigEntry.Config_Chunked_Variable);
+		comboBox.addItem(ConfigEntry.Config_Proxy_Variable);
 		TableColumnModel typeColumn = this.getColumnModel();
 		typeColumn.getColumn(2).setCellEditor(new DefaultCellEditor(comboBox));
 
