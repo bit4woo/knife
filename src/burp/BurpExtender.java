@@ -260,6 +260,28 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					            isRequestChanaged = true;
 							}
 						}
+						
+						
+						///proxy function should be here 
+						
+						String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
+						String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+
+						if (proxy != null) {//if enable is false, will return null.
+							List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
+							
+							if (mode != null) {//random mode
+								proxyServerIndex = (int)(Math.random() * proxyList.size());
+								//proxyServerIndex = new Random().nextInt(proxyList.size());
+							}else {
+								proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
+							}
+							String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
+							int port  = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
+							messageInfo.setHttpService(
+									helpers.buildHttpService(proxyhost,port,messageInfo.getHttpService().getProtocol()));
+							//success or failed,need to check?
+						}
 					}
 					catch(Exception e){
 						e.printStackTrace(stderr);
@@ -284,24 +306,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				}
 			}
 			
-			String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
-			String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
 
-			if (proxy != null) {//if enable is false, will return null.
-				List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
-				
-				if (mode != null) {//random mode
-					proxyServerIndex = (int)(Math.random() * proxyList.size());
-					//proxyServerIndex = new Random().nextInt(proxyList.size());
-				}else {
-					proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
-				}
-				String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
-				int port  = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
-				messageInfo.setHttpService(
-						helpers.buildHttpService(proxyhost,port,messageInfo.getHttpService().getProtocol()));
-				//success or failed,need to check?
-			}
 		}
 	}
 }
