@@ -1,11 +1,13 @@
 package burp;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class MessageEditor{
+public class  MessageEditor{
     private static IExtensionHelpers helpers;
 	private static IHttpRequestResponse messageInfo;
 	private boolean messageIsRequest;
@@ -18,6 +20,7 @@ public class MessageEditor{
 	//为了保证header的转换过程中的顺序，使用LinkedHashMap
 	//http://www.cnblogs.com/csliwei/archive/2012/01/12/2320674.html
 	private byte[] body = null;
+	PrintWriter stderr = new PrintWriter(BurpExtender.callbacks.getStderr(), true);
 
     public MessageEditor(boolean messageIsRequest,IHttpRequestResponse messageInfo,IExtensionHelpers helpers) {
     	this.messageIsRequest = messageIsRequest;
@@ -28,58 +31,86 @@ public class MessageEditor{
     }
 
     private void parser(){
-		if (messageInfo == null){
-			return;
-		}
-		List<String> headers;
-		if(messageIsRequest) {
-			IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
-			List<String> headerList = analyzeRequest.getHeaders();
-
-			this.firstLineOfHeader = headerList.get(0);
-			headerList.remove(0);//remove first line
-
-
-			this.headerMap = new LinkedHashMap<String, String>();
-			for (String header : headerList) {
-				String headerName = header.split(Header_Spliter, 0)[0];
-				String headerValue = header.split(Header_Spliter, 0)[1];
-				this.headerMap.put(headerName, headerValue);
-			}
-
-			byte[] byte_Request = messageInfo.getRequest();
-			if (byte_Request ==null) {
+		synchronized (messageInfo){//避免其他组件修改数据包，比如scanner,但是实测无用啊！
+			if (messageInfo == null){
 				return;
 			}
-			int bodyOffset = analyzeRequest.getBodyOffset();
+			List<String> headers;
+			if(messageIsRequest) {
+				IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
 
-			this.body = Arrays.copyOfRange(byte_Request, bodyOffset, byte_Request.length);//not length-1
-			//String body = new String(byte_body); //byte[] to String
-
-		}else {
-			IResponseInfo analyzeResponse = helpers.analyzeResponse(messageInfo.getResponse());
-			List<String> headerList = analyzeResponse.getHeaders();
-
-			this.firstLineOfHeader = headerList.get(0);
-			headerList.remove(0);//remove first line
+				String firstRequest = new String(messageInfo.getRequest());
+				int code = messageInfo.hashCode();
+				//debug
+				int bodyOffset = helpers.analyzeRequest(messageInfo).getBodyOffset();
+				int requestLength = messageInfo.getRequest().length;
 
 
-			this.headerMap = new LinkedHashMap<String, String>();
-			for (String header : headerList) {
-				String headerName = header.split(Header_Spliter, 0)[0];
-				String headerValue = header.split(Header_Spliter, 0)[1];
-				this.headerMap.put(headerName, headerValue);
+				List<String> headerList = analyzeRequest.getHeaders();
+
+				this.firstLineOfHeader = headerList.get(0);
+				headerList.remove(0);//remove first line
+
+				this.headerMap = new LinkedHashMap<String, String>();
+
+				for (String header : headerList) {
+					try{
+						String headerName = header.split(Header_Spliter, 0)[0];
+						String headerValue = header.split(Header_Spliter, 0)[1];
+						this.headerMap.put(headerName, headerValue);
+					}catch (Exception e){
+						new PrintWriter(BurpExtender.callbacks.getStderr(), true).println(header);
+					}
+				}
+
+				byte[] byte_Request = messageInfo.getRequest();
+				if (byte_Request ==null) {
+					return;
+				}
+//				int bodyOffset = analyzeRequest.getBodyOffset();
+//				int requestLength = byte_Request.length;
+
+				//debug
+				int bodyOffset1 = helpers.analyzeRequest(messageInfo).getBodyOffset();
+				int requestLength1 = messageInfo.getRequest().length;
+				int code1 = messageInfo.hashCode();
+
+
+				try {
+					this.body = Arrays.copyOfRange(byte_Request, bodyOffset, requestLength);//not length-1
+					//String body = new String(byte_body); //byte[] to String
+				}catch (Exception e){
+					stderr.println (firstRequest);
+					stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code);
+					stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1);
+					stderr.println (new String(messageInfo.getRequest()));
+					stderr.println ("////////////////////////////////");
+				}
+
+
+			}else {
+				IResponseInfo analyzeResponse = helpers.analyzeResponse(messageInfo.getResponse());
+				List<String> headerList = analyzeResponse.getHeaders();
+
+				this.firstLineOfHeader = headerList.get(0);
+				headerList.remove(0);//remove first line
+
+				this.headerMap = new LinkedHashMap<String, String>();
+				for (String header : headerList) {
+					String headerName = header.split(Header_Spliter, 0)[0];
+					String headerValue = header.split(Header_Spliter, 0)[1];
+					this.headerMap.put(headerName, headerValue);
+				}
+
+				byte[] byte_Response = messageInfo.getResponse();
+				if (byte_Response ==null) {
+					return;
+				}
+				int bodyOffset = analyzeResponse.getBodyOffset();
+
+				this.body = Arrays.copyOfRange(byte_Response, bodyOffset, byte_Response.length);//not length-1
 			}
-
-
-			byte[] byte_Response = messageInfo.getResponse();
-			if (byte_Response ==null) {
-				return;
-			}
-			int bodyOffset = analyzeResponse.getBodyOffset();
-
-			this.body = Arrays.copyOfRange(byte_Response, bodyOffset, byte_Response.length);//not length-1
-		}
+		}//sync
 	}
 
     /*

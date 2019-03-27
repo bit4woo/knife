@@ -38,7 +38,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public PrintWriter stdout;
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
-	public MessageEditor editer;
 	public int proxyServerIndex=-1;
 	
 
@@ -155,130 +154,149 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-		if (messageIsRequest){
-		    boolean isRequestChanged = false;
-            MessageEditor editer = new MessageEditor(messageIsRequest,messageInfo,helpers);
-            String md5 = editer.getMd5();//to judge message is changed or not
-			URL url =editer.getURL();
-			String host = editer.getHost();
-			byte[] body = editer.getBody();
-            LinkedHashMap<String, String> headers = editer.getHeaderMap();//this will lost the first line
+		synchronized (messageInfo) {
+			if (messageIsRequest) {
+				String firstRequest = new String(messageInfo.getRequest());
+				int code = messageInfo.hashCode();
+				//debug
+				int bodyOffset = helpers.analyzeRequest(messageInfo).getBodyOffset();
+				int requestLength = messageInfo.getRequest().length;
+
+				boolean isRequestChanged = false;
+				MessageEditor editer = new MessageEditor(messageIsRequest, messageInfo, helpers);
+
+				URL url = editer.getURL();
+				String host = editer.getHost();
+				byte[] body = editer.getBody();
+				LinkedHashMap<String, String> headers = editer.getHeaderMap();//this will lost the first line
 
 
-			//remove header
-			List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
-            for (ConfigEntry entry : configEntries) {
-                String key = entry.getKey();
-                if (headers.remove(key) != null){
-                    isRequestChanged = true;
-                };
-            }
+				//remove header
+				List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
+				for (ConfigEntry entry : configEntries) {
+					String key = entry.getKey();
+					if (headers.remove(key) != null) {
+						isRequestChanged = true;
+					}
+					;
+				}
 
-            if (config.getTmpMap().containsKey(host)) {//自动更新cookie
-                String cookieValue = config.getTmpMap().get(host);
-                String[] values = cookieValue.split("::::");
-                String trueCookie = values[1];
-                headers.put("Cookie", trueCookie);
-                isRequestChanged = true;
-            }
-			
-			//add/update/append header
-			if (toolFlag == (toolFlag&checkEnabledFor())){
-				if((config.isOnlyForScope()&& callbacks.isInScope(url))
-						|| !config.isOnlyForScope()) {
-					try{
-						List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
-                        for (ConfigEntry entry : updateOrAddEntries) {
-                            String key = entry.getKey();
-                            String value = entry.getValue();
+				if (config.getTmpMap().containsKey(host)) {//自动更新cookie
+					String cookieValue = config.getTmpMap().get(host);
+					String[] values = cookieValue.split("::::");
+					String trueCookie = values[1];
+					headers.put("Cookie", trueCookie);
+					isRequestChanged = true;
+				}
 
-                            if (value.contains("%host")) {
-                                value = value.replaceAll("%host", host);
-                                //stdout.println("3333"+value);
-                            }
+				//add/update/append header
+				if (toolFlag == (toolFlag & checkEnabledFor())) {
+					if ((config.isOnlyForScope() && callbacks.isInScope(url))
+							|| !config.isOnlyForScope()) {
+						try {
+							List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
+							for (ConfigEntry entry : updateOrAddEntries) {
+								String key = entry.getKey();
+								String value = entry.getValue();
 
-                            if (value.toLowerCase().contains("%dnslogserver")) {
-                                String dnslog = tableModel.getConfigByKey("DNSlogServer");
-                                Pattern p = Pattern.compile("(?u)%dnslogserver");
-                                Matcher m = p.matcher(value);
+								if (value.contains("%host")) {
+									value = value.replaceAll("%host", host);
+									//stdout.println("3333"+value);
+								}
 
-                                while (m.find()) {
-                                    String found = m.group(0);
-                                    value = value.replaceAll(found, dnslog);
-                                }
-                            }
+								if (value.toLowerCase().contains("%dnslogserver")) {
+									String dnslog = tableModel.getConfigByKey("DNSlogServer");
+									Pattern p = Pattern.compile("(?u)%dnslogserver");
+									Matcher m = p.matcher(value);
 
-                            if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
-                                headers.put(key, value);
-                                isRequestChanged = true;
+									while (m.find()) {
+										String found = m.group(0);
+										value = value.replaceAll(found, dnslog);
+									}
+								}
 
-                            } else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
-                                value = headers.get(key) + value;
-                                headers.put(key, value);
-                                isRequestChanged = true;
-                                //stdout.println("2222"+value);
-                            } else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
-                                headers.put("Transfer-Encoding", "chunked");
-                                isRequestChanged = true;
+								if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
+									headers.put(key, value);
+									isRequestChanged = true;
 
-                                try {
-                                    boolean useComment = false;
-                                    if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
-                                        useComment = true;
-                                    }
-                                    String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
-                                    int len = 10;
-                                    if (lenStr != null) {
-                                        len = Integer.parseInt(lenStr);
-                                    }
-                                    body = Methods.encoding(body, len, useComment);
-                                } catch (UnsupportedEncodingException e) {
-                                    e.printStackTrace(stderr);
-                                }
-                            }
-                        }
-						
-						
-						///proxy function should be here 
-						
-						String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
-						String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+								} else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
+									value = headers.get(key) + value;
+									headers.put(key, value);
+									isRequestChanged = true;
+									//stdout.println("2222"+value);
+								} else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
+									headers.put("Transfer-Encoding", "chunked");
+									isRequestChanged = true;
 
-						if (proxy != null) {//if enable is false, will return null.
-							List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
-							
-							if (mode != null) {//random mode
-								proxyServerIndex = (int)(Math.random() * proxyList.size());
-								//proxyServerIndex = new Random().nextInt(proxyList.size());
-							}else {
-								proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
+									try {
+										boolean useComment = false;
+										if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+											useComment = true;
+										}
+										String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
+										int len = 10;
+										if (lenStr != null) {
+											len = Integer.parseInt(lenStr);
+										}
+										body = Methods.encoding(body, len, useComment);
+									} catch (UnsupportedEncodingException e) {
+										e.printStackTrace(stderr);
+									}
+								}
 							}
-							String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
-							int port  = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
-							messageInfo.setHttpService(
-									helpers.buildHttpService(proxyhost,port,messageInfo.getHttpService().getProtocol()));
-                            isRequestChanged = true;
-							//success or failed,need to check?
+
+
+							///proxy function should be here
+
+							String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
+							String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+
+							if (proxy != null) {//if enable is false, will return null.
+								List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
+
+								if (mode != null) {//random mode
+									proxyServerIndex = (int) (Math.random() * proxyList.size());
+									//proxyServerIndex = new Random().nextInt(proxyList.size());
+								} else {
+									proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
+								}
+								String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
+								int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
+								messageInfo.setHttpService(
+										helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
+								isRequestChanged = true;
+								//success or failed,need to check?
+							}
+						} catch (Exception e) {
+							e.printStackTrace(stderr);
 						}
 					}
-					catch(Exception e){
-						e.printStackTrace(stderr);
+				}
+				//set final request
+				editer.setHeaderMap(headers);
+				messageInfo = editer.getMessageInfo();
+
+				String firstRequest1 = new String(messageInfo.getRequest());
+				int code1 = messageInfo.hashCode();
+				//debug
+				int bodyOffset1 = helpers.analyzeRequest(messageInfo).getBodyOffset();
+				int requestLength1 = messageInfo.getRequest().length;
+
+//				stderr.println (firstRequest);
+//				stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code);
+//				stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1);
+//				stderr.println (firstRequest1);
+//				stderr.println ("////////////////////////////////");
+				if (isRequestChanged) {
+					//debug
+					List<String> finalheaders = new MessageEditor(messageIsRequest, messageInfo, helpers).getHeaderList();
+					stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
+					for (String entry : finalheaders) {
+						stdout.println(entry);
 					}
 				}
 			}
-			//set final request
-            editer.setHeaderMap(headers);
-            messageInfo = editer.getMessageInfo();
-
-			if (isRequestChanged) {
-				//debug
-                List<String> finalheaders = new MessageEditor(messageIsRequest,messageInfo,helpers).getHeaderList();
-				stdout.println(System.lineSeparator()+"//////////edited request by knife//////////////"+System.lineSeparator());
-                for (String entry : finalheaders) {
-                    stdout.println(entry);
-                }
-			}
-		}
+		}//sync
 	}
 
 	
