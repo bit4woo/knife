@@ -53,9 +53,9 @@ class UpdateCookie_Action implements ActionListener{
 		String shorturl = selectedItems[0].getHttpService().toString();
 		String latestCookie = getLatestCookieFromHistory(shorturl);
 
-		if (latestCookie == null) {//when host is ip address, need manually input domain to get the cookie
-			latestCookie = getLatestCookieFromSpeicified();
-		}
+//		if (latestCookie == null) {//when host is ip address, need manually input domain to get the cookie
+//			latestCookie = getLatestCookieFromSpeicified();
+//		}
 
 		if (latestCookie !=null) {
 			IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
@@ -69,8 +69,11 @@ class UpdateCookie_Action implements ActionListener{
 				}
 			}
 			
-			if (latestCookie.equals(cookie)) {//if cookie is same, request input to find again
-				latestCookie = getLatestCookieFromSpeicified();
+//			if (latestCookie.equals(cookie)) {//if cookie is same, request input to find again
+//				latestCookie = getLatestCookieFromSpeicified();
+//			}
+			if (latestCookie.equals(cookie)) {
+				return;
 			}
 			
 			//update cookie
@@ -129,48 +132,4 @@ class UpdateCookie_Action implements ActionListener{
 		}
 		return null;
 	}
-	
-	public String getLatestCookieFromSpeicified() {
-		String latestCookie = null;
-		String domain = Methods.prompt_and_validate_input("update cookie with cookie of ", null);
-		String url1 = "";
-		String url2 = "";
-		String successURL = "";
-		try{
-			if (domain.startsWith("http://") || domain.startsWith("https://")) {
-				url1 = domain;
-			}else {
-				url1 = "http://"+domain;
-				url2 = "https://"+domain;
-			}
-
-			try {
-				latestCookie = getLatestCookieFromHistory(url1);
-				if (latestCookie != null){
-					successURL = url1;
-				}
-			} catch (Exception e) {
-
-			}
-
-			if (latestCookie == null){
-				try {
-					latestCookie = getLatestCookieFromHistory(url2);
-					if (latestCookie != null){
-						successURL = url2;
-					}
-				} catch (Exception e) {
-
-				}
-			}
-
-		}catch(NumberFormatException nfe){
-			Methods.show_message("Enter proper domain!!!", "Input Not Valid");
-		}
-		if (latestCookie != null && successURL.startsWith("http")) {
-			this.burp.config.getTmpMap().put("UsedCookie", successURL+"::::"+latestCookie);
-		}
-		return latestCookie;
-	} 
-	
 }
