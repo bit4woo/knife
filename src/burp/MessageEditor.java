@@ -1,6 +1,5 @@
 package burp;
 
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -14,34 +13,35 @@ public class  MessageEditor{
 	private static String Header_Spliter = ": ";
 
 	//包的组成部分
+	private IHttpService service = null;
 	//private List<String> headers;// headers = firstline+headerMap
 	private String firstLineOfHeader = null;
 	private LinkedHashMap<String,String> headerMap = null;//doesn't contain first line!!!
 	//为了保证header的转换过程中的顺序，使用LinkedHashMap
 	//http://www.cnblogs.com/csliwei/archive/2012/01/12/2320674.html
 	private byte[] body = null;
+	
+	
 	PrintWriter stderr = new PrintWriter(BurpExtender.callbacks.getStderr(), true);
 
     public MessageEditor(boolean messageIsRequest,IHttpRequestResponse messageInfo,IExtensionHelpers helpers) {
     	this.messageIsRequest = messageIsRequest;
-    	this.helpers = helpers;
-    	this.messageInfo = messageInfo;
-
+    	MessageEditor.helpers = helpers;
+    	MessageEditor.messageInfo = messageInfo;
 		parser();
     }
 
     private void parser(){
-		synchronized (messageInfo){//避免其他组件修改数据包，比如scanner,但是实测无用啊！
+		synchronized (this){//避免其他组件修改数据包，比如scanner,但是实测无用啊！synchronized (messageInfo)也不行！！！
 			if (messageInfo == null){
 				return;
 			}
-			List<String> headers;
 			if(messageIsRequest) {
 				IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
 
-				String firstRequest = new String(messageInfo.getRequest());
-				int code = messageInfo.hashCode();
 				//debug
+				String firstRequest = new String(messageInfo.getRequest());
+				int code =  System.identityHashCode(messageInfo);
 				int bodyOffset = helpers.analyzeRequest(messageInfo).getBodyOffset();
 				int requestLength = messageInfo.getRequest().length;
 
@@ -59,7 +59,10 @@ public class  MessageEditor{
 						String headerValue = header.split(Header_Spliter, 0)[1];
 						this.headerMap.put(headerName, headerValue);
 					}catch (Exception e){
-						new PrintWriter(BurpExtender.callbacks.getStderr(), true).println(header);
+						String headerName = header.split(":", 0)[0];
+						String headerValue = header.split(":", 0)[1];
+						this.headerMap.put(headerName, headerValue);
+						//stderr.println(header);
 					}
 				}
 
@@ -70,21 +73,25 @@ public class  MessageEditor{
 //				int bodyOffset = analyzeRequest.getBodyOffset();
 //				int requestLength = byte_Request.length;
 
+				
 				//debug
+				String firstRequest1 = new String(messageInfo.getRequest());
+				int code1 = System.identityHashCode(messageInfo);
 				int bodyOffset1 = helpers.analyzeRequest(messageInfo).getBodyOffset();
 				int requestLength1 = messageInfo.getRequest().length;
-				int code1 = messageInfo.hashCode();
 
 
 				try {
 					this.body = Arrays.copyOfRange(byte_Request, bodyOffset, requestLength);//not length-1
 					//String body = new String(byte_body); //byte[] to String
 				}catch (Exception e){
-					stderr.println (firstRequest);
-					stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code);
-					stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1);
-					stderr.println (new String(messageInfo.getRequest()));
 					stderr.println ("////////////////////////////////");
+					stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code);
+					stderr.println (firstRequest);
+					stderr.println ("\n");
+					stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1);
+					stderr.println (firstRequest1);
+					stderr.println ("////////////////////////////////\n\n");
 				}
 
 
@@ -113,7 +120,15 @@ public class  MessageEditor{
 		}//sync
 	}
 
-    /*
+    public String getFirstLineOfHeader() {
+		return firstLineOfHeader;
+	}
+
+	public void setFirstLineOfHeader(String firstLineOfHeader) {
+		this.firstLineOfHeader = firstLineOfHeader;
+	}
+
+	/*
      * 获取header的字符串数组，是构造burp中请求需要的格式。
      * 包含了协议行（第一行）
      */
@@ -157,8 +172,13 @@ public class  MessageEditor{
 		this.body = body;
 	}
 
+	public IHttpService getService() {
+		return service;
+	}
 
-	//////////*************常用Get 函数*******************///////////////////
+	public void setService(IHttpService service) {
+		this.service = service;
+	}
 
 	/*
 	 * 获取所有headers，当做一个string看待。
@@ -231,9 +251,6 @@ public class  MessageEditor{
 		}
 	}
 	//////////*************常用Get 函数*******************///////////////////
-
-
-
 
     
     public static void main(String args[]) {

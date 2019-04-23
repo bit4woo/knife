@@ -54,9 +54,9 @@ public class Getter {
 	 * 这种方式可以用put函数轻松实现：如果有则update，如果无则add。
 	 * ！！！注意：这个方法获取到的map，会少了协议头GET /cps.gec/limit/information.html HTTP/1.1
 	 */
-	public HashMap<String,String> getHeaderHashMap(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
+	public LinkedHashMap<String,String> getHeaderHashMap(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
 		List<String> headers=null;
-		HashMap<String,String> result = new HashMap<String, String>();
+		LinkedHashMap<String,String> result = new LinkedHashMap<String, String>();
 		if(messageIsRequest) {
 			IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
 			headers = analyzeRequest.getHeaders();
@@ -80,7 +80,7 @@ public class Getter {
         return result;
 	}
 	
-	public List<String> MapToList(HashMap<String,String> Headers){
+	public List<String> MapToList(LinkedHashMap<String,String> Headers){
 		List<String> result = new ArrayList<String>();
 		for (Entry<String,String> header:Headers.entrySet()) {
 			String item = header.getKey()+": "+header.getValue();

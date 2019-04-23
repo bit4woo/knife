@@ -3,6 +3,7 @@ package burp;
 import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
@@ -26,10 +27,10 @@ import knife.UpdateCookieMenu;
 import knife.UpdateHeaderMenu;
 import knife.UseCookieOfMenu;
 
-public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener {
+public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener,IProxyListener {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -39,7 +40,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public int proxyServerIndex=-1;
-	
+
 
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
@@ -55,7 +56,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		this.stdout.println(ExtensionName);
 		this.stdout.println(github);
-		
+
 		table = new ConfigTable(new ConfigTableModel());
 		configPanel.setViewportView(table);
 
@@ -83,11 +84,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			menu_list.add(new UpdateCookieMenu(this));
 			//menu_list.add(new UpdateCookieWithMenu(this));
-			
+
 		}
 
 		menu_list.add(new UseCookieOfMenu(this));
-		
+
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST ) {
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
@@ -143,7 +144,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public void saveConfigToExtension() {
 		callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
 	}
-	
+
 	@Override
 	public String initConfig() {
 		config = new Config("default");
@@ -151,21 +152,21 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return getAllConfig();
 	}
 
+	@Override
+	public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
+		//processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
+	}
 
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
 		synchronized (messageInfo) {
 			if (messageIsRequest) {
-				String firstRequest = new String(messageInfo.getRequest());
-				int code = messageInfo.hashCode();
-				//debug
-				int bodyOffset = helpers.analyzeRequest(messageInfo).getBodyOffset();
-				int requestLength = messageInfo.getRequest().length;
 
 				boolean isRequestChanged = false;
 				MessageEditor editer = new MessageEditor(messageIsRequest, messageInfo, helpers);
 
 				URL url = editer.getURL();
+				String path = url.getPath();
 				String host = editer.getHost();
 				byte[] body = editer.getBody();
 				LinkedHashMap<String, String> headers = editer.getHeaderMap();//this will lost the first line
@@ -178,7 +179,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					if (headers.remove(key) != null) {
 						isRequestChanged = true;
 					}
-					;
 				}
 
 				if (config.getTmpMap().containsKey(host)) {//自动更新cookie
@@ -191,8 +191,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 				//add/update/append header
 				if (toolFlag == (toolFlag & checkEnabledFor())) {
-					if ((config.isOnlyForScope() && callbacks.isInScope(url))
-							|| !config.isOnlyForScope()) {
+					//if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
+					if (!config.isOnlyForScope()||callbacks.isInScope(url)){
 						try {
 							List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
 							for (ConfigEntry entry : updateOrAddEntries) {
@@ -239,6 +239,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 											len = Integer.parseInt(lenStr);
 										}
 										body = Methods.encoding(body, len, useComment);
+										editer.setBody(body);
 									} catch (UnsupportedEncodingException e) {
 										e.printStackTrace(stderr);
 									}
@@ -247,7 +248,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 							///proxy function should be here
-
+							//reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
 							String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
 							String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
 
@@ -262,8 +263,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 								}
 								String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
 								int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
-								messageInfo.setHttpService(
+								editer.setService(
 										helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
+								String firstrline = editer.getFirstLineOfHeader().replaceFirst(path, url.toString().split("\\?",0)[0]);
+								editer.setFirstLineOfHeader(firstrline);
 								isRequestChanged = true;
 								//success or failed,need to check?
 							}
@@ -276,20 +279,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				editer.setHeaderMap(headers);
 				messageInfo = editer.getMessageInfo();
 
-				String firstRequest1 = new String(messageInfo.getRequest());
-				int code1 = messageInfo.hashCode();
-				//debug
-				int bodyOffset1 = helpers.analyzeRequest(messageInfo).getBodyOffset();
-				int requestLength1 = messageInfo.getRequest().length;
-
-//				stderr.println (firstRequest);
-//				stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code);
-//				stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1);
-//				stderr.println (firstRequest1);
-//				stderr.println ("////////////////////////////////");
 				if (isRequestChanged) {
 					//debug
-					List<String> finalheaders = new MessageEditor(messageIsRequest, messageInfo, helpers).getHeaderList();
+					List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
+					//List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
 					stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
 					for (String entry : finalheaders) {
 						stdout.println(entry);
@@ -298,6 +291,4 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}
 		}//sync
 	}
-
-	
 }
