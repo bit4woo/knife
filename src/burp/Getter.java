@@ -1,5 +1,6 @@
 package burp;
 
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.Map.Entry;
 public class Getter {
 	private static IExtensionHelpers helpers;
 	private static String Header_Spliter = ": ";
+	private PrintWriter stderr = new PrintWriter(BurpExtender.callbacks.getStderr(), true);
 
 	public Getter(IExtensionHelpers helpers) {
 		Getter.helpers = helpers;
@@ -58,9 +60,13 @@ public class Getter {
 				String headerValue = header.split(Header_Spliter, 0)[1];
 				result.put(headerName, headerValue);
 			} catch (Exception e) {
-				String headerName = header.split(":", 0)[0];
-				String headerValue = header.split(":", 0)[1];
-				result.put(headerName, headerValue);
+				try {
+					String headerName = header.split(":", 0)[0];
+					String headerValue = header.split(":", 0)[1];
+					result.put(headerName, headerValue);
+				}catch (Exception e1) {
+					stderr.print("Error Header: "+header);
+				}
 			}
 		}
 		return result;

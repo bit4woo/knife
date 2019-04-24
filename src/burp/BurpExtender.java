@@ -247,7 +247,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 									}
 									body = Methods.encoding(body, len, useComment);
 								} catch (UnsupportedEncodingException e) {
-									e.printStackTrace(stderr);
+									stderr.print(e.getStackTrace());
 								}
 							}
 						}
@@ -277,7 +277,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							//success or failed,need to check?
 						}
 					} catch (Exception e) {
-						e.printStackTrace(stderr);
+						stderr.print(e.getStackTrace());
 					}
 				}
 			}
