@@ -54,6 +54,7 @@ public class Methods {
     
     public static String prompt_and_validate_input(String prompt, String str){
         String user_input = JOptionPane.showInputDialog(prompt, str);
+        if (null == user_input) return  null;
         while(user_input.trim().equals("")){
             user_input = JOptionPane.showInputDialog(prompt, str);
         }

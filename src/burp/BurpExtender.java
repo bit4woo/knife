@@ -20,12 +20,7 @@ import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
-import knife.AddHostToScopeMenu;
-import knife.ChunkedEncodingMenu;
-import knife.OpenWithBrowserMenu;
-import knife.UpdateCookieMenu;
-import knife.UpdateHeaderMenu;
-import knife.UseCookieOfMenu;
+import knife.*;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener,IProxyListener {
 
@@ -53,6 +48,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		callbacks.registerMessageEditorTabFactory(this);// for U2C
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
+		callbacks.registerProxyListener(this);
 
 		this.stdout.println(ExtensionName);
 		this.stdout.println(github);
@@ -83,13 +79,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			menu_list.add(new UpdateCookieMenu(this));
-			//menu_list.add(new UpdateCookieWithMenu(this));
+			menu_list.add(new UpdateCookieWithMenu(this));
+			menu_list.add(new SetCookieWithMenu(this));
 
-		}
-
-		menu_list.add(new UseCookieOfMenu(this));
-
-		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST ) {
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
 			/*menu_list.add(uhmenu);*/
@@ -155,6 +147,29 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	@Override
 	public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
 		//processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
+		//same action will be executed twice! if call processHttpMessage() here.
+
+		String cookieToSet = config.getTmpMap().get("cookieToSet");
+		if (cookieToSet != null){
+			String host = cookieToSet.split("::::")[0];
+			String cookieString = cookieToSet.split("::::")[1];
+			IHttpRequestResponse messageInfo = message.getMessageInfo();
+			if (host.equalsIgnoreCase(messageInfo.getHttpService().getHost())){
+				List<String> setHeaders = GetSetCookieHeaders(cookieString);
+				Getter getter = new Getter(helpers);
+
+				List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
+				byte[] responseBody = getter.getBody(false,messageInfo);
+				responseHeaders.addAll(setHeaders);
+
+				byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
+
+				messageInfo.setResponse(response);
+				config.getTmpMap().remove("cookieToSet");//only need to set once
+			}
+
+		}
+
 	}
 
 	@Override
@@ -266,10 +281,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					}
 				}
 			}
+			if (isRequestChanged){
+				//set final request
+				List<String> headerList = getter.HeaderMapToList(firstLineOfHeader,headers);
+				messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
+			}
 
-			//set final request
-			List<String> headerList = getter.HeaderMapToList(firstLineOfHeader,headers);
-			messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
 
 			if (isRequestChanged) {
 				//debug
@@ -419,5 +436,21 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				}
 			}
 		}//sync
+	}
+
+
+
+	public List<String> GetSetCookieHeaders(String cookies){
+		if (cookies.startsWith("Cookie: ")){
+			cookies = cookies.replaceFirst("Cookie: ","");
+		}
+
+		String[] cookieList = cookies.split("; ");
+		List<String> setHeaderList= new ArrayList<String>();
+		//Set-Cookie: SST_S22__WEB_RIGHTS=SST_S22_JT_RIGHTS_113_9; Path=/
+		for (String cookie: cookieList){
+			setHeaderList.add(String.format("Set-Cookie: %s; Path=/",cookie));
+		}
+		return setHeaderList;
 	}
 }
