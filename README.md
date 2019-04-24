@@ -34,6 +34,10 @@ A extension that add some small function[ one key to update cookie, one key add 
 
    insert payload of [Hackbar](https://github.com/d3vilbug/HackBar) or self-configured to current request
 
+6. Set Cookie with
+   scenes: when you visit a website with IP address, It may not contains cookie, but you know it should contains same cookie with some site. you can use this function in Proxy. It will edit response to set the same cookie.
+
+
 
 ##### Tab
 
@@ -45,6 +49,8 @@ A extension that add some small function[ one key to update cookie, one key add 
 
 1. auto remove some headers , eg. Last-Modified,If-Modified-Since,If-None-Match. it's for all requests
 2. auto add/update/append some headers, you can control which requests to enable for.
+3. use proxy
+4. chunked encoding
 
 ### Screen shot
 

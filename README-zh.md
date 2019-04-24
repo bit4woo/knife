@@ -64,6 +64,11 @@
 
    ![insertpayload](img/insertpayload.gif)
 
+6. Set cookie with
+
+   对当前请求的响应包的header添加set cookie的header，使整个站的后续请求都带上这些cookie。
+
+   使用场景：当我们使用IP地址访问一个web的时候，由于cookie的域的限制，大多都不会带上cookie。但是当我们是知道它是某个域的站点（比如它是*.jd.com），可以通过这个方法主动给他设置与某个站点相同的cookie（比如www.jd.com的cookie）。
 
 ##### Tab
 
@@ -89,7 +94,8 @@
 
    ![headerEditconfig](img/headerEditconfig.png)
 
-
+3. 对请求使用代理。
+4. 自动使用chunked encode 编码，绕过waf。
 
 如有更好的建议或者意见，欢迎[提交](https://github.com/bit4woo/knife/issues)
 
