@@ -48,11 +48,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		this.helpers = callbacks.getHelpers();
 		this.stdout = new PrintWriter(callbacks.getStdout(), true);
 		this.stderr = new PrintWriter(callbacks.getStderr(), true);
-		this.callbacks.setExtensionName(this.ExtensionName);
-		this.callbacks.registerContextMenuFactory(this);// for menus
-		this.callbacks.registerMessageEditorTabFactory(this);// for U2C
-		this.callbacks.addSuiteTab(BurpExtender.this);
-		this.callbacks.registerHttpListener(this);
+		callbacks.setExtensionName(this.ExtensionName);
+		callbacks.registerContextMenuFactory(this);// for menus
+		callbacks.registerMessageEditorTabFactory(this);// for U2C
+		callbacks.addSuiteTab(BurpExtender.this);
+		callbacks.registerHttpListener(this);
 
 		this.stdout.println(ExtensionName);
 		this.stdout.println(github);
@@ -159,6 +159,135 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+		if (messageIsRequest) {
+			Getter getter = new Getter(helpers);
+
+			URL url = getter.getURL(messageInfo);
+			String host = getter.getHost(messageInfo);
+			String path = url.getPath();
+			String firstLineOfHeader = getter.getHeaderFirstLine(messageIsRequest,messageInfo);
+			LinkedHashMap headers = getter.getHeaderHashMap(messageIsRequest,messageInfo);
+			IHttpService service = messageInfo.getHttpService();
+			byte[] body = getter.getBody(messageIsRequest,messageInfo);
+
+			boolean isRequestChanged = false;
+
+			//remove header
+			List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
+			for (ConfigEntry entry : configEntries) {
+				String key = entry.getKey();
+				if (headers.remove(key) != null) {
+					isRequestChanged = true;
+				}
+			}
+
+			//add/update/append header
+			if (toolFlag == (toolFlag & checkEnabledFor())) {
+				//if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
+				if (!config.isOnlyForScope()||callbacks.isInScope(url)){
+					try {
+						List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
+						for (ConfigEntry entry : updateOrAddEntries) {
+							String key = entry.getKey();
+							String value = entry.getValue();
+
+							if (value.contains("%host")) {
+								value = value.replaceAll("%host", host);
+								//stdout.println("3333"+value);
+							}
+
+							if (value.toLowerCase().contains("%dnslogserver")) {
+								String dnslog = tableModel.getConfigByKey("DNSlogServer");
+								Pattern p = Pattern.compile("(?u)%dnslogserver");
+								Matcher m = p.matcher(value);
+
+								while (m.find()) {
+									String found = m.group(0);
+									value = value.replaceAll(found, dnslog);
+								}
+							}
+
+							if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
+								headers.put(key, value);
+								isRequestChanged = true;
+
+							} else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
+								value = headers.get(key) + value;
+								headers.put(key, value);
+								isRequestChanged = true;
+								//stdout.println("2222"+value);
+							} else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
+								headers.put("Transfer-Encoding", "chunked");
+								isRequestChanged = true;
+
+								try {
+									boolean useComment = false;
+									if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+										useComment = true;
+									}
+									String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
+									int len = 10;
+									if (lenStr != null) {
+										len = Integer.parseInt(lenStr);
+									}
+									body = Methods.encoding(body, len, useComment);
+								} catch (UnsupportedEncodingException e) {
+									e.printStackTrace(stderr);
+								}
+							}
+						}
+
+
+						///proxy function should be here
+						//reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
+						String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
+						String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+
+						if (proxy != null) {//if enable is false, will return null.
+							List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
+
+							if (mode != null) {//random mode
+								proxyServerIndex = (int) (Math.random() * proxyList.size());
+								//proxyServerIndex = new Random().nextInt(proxyList.size());
+							} else {
+								proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
+							}
+							String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
+							int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
+
+							messageInfo.setHttpService(helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
+
+							firstLineOfHeader = firstLineOfHeader.replaceFirst(path, url.toString().split("\\?",0)[0]);
+							isRequestChanged = true;
+							//success or failed,need to check?
+						}
+					} catch (Exception e) {
+						e.printStackTrace(stderr);
+					}
+				}
+			}
+
+			//set final request
+			List<String> headerList = getter.HeaderMapToList(firstLineOfHeader,headers);
+			messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
+
+			if (isRequestChanged) {
+				//debug
+				List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
+				//List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
+				stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
+				for (String entry : finalheaders) {
+					stdout.println(entry);
+				}
+			}
+		}else {//response
+
+		}
+	}
+
+	@Deprecated
+	public void processHttpMessageWithEditor(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+		//messageeditor
 		synchronized (messageInfo) {
 			if (messageIsRequest) {
 

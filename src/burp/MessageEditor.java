@@ -6,6 +6,10 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
 
+/*
+这个类在使用中有多线程的同步问题！！！！特别是插件对scanner开启的时候！！！
+ */
+@Deprecated
 public class  MessageEditor{
     private static IExtensionHelpers helpers;
 	private static IHttpRequestResponse messageInfo;
@@ -31,15 +35,17 @@ public class  MessageEditor{
 		parser();
     }
 
-    private void parser(){
+    private void  parser(){
 		synchronized (this){//避免其他组件修改数据包，比如scanner,但是实测无用啊！synchronized (messageInfo)也不行！！！
 			if (messageInfo == null){
 				return;
 			}
 			if(messageIsRequest) {
 				IRequestInfo analyzeRequest = helpers.analyzeRequest(messageInfo);
+				service = messageInfo.getHttpService();
 
 				//debug
+				String messageaddr = messageInfo.toString();
 				String firstRequest = new String(messageInfo.getRequest());
 				int code =  System.identityHashCode(messageInfo);
 				int bodyOffset = helpers.analyzeRequest(messageInfo).getBodyOffset();
@@ -75,6 +81,7 @@ public class  MessageEditor{
 
 				
 				//debug
+				String messageaddr1 = messageInfo.toString();
 				String firstRequest1 = new String(messageInfo.getRequest());
 				int code1 = System.identityHashCode(messageInfo);
 				int bodyOffset1 = helpers.analyzeRequest(messageInfo).getBodyOffset();
@@ -86,10 +93,10 @@ public class  MessageEditor{
 					//String body = new String(byte_body); //byte[] to String
 				}catch (Exception e){
 					stderr.println ("////////////////////////////////");
-					stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code);
+					stderr.println ("first: bodyOffset "+bodyOffset+" requestLength "+requestLength+" hashcode "+code+" messageaddr "+messageaddr);
 					stderr.println (firstRequest);
 					stderr.println ("\n");
-					stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1);
+					stderr.println ("second: bodyOffset "+bodyOffset1+" requestLength "+requestLength1+" hashcode "+code1+" messageaddr1 "+messageaddr1);
 					stderr.println (firstRequest1);
 					stderr.println ("////////////////////////////////\n\n");
 				}
@@ -147,6 +154,7 @@ public class  MessageEditor{
 		if (messageIsRequest){
 			byte[] new_Request = helpers.buildHttpMessage(getHeaderList(),this.body);
 			messageInfo.setRequest(new_Request);
+			messageInfo.setHttpService(service);
 		}else {
 			byte[] new_Response = helpers.buildHttpMessage(getHeaderList(),this.body);
 			messageInfo.setResponse(new_Response);
