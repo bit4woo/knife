@@ -1,5 +1,7 @@
 package U2C;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 /**
  * 工具类
  */
@@ -80,7 +82,10 @@ public class Unicode {
 		String unicodestring = "{\"code\":404,\"message\":\"\u624b\u673a\u9a8c\u8bc1\u5931\u8d25\uff0c\u8bf7\u91cd\u65b0\u5c1d\u8bd5\"}";
 		String badexample= "rtrim = /^[\\s\\uFEFF\\xA0]+|[\\s\\uFEFF\\xA0]+$/g,";
 		String xx = "\"[[\\\"\\\\u591a\\\\u5143\\\\u6587\\\\u5316\\\\uff0c\\\\u4e3b\\\\u9898\\\\u516c\\\\u56ed\\\\u4e4b\\\\u90fd\\\"]";
-		System.out.println(unicodeDecode(unicodeDecode(xx)));
+		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b";
+		String chineseCharacter1 = "\\ufffe";
+		System.out.println(unicodeDecode(unicodeDecode(chineseCharacter1)));
+		System.out.println(StringEscapeUtils.unescapeJava(chineseCharacter1));
 		}
 	//url for test: https://csdnimg.cn/static/api/js/view/share_view.js?v=3ae6026d.js
 }

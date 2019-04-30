@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
@@ -51,9 +53,15 @@ public class U2CTab implements IMessageEditorTab
     	String UnicodeResp = "";
     	if(content != null) {
         	String resp= new String(content);
-        	while (needtoconvert(resp)) {
-        		resp = Unicode.unicodeDecode(resp);
-        	}
+        	try {
+            	while (needtoconvert(resp)) {
+            		resp = Unicode.unicodeDecode(resp);
+            	}
+			} catch (Exception e) {
+            	while (needtoconvert(resp)) {
+            		resp = StringEscapeUtils.unescapeJava(resp);
+            	}
+			}
         	UnicodeResp = resp;
     	}
     	txtInput.setText(UnicodeResp.getBytes());
@@ -86,21 +94,27 @@ public class U2CTab implements IMessageEditorTab
     
     public static boolean needtoconvert(String str) {
     	Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
+    	//Pattern pattern = Pattern.compile("(\\\\u([A-Fa-f0-9]{4}))");//和上面的效果一样
     	Matcher matcher = pattern.matcher(str.toLowerCase());
     	
     	if (matcher.find() ){
-    		String found = matcher.group();
-    		//！@#￥%……&*（）——-=，。；：“‘{}【】+
-    		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b";
-    		if (("\\u4e00").compareTo(found)<= 0 && found.compareTo("\\u9fa5")<=0)
-    			return true;
-    		else if(chineseCharacter.contains(found)){
-    			return true;
-    		}else{
-    			return false;
-    		}
+    		return true;
+//    		String found = matcher.group();
+//    		//！@#￥%……&*（）——-=，。；：“‘{}【】+
+//    		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b";
+//    		if (("\\u4e00").compareTo(found)<= 0 && found.compareTo("\\u9fa5")<=0)
+//    			return true;
+//    		else if(chineseCharacter.contains(found)){
+//    			return true;
+//    		}else{
+//    			return false;
+//    		}
     	}else {
     		return false;
     	}
     }
+    
+    public static void main(String args[]) {
+		System.out.print(needtoconvert("\\u0000"));
+	}
 }
