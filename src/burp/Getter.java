@@ -17,6 +17,10 @@ public class Getter {
 		Getter.helpers = helpers;
 	}
 
+	public Getter(){
+		Getter.helpers = BurpExtender.callbacks.getHelpers();
+	}
+
 	/*
 	 * 获取header的字符串数组，是构造burp中请求需要的格式。
 	 */

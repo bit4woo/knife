@@ -79,8 +79,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			menu_list.add(new UpdateCookieMenu(this));
-			menu_list.add(new UpdateCookieWithMenu(this));
-			menu_list.add(new SetCookieWithMenu(this));
+			menu_list.add(new UpdateCookieWithHistoryMenu(this));
+			menu_list.add(new SetCookieMenu(this));
+			menu_list.add(new SetCookieWithHistoryMenu(this));
 
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
@@ -148,26 +149,58 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
 		//processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
 		//same action will be executed twice! if call processHttpMessage() here.
+		//请求和响应到达proxy时，都各自调用一次,如下部分是测试代码，没毛病啊！
+/*		IHttpRequestResponse messageInfo = message.getMessageInfo();
+		if (messageIsRequest) {
+			byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"111111111");
+			message.getMessageInfo().setRequest(newRequest);
+		}else{
+			Getter getter = new Getter(helpers);
+			List<String> setHeaders = GetSetCookieHeaders("bbb=2222;");
+			List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
+			byte[] responseBody = getter.getBody(false,messageInfo);
+			responseHeaders.addAll(setHeaders);
 
+			byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
+
+			messageInfo.setResponse(response);
+		}*/
+
+		//当函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSet必然为空。
 		String cookieToSet = config.getTmpMap().get("cookieToSet");
-		if (cookieToSet != null){
-			String host = cookieToSet.split("::::")[0];
-			String cookieString = cookieToSet.split("::::")[1];
+		System.out.println("called"+cookieToSet);
+		if (cookieToSet != null){//第二次调用如果cookie不为空，就走到这里
+			String targetUrl = cookieToSet.split(CookieUtils.SPLITER)[0];
+			String originUrl = cookieToSet.split(CookieUtils.SPLITER)[1];
+			String cookieValue = cookieToSet.split(CookieUtils.SPLITER)[2];
+
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
-			if (host.equalsIgnoreCase(messageInfo.getHttpService().getHost())){
-				List<String> setHeaders = GetSetCookieHeaders(cookieString);
-				Getter getter = new Getter(helpers);
+			String CurrentUrl = messageInfo.getHttpService().toString();
+			System.out.println(CurrentUrl+" "+targetUrl);
+			if (targetUrl.equalsIgnoreCase(CurrentUrl)){
+				if (messageIsRequest) {
+					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
+					messageInfo.setRequest(newRequest);
+				}else {
+					Getter getter = new Getter(helpers);
+					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
+					byte[] responseBody = getter.getBody(false,messageInfo);
+					List<String> setHeaders = GetSetCookieHeaders(cookieValue);
+					responseHeaders.addAll(setHeaders);
 
-				List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
-				byte[] responseBody = getter.getBody(false,messageInfo);
-				responseHeaders.addAll(setHeaders);
+					byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
 
-				byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
-
-				messageInfo.setResponse(response);
-				config.getTmpMap().remove("cookieToSet");//only need to set once
+					messageInfo.setResponse(response);
+					config.getTmpMap().remove("cookieToSet");//only need to set once
+					config.getTmpMap().put("cookieToSetHistory",cookieToSet);//store used cookie, change name to void change every request of host
+					//临时换名称存储，避免这个参数影响这里的逻辑，导致域名下的每个请求都会进行该操作。
+				}
 			}
 
+		}else {//第一次调用必然走到这里
+			message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES_AND_REHOOK);
+			//让burp在等待用户完成操作后再次调用，就相当于再次对request进行处理。
+			//再次调用，即使走到了这里，也不会再增加调用次数，burp自己应该有控制。
 		}
 
 	}

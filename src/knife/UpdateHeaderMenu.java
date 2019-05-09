@@ -3,11 +3,7 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -25,29 +21,29 @@ public class UpdateHeaderMenu extends JMenu {
 	//JMenuItem vs. JMenu
 	public BurpExtender burp;
 	public IContextMenuInvocation invocation;
-    public UpdateHeaderMenu(BurpExtender burp){
-    	
-    	this.invocation = burp.context;
-    	this.burp = burp;
-    	
-    	List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
-        this.setText("^_^ Update Header");
-	    for (String pheader:pHeaders) {
-	    	JMenuItem headerItem = new JMenuItem(pheader);
-	    	headerItem.addActionListener(new UpdateHeader_Action(burp,invocation,pheader));
-	    	this.add(headerItem);
-	    }
-    }
+	public UpdateHeaderMenu(BurpExtender burp){
 
-    public List<String> possibleHeaderNames(IContextMenuInvocation invocation) {
+		this.invocation = burp.context;
+		this.burp = burp;
+
+		List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
+		this.setText("^_^ Update Header");
+		for (String pheader:pHeaders) {
+			JMenuItem headerItem = new JMenuItem(pheader);
+			headerItem.addActionListener(new UpdateHeader_Action(burp,invocation,pheader));
+			this.add(headerItem);
+		}
+	}
+
+	public List<String> possibleHeaderNames(IContextMenuInvocation invocation) {
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 		//byte selectedInvocationContext = invocation.getInvocationContext();
 		Getter getter = new Getter(burp.callbacks.getHelpers());
 		HashMap<String, String> headers = getter.getHeaderHashMap(true, selectedItems[0]);
-		
+
 		List<String> keywords = Arrays.asList(burp.tableModel.getConfigByKey("tokenHeaders").split(","));
 		List<String> ResultHeaders = new ArrayList<String>();
-		
+
 		Iterator<String> it = headers.keySet().iterator();
 		while (it.hasNext()) {
 			String item = it.next();
@@ -57,7 +53,7 @@ public class UpdateHeaderMenu extends JMenu {
 		}
 		return ResultHeaders;
 	}
-	
+
 	public boolean containOneOfKeywords(String x,List<String> keywords,boolean isCaseSensitive) {
 		for (String keyword:keywords) {
 			if (isCaseSensitive == false) {
@@ -78,94 +74,40 @@ class UpdateHeader_Action implements ActionListener{
 	public PrintWriter stdout;
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
-	
+
 	private String headerName;
-	
+
 	public UpdateHeader_Action(BurpExtender burp,IContextMenuInvocation invocation,String headerName) {
 		this.invocation  = invocation;
-        this.helpers = burp.helpers;
-        this.callbacks = burp.callbacks;
-        this.stderr = burp.stderr;
-        this.stdout = burp.stdout;
-        this.headerName = headerName;
+		this.helpers = burp.helpers;
+		this.callbacks = burp.callbacks;
+		this.stderr = burp.stderr;
+		this.stdout = burp.stdout;
+		this.headerName = headerName;
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		
+
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-		byte selectedInvocationContext = invocation.getInvocationContext();
-	
-		byte[] selectedRequest = selectedItems[0].getRequest();
-		
-		
-		String shorturl = selectedItems[0].getHttpService().toString();
-		String latestToken = getLatestHeaderFromHistory(shorturl,headerName);
-		
-		if (latestToken !=null) {
-        	IRequestInfo analyzedRequest = helpers.analyzeRequest(selectedRequest);//只取第一个
-        	List<String> headers = analyzedRequest.getHeaders();//a bug here,report to portswigger
-        	//callbacks.printOutput(headers.toString());
-        	String cookie =null;
-        	for(String header:headers) {
-        		if(header.startsWith(headerName)) {
-        			cookie = header;
-        			break;
-        		}
-        	}
-    		if(cookie !=null) {
-    			int index = headers.indexOf(cookie);
-    			headers.remove(index);
-	        	headers.add(index,latestToken);
-    		}else {
-    			headers.add(latestToken);
-    		}
-    		//callbacks.printOutput(headers.toString());
-        	
-        	
-        	byte[] body= Arrays.copyOfRange(selectedRequest, analyzedRequest.getBodyOffset(), selectedRequest.length);
-        	//https://github.com/federicodotta/HandyCollaborator/blob/master/src/main/java/burp/BurpExtender.java
-        	byte[] newRequestBytes = helpers.buildHttpMessage(headers, body);
-			
-			if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-				selectedItems[0].setRequest(newRequestBytes);
-			}
+		IHttpRequestResponse messageInfo = selectedItems[0];
+
+		String shorturl = selectedItems[0].getHttpService().toString();//current
+		String urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,headerName);
+
+		if (urlAndtoken !=null) {
+
+			Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
+			String firstline = getter.getHeaderFirstLine(true,messageInfo);
+			LinkedHashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
+			byte[] body = getter.getBody(true,messageInfo);
+
+			headers.put(headerName,urlAndtoken.split(CookieUtils.SPLITER)[1]);
+			List<String> headerList = getter.HeaderMapToList(firstline,headers);
+
+			byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
+			selectedItems[0].setRequest(newRequestBytes);
 		}
-	}
-
-	public IHttpRequestResponse[] Reverse(IHttpRequestResponse[] input){
-	    for (int start = 0, end = input.length - 1; start < end; start++, end--) {
-	    	IHttpRequestResponse temp = input[end];
-	        input[end] = input[start];
-	        input[start] = temp;
-	    }
-	    return input;
-	}
-	
-	
-	public String getLatestHeaderFromHistory(String shortUrl,String headerName){
-    	//还是草粉师傅说得对，直接从history里面拿最好
-    	
-    	IHttpRequestResponse[]  historyMessages = Reverse(callbacks.getProxyHistory());
-    	//callbacks.printOutput("length of history: "+ historyMessages.length);
-
-    	for (IHttpRequestResponse historyMessage:historyMessages) {
-    		IRequestInfo hisAnalyzedRequest = helpers.analyzeRequest(historyMessage);
-    		//String hisShortUrl = hisUrl.substring(0, hisUrl.indexOf("/", 8));
-    		String hisShortUrl = historyMessage.getHttpService().toString();
-    		//callbacks.printOutput(hisShortUrl);
-    		
-    		if (hisShortUrl.equals(shortUrl)) {
-    			List<String> hisHeaders = hisAnalyzedRequest.getHeaders();
-    			for (String hisHeader:hisHeaders) {
-    				if (hisHeader.toLowerCase().startsWith(headerName.toLowerCase()) && hisHeader.length()>headerName.length()+1) {
-    					//callbacks.printOutput(hisHeader);
-            			return hisHeader;
-    				}
-    			}
-    		}
-    	}
-		return null;
 	}
 
 }
