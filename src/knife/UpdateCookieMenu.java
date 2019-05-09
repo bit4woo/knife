@@ -38,36 +38,40 @@ class UpdateCookieAction implements ActionListener {
 
 		String shorturl = selectedItems[0].getHttpService().toString();
 		String latestCookie = CookieUtils.getLatestCookieFromHistory(shorturl);//自行查找一次
-		String currentCookie = new Getter(helpers).getHeaderValueOf(true,selectedItems[0],"Cookie");
-		String latestCookieValue = null;
-
-		if (latestCookie == null) {//when host is ip address, need manually input domain to get the cookie
-			latestCookie = CookieUtils.getLatestCookieFromSpeicified();//彈出對話框
-			//url_which_cookie_from+SPLITER+cookievalue
-			if (latestCookie != null) {
-				latestCookieValue = latestCookie.split(CookieUtils.SPLITER)[1];
-				shorturl = latestCookie.split(CookieUtils.SPLITER)[0];
-			}
+		
+		int time = 0;
+		while (!isVaildCookie(latestCookie) && time <2) {
+			latestCookie = CookieUtils.getLatestCookieFromSpeicified();
+			time++;
 		}
-
-		if(currentCookie.equals(latestCookieValue)){
-			latestCookie = CookieUtils.getLatestCookieFromSpeicified();//彈出對話框
-			//url_which_cookie_from+SPLITER+cookievalue
-			if (latestCookie != null) {
-				latestCookieValue = latestCookie.split(CookieUtils.SPLITER)[1];
-				shorturl = latestCookie.split(CookieUtils.SPLITER)[0];
-			}
-		}
-
-		if (latestCookieValue != null) {
-
+		
+		if (isVaildCookie(latestCookie)) {
+			String latestCookieValue = latestCookie.split(CookieUtils.SPLITER)[1];
+			shorturl = latestCookie.split(CookieUtils.SPLITER)[0];
+			
 			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0], latestCookieValue);
 			selectedItems[0].setRequest(newRequest);
 
 			if (shorturl.startsWith("http")) {
 				this.burp.config.getTmpMap().put("UsedCookie", latestCookie);
 			}
+		}else {
+			//do nothing
 		}
-
+	}
+	
+	public boolean isVaildCookie(String urlAndCookieString) {
+		if (urlAndCookieString == null || urlAndCookieString == "") {
+			return false;
+		}
+		if (!urlAndCookieString.contains(CookieUtils.SPLITER)) {
+			return false;
+		}
+		String currentCookie = new Getter(helpers).getHeaderValueOf(true,invocation.getSelectedMessages()[0],"Cookie");
+		String foundCookie = urlAndCookieString.split(CookieUtils.SPLITER)[1];
+		if (foundCookie.equalsIgnoreCase(currentCookie)) {
+			return false;
+		}
+		return true;
 	}
 }

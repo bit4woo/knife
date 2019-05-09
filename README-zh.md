@@ -64,7 +64,7 @@
 
    ![insertpayload](img/insertpayload.gif)
 
-6. Set cookie with
+6. Set cookie
 
    对当前请求的响应包的header添加set cookie的header，使整个站的后续请求都带上这些cookie。
 

@@ -66,7 +66,7 @@ public class CookieUtils {
 
             try {
                 latestCookie = getLatestCookieFromHistory(url1);
-                if (latestCookie == null){
+                if (latestCookie == null && url2 != ""){
                     latestCookie = getLatestCookieFromHistory(url2);
                 }
             } catch (Exception e) {
