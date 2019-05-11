@@ -227,6 +227,7 @@ public class GUI extends JFrame {
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				saveConfigToBurp();
 				saveDialog();
 			}});
 		btnSave.setToolTipText("Save Config To A File");
@@ -238,6 +239,7 @@ public class GUI extends JFrame {
 				//tableModel = table.getModel();
 				tableModel.addNewConfigEntry(new ConfigEntry("","","",true));
 				stdout.println("add: "+JSON.toJSONString(config));
+				saveConfigToBurp();
 				//会触发modelListener 更新config。所以需要调用showToUI。
 				//showToUI(config);
 			}
@@ -251,6 +253,7 @@ public class GUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				int[] rowindexs = table.getSelectedModelRows();
 				tableModel.removeRows(rowindexs);
+				saveConfigToBurp();
 			}
 		});
 
@@ -350,6 +353,10 @@ public class GUI extends JFrame {
 	public String getAllConfig() {
 		config.setStringConfigEntries(tableModel.getConfigJsons());
 		return config.ToJson();
+	}
+	
+	public void saveConfigToBurp() {
+		BurpExtender.callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
 	}
 
 	public int checkEnabledFor(){

@@ -3,10 +3,8 @@ package burp;
 import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +20,7 @@ import config.ConfigTableModel;
 import config.GUI;
 import knife.*;
 
-public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener,IProxyListener {
+public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
 	/**
 	 *
@@ -49,6 +47,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);
+		callbacks.registerExtensionStateListener(this);
 
 		this.stdout.println(ExtensionName);
 		this.stdout.println(github);
@@ -76,8 +75,13 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		byte context = invocation.getInvocationContext();
 		//只有当选中的内容是响应包的时候才显示U2C
-
+		menu_list.add(new DismissMenu(this));
+		menu_list.add(new AddHostToScopeMenu(this));
+		menu_list.add(new OpenWithBrowserMenu(this));
+		menu_list.add(new ChunkedEncodingMenu(this));
+		
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			
 			menu_list.add(new UpdateCookieMenu(this));
 			menu_list.add(new UpdateCookieWithHistoryMenu(this));
 			menu_list.add(new SetCookieMenu(this));
@@ -91,9 +95,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}
 		}
 
-		menu_list.add(new AddHostToScopeMenu(this));
-		menu_list.add(new OpenWithBrowserMenu(this));
-		menu_list.add(new ChunkedEncodingMenu(this));
+
 
 
 		JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
@@ -133,8 +135,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public Component getUiComponent() {
 		return this.getContentPane();
 	}
-
-	public void saveConfigToExtension() {
+	
+	@Override
+	public void extensionUnloaded() {
 		callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
 	}
 
@@ -165,6 +168,16 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 			messageInfo.setResponse(response);
 		}*/
+		if (messageIsRequest) {//丢弃干扰请求
+			String currentHost =  message.getMessageInfo().getHttpService().getHost();
+			if (isDismissedHost(currentHost)){
+				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
+				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
+				message.getMessageInfo().setHighlight("gray");
+				message.getMessageInfo().setComment("Dismissed");
+				return;
+			}
+		}
 
 		//当函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSet必然为空。
 		String cookieToSet = config.getTmpMap().get("cookieToSet");
@@ -486,4 +499,24 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		return setHeaderList;
 	}
+
+	public boolean isDismissedHost(String host){
+		String dissmissed  = tableModel.getConfigByKey("DismissedHost");
+		String[] dissmissedHosts = dissmissed.split(",");
+		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();
+		while (it.hasNext()){
+			String dissmissedHost = it.next();
+			if (dissmissedHost.startsWith("*.")){
+				dissmissedHost = dissmissedHost.replaceFirst("\\*","");
+				if (host.trim().toLowerCase().endsWith(dissmissedHost.trim().toLowerCase())){
+					return true;
+				}
+			}else if (dissmissed.equalsIgnoreCase(host)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 }

@@ -24,6 +24,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true));
 		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true));
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true));
+		configEntries.add(new ConfigEntry("DismissedHost", "api.accounts.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true));
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true));
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false));
@@ -75,6 +76,16 @@ public class ConfigTableModel extends AbstractTableModel{
 		return null;
 	}
 
+	public void setConfigByKey(String key,String value) {
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getKey().equals(key)) {
+				int index = configEntries.indexOf(entry);
+				entry.setValue(value);
+				configEntries.set(index,entry);
+				fireTableRowsUpdated(index,index);
+			}
+		}
+	}
 
 	////////////////////// extend AbstractTableModel////////////////////////////////
 
