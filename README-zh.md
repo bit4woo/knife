@@ -69,6 +69,12 @@
    对当前请求的响应包的header添加set cookie的header，使整个站的后续请求都带上这些cookie。
 
    使用场景：当我们使用IP地址访问一个web的时候，由于cookie的域的限制，大多都不会带上cookie。但是当我们是知道它是某个域的站点（比如它是*.jd.com），可以通过这个方法主动给他设置与某个站点相同的cookie（比如www.jd.com的cookie）。
+   
+7. Dismiss
+
+   让一些无用的、不想看到的请求包从眼前消失！它自动drop而不会拦截，需配合proxy history中的过滤器。
+
+   ![dismiss](/img/dismiss.gif)
 
 ##### Tab
 

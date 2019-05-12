@@ -39,7 +39,7 @@ A extension that add some small function[ one key to update cookie, one key add 
 
 7. Dismiss
 
-   Dismiss useless requests (eg. *.firefox.com *.mozilla.com) from proxy . see below screen shot to know more.
+   Dismiss useless requests (eg. *.firefox.com *.mozilla.com) from proxy. see below screen shot to know more.
 
 ##### Tab
 
@@ -71,5 +71,9 @@ open with browser:
 payload(Hackbar++):
 
 ![insertpayload](img/insertpayload.gif)
+
+Dismiss:
+
+![dismiss](/img/dismiss.gif)
 
 any issue, advice, suggestion are welcome, Thanks！
