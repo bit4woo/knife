@@ -37,7 +37,9 @@ A extension that add some small function[ one key to update cookie, one key add 
 6. Set Cookie
    scenes: when you visit a website with IP address, It may not contains cookie, but you know it should contains same cookie with some site. you can use this function in Proxy. It will edit response to set the same cookie to let whole web site use the specified cookie.
 
+7. Dismiss
 
+   Dismiss useless requests (eg. *.firefox.com *.mozilla.com) from proxy . see below screen shot to know more.
 
 ##### Tab
 

@@ -505,13 +505,13 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		String[] dissmissedHosts = dissmissed.split(",");
 		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();
 		while (it.hasNext()){
-			String dissmissedHost = it.next();
+			String dissmissedHost = it.next().trim();
 			if (dissmissedHost.startsWith("*.")){
 				dissmissedHost = dissmissedHost.replaceFirst("\\*","");
-				if (host.trim().toLowerCase().endsWith(dissmissedHost.trim().toLowerCase())){
+				if (host.trim().toLowerCase().endsWith(dissmissedHost.toLowerCase())){
 					return true;
 				}
-			}else if (dissmissed.equalsIgnoreCase(host)){
+			}else if (dissmissedHost.equalsIgnoreCase(host.trim())){
 				return true;
 			}
 		}
