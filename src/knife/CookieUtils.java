@@ -53,15 +53,25 @@ public class CookieUtils {
      */
     public static String getLatestCookieFromSpeicified() {
         String latestCookie = null;
-        String domain = Methods.prompt_and_validate_input("update cookie with cookie of ", null);
+        String domainOrCookie = Methods.prompt_and_validate_input("cookie OR cookie of ", null);
         String url1 = "";
         String url2 = "";
         try{
-            if (domain!= null && (domain.startsWith("http://") || domain.startsWith("https://"))) {
-                url1 = domain;
+            if (domainOrCookie == null){
+                return null;
+            }else if (domainOrCookie.contains("=") && !domainOrCookie.contains("?") && !domainOrCookie.contains("/")){//直接是cookie
+                latestCookie = domainOrCookie.trim();
+                if (latestCookie.startsWith("Cookie:")){
+                    latestCookie = latestCookie.replaceFirst("Cookie:","").trim();
+                }
+                String tips = "Cookie: "+latestCookie.substring(0,latestCookie.indexOf("="))+"...";
+                latestCookie = tips+SPLITER+latestCookie;
+                return latestCookie;
+            }else if (domainOrCookie.startsWith("http://") || domainOrCookie.startsWith("https://")) {//不包含协议头的域名或url
+                url1 = domainOrCookie;
             }else {
-                url1 = "http://"+domain;
-                url2 = "https://"+domain;
+                url1 = "http://"+domainOrCookie;
+                url2 = "https://"+domainOrCookie;
             }
 
             try {
