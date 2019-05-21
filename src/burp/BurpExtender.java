@@ -181,7 +181,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		//当函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSet必然为空。
 		String cookieToSet = config.getTmpMap().get("cookieToSet");
-		System.out.println("called"+cookieToSet);
+		//System.out.println("called"+cookieToSet);
 		if (cookieToSet != null){//第二次调用如果cookie不为空，就走到这里
 			String targetUrl = cookieToSet.split(CookieUtils.SPLITER)[0];
 			String originUrl = cookieToSet.split(CookieUtils.SPLITER)[1];
