@@ -79,7 +79,7 @@ public class Methods {
 		newRequestResponseBytes = ArrayUtils.addAll(newRequestResponseBytes, postSelectedPortion);
 		// same as below method
 		 * */
-		if (payloadByte.equals(null)){
+		if (payloadByte == null){
 			return request;
 		}
         byte[] newRequest = new byte[request.length + payloadByte.length - (selectedIndex[1]-selectedIndex[0])];
