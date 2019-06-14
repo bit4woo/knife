@@ -54,8 +54,10 @@ class Dismiss_Action implements ActionListener{
 					//https://stackoverflow.com/questions/5755477/java-list-add-unsupportedoperationexception/5755510
 				}
         	}
-
-        	myburp.tableModel.setConfigByKey("DismissedHost",Arrays.toString(dissmissedHostList.toArray()).replace("[","").replace("]",""));
+			String newDissMissedHostString = Arrays.toString(dissmissedHostList.toArray());
+        	newDissMissedHostString = newDissMissedHostString.replace("[","").replace("]","");
+        	newDissMissedHostString = newDissMissedHostString.replaceAll(" ","");
+        	myburp.tableModel.setConfigByKey("DismissedHost",newDissMissedHostString);
         }catch (Exception e1)
         {
             e1.printStackTrace(stderr);
