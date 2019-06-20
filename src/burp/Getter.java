@@ -60,13 +60,13 @@ public class Getter {
 		headers.remove(0);
 		for (String header : headers) {
 			try {
-				String headerName = header.split(Header_Spliter, 0)[0];
-				String headerValue = header.split(Header_Spliter, 0)[1];
+				String headerName = header.split(Header_Spliter, 2)[0];
+				String headerValue = header.split(Header_Spliter, 2)[1];
 				result.put(headerName, headerValue);
 			} catch (Exception e) {
 				try {
-					String headerName = header.split(":", 0)[0];
-					String headerValue = header.split(":", 0)[1];
+					String headerName = header.split(":", 2)[0];//这里的limit=2 表示分割成2份，否则referer可能别分成3份
+					String headerValue = header.split(":", 2)[1];
 					result.put(headerName, headerValue);
 				}catch (Exception e1) {
 					stderr.print("Error Header: "+header);
