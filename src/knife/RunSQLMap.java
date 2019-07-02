@@ -138,10 +138,37 @@ class RunSQLMap_Action implements ActionListener{
 		}
 	}
 	
+	@Deprecated //设想控制history的方法失败
+	public String genPowershellHistory(){
+		try {
+			String modelString = "#TYPE Microsoft.PowerShell.Commands.HistoryInfo\r\n" + 
+					"\"Id\",\"CommandLine\",\"ExecutionStatus\",\"StartExecutionTime\",\"EndExecutionTime\"\r\n" + 
+					"\"1\",\"Get-History | Export-Csv -Path c:\\tmpPowershellHistory.csv\",\"Completed\",\"2019/7/2 19:02:46\",\"2019/7/2 19:02:46\"\r\n";
+			String recordString  = "\"2\",\"test cmd\",\"Completed\",\"2019/7/2 19:02:46\",\"2019/7/2 19:02:46\"";
+			
+			String basedir = (String) System.getProperties().get("java.io.tmpdir");
+			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-File-Path");
+			if (configBasedir != null && new File(configBasedir).exists()) {
+				basedir = configBasedir;
+			}
+			
+			File batFile = new File(basedir,"tmpPowershellHistory.csv");
+			if (!batFile.exists()) {
+			    batFile.createNewFile();
+			}
+			String content = modelString+recordString;
+			FileUtils.writeByteArrayToFile(batFile, content.toString().getBytes());
+			return batFile.getAbsolutePath();
+		} catch (IOException e) {
+			e.printStackTrace(stderr);
+			return null;
+		}
+	}
+	
 	/*
 	 * 执行bat文件的命令，为什么需要bat文件？使用了bat文件执行命令，Ctrl+C才不会退出命令行终端
 	 */
-	String SQLMapCommand(String batfilepath) {
+	public static String SQLMapCommand(String batfilepath) {
 		String command = "";
 		if (Utils.isWindows()) {
 			command="cmd /c start " + batfilepath;
@@ -154,5 +181,14 @@ class RunSQLMap_Action implements ActionListener{
 			}
 		}
 		return command;
+	}
+	
+	public static void main(String[] args) {
+		try {
+			Process process = Runtime.getRuntime().exec(SQLMapCommand("ping www.baidu.com"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
