@@ -78,14 +78,14 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		menu_list.add(new DismissMenu(this));
 		menu_list.add(new AddHostToScopeMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
+		menu_list.add(new RunSQLMap(this));
 		menu_list.add(new ChunkedEncodingMenu(this));
 		
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			
 			menu_list.add(new UpdateCookieMenu(this));
 			menu_list.add(new UpdateCookieWithHistoryMenu(this));
-			menu_list.add(new SetCookieMenu(this));
-			menu_list.add(new SetCookieWithHistoryMenu(this));
+
 
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
@@ -94,9 +94,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				menu_list.add(uhmenu);
 			}
 		}
-
-
-
+		
+		menu_list.add(new SetCookieMenu(this));
+		menu_list.add(new SetCookieWithHistoryMenu(this));
 
 		JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
 		Hack_Bar_Menu.add(new SQL_Menu(this));
@@ -181,7 +181,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		//当函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSet必然为空。
 		String cookieToSet = config.getTmpMap().get("cookieToSet");
-		//System.out.println("called"+cookieToSet);
+		//stderr.println("called"+cookieToSet);
 		if (cookieToSet != null){//第二次调用如果cookie不为空，就走到这里
 			String targetUrl = cookieToSet.split(CookieUtils.SPLITER)[0];
 			String originUrl = cookieToSet.split(CookieUtils.SPLITER)[1];
@@ -189,7 +189,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
 			String CurrentUrl = messageInfo.getHttpService().toString();
-			System.out.println(CurrentUrl+" "+targetUrl);
+			//stderr.println(CurrentUrl+" "+targetUrl);
 			if (targetUrl.equalsIgnoreCase(CurrentUrl)){
 				if (messageIsRequest) {
 					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
