@@ -10,9 +10,10 @@ import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
+import burp.IMessageEditorTabFactory;
 import burp.ITextEditor;
 
-public class U2CTab implements IMessageEditorTab
+public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 {
     private ITextEditor txtInput;
     private byte[] originContent;
@@ -116,5 +117,11 @@ public class U2CTab implements IMessageEditorTab
     
     public static void main(String args[]) {
 		System.out.print(needtoconvert("\\u0000"));
+	}
+
+	@Override
+	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
+		// TODO Auto-generated method stub
+		return this;
 	}
 }

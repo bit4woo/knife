@@ -12,6 +12,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import com.alibaba.fastjson.JSON;
 
+import U2C.JSONBeautifier;
 import U2C.U2CTab;
 import config.Config;
 import config.ConfigEntry;
@@ -20,7 +21,7 @@ import config.ConfigTableModel;
 import config.GUI;
 import knife.*;
 
-public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, IMessageEditorTabFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
+public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
 	/**
 	 *
@@ -43,7 +44,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		this.stderr = new PrintWriter(callbacks.getStderr(), true);
 		callbacks.setExtensionName(this.ExtensionName);
 		callbacks.registerContextMenuFactory(this);// for menus
-		callbacks.registerMessageEditorTabFactory(this);// for U2C
+		callbacks.registerMessageEditorTabFactory(new U2CTab(null, false, helpers, callbacks));// for U2C
+		callbacks.registerMessageEditorTabFactory(new JSONBeautifier(null, false, helpers, callbacks));
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);
@@ -74,7 +76,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		byte context = invocation.getInvocationContext();
-		//只有当选中的内容是响应包的时候才显示U2C
 		menu_list.add(new DismissMenu(this));
 		menu_list.add(new AddHostToScopeMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
@@ -118,13 +119,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return menu_list;
 	}
 
-	//U2C
-	@Override
-	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-		return new U2CTab(controller, false, helpers, callbacks);
-	}
-
-
+	
 	@Override
 	public String getTabCaption() {
 		return ("Knife");

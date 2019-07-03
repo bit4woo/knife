@@ -130,7 +130,26 @@ public class Getter {
 			return byte_body;
 		}
 	}
+	
+	public byte[] getBody(boolean messageIsRequest,byte[] messagebyte) {
+		if (messagebyte == null){
+			return null;
+		}
+		int bodyOffset=0;
+		if(messageIsRequest) {
+			IRequestInfo analyzeRequest = helpers.analyzeRequest(messagebyte);
+			bodyOffset = analyzeRequest.getBodyOffset();
+		}else {
+			IResponseInfo analyzeResponse = helpers.analyzeResponse(messagebyte);
+			bodyOffset = analyzeResponse.getBodyOffset();
+		}
+		
+		byte[] byte_body = Arrays.copyOfRange(messagebyte, bodyOffset, messagebyte.length);//not length-1
+		//String body = new String(byte_body); //byte[] to String
+		return byte_body;
+	}
 
+	
 	public String getShortUrl(IHttpRequestResponse messageInfo) {
 		return messageInfo.getHttpService().toString();
 	}
