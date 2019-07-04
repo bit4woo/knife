@@ -25,7 +25,10 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("SQLMap-File-Path","D:\\sqlmap-request-files",ConfigEntry.Config_Basic_Variable,true,false));
+		
+		configEntries.add(new ConfigEntry("SQLMap-Python-Path","",ConfigEntry.Config_Basic_Variable,false,false));
+		configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path","",ConfigEntry.Config_Basic_Variable,false,false));
+		configEntries.add(new ConfigEntry("SQLMap-Request-File-Path","D:\\sqlmap-request-files",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("SQLMap-Options","--risk=3 --level=3",ConfigEntry.Config_Basic_Variable,true,false));
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
@@ -218,7 +221,7 @@ public class ConfigTableModel extends AbstractTableModel{
 				this.fireTableRowsDeleted(rows[i], rows[i]);
 				configEntries.remove(rows[i]);
 				stdout1.println("!!! "+key+" deleted");
-				//this.fireTableRowsDeleted(rows[i], rows[i]);
+				this.fireTableRowsDeleted(rows[i], rows[i]);
 			}
 		}
 

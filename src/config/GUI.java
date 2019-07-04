@@ -223,6 +223,50 @@ public class GUI extends JFrame {
 		});
 		btnOpen.setToolTipText("Load Config File");
 		panel_1.add(btnOpen);
+		
+		JButton btnImport = new JButton("Import");
+		btnImport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				JFileChooser fc=new JFileChooser();
+				JsonFileFilter jsonFilter = new JsonFileFilter(); //过滤器  
+				fc.addChoosableFileFilter(jsonFilter);
+				fc.setFileFilter(jsonFilter);
+				fc.setDialogTitle("Chose knife config File");
+				fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
+				if(fc.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
+					try {
+						File file=fc.getSelectedFile();
+						String contents = Files.toString(file, Charsets.UTF_8);
+						config = JSON.parseObject(contents, Config.class);
+						List<String> newEntries = config.getStringConfigEntries();
+						List<String> newEntryNames = new ArrayList<String>(); 
+						for (String config:newEntries) {
+							ConfigEntry entry  = new ConfigEntry().FromJson(config);
+							newEntryNames.add(entry.getKey());
+						}
+						
+						List<ConfigEntry> currentEntries = tableModel.getConfigEntries();
+						
+						for (ConfigEntry config:currentEntries) {
+							if (!newEntryNames.contains(config.getKey())){
+								newEntries.add(config.ToJson());
+							}
+						}
+						//config.setStringConfigEntries(newEntries);
+						stdout.println("Combined knife config from"+ file.getName() +"with current config" );
+						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
+						showToUI(config);
+
+					} catch (IOException e1) {
+						e1.printStackTrace(stderr);
+					}
+				}
+				
+				saveConfigToBurp();
+			}});
+		btnImport.setToolTipText("Combine your configration with current");
+		panel_1.add(btnImport);
 
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {

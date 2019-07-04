@@ -82,12 +82,12 @@ class RunSQLMap_Action implements ActionListener{
 			Getter getter = new Getter(helpers);
 			String host = getter.getHost(message);
 			SimpleDateFormat simpleDateFormat = 
-					new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+					new SimpleDateFormat("MMdd-HHmmss");
 			String timeString = simpleDateFormat.format(new Date());
 			String filename = host+"."+timeString+".req";
 
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-File-Path");
+			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				basedir = configBasedir;
 			}
@@ -119,14 +119,34 @@ class RunSQLMap_Action implements ActionListener{
 				command.append(diskString+":"+System.lineSeparator());
 			}
 			
-			command.append("sqlmap.py -r "+requestFilePath);
+			String pythonPath = burp.tableModel.getConfigByKey("SQLMap-Python-Path");
+			String sqlmapPath = burp.tableModel.getConfigByKey("SQLMap-SQLMap.py-Path");
+			if (pythonPath != null && new File(pythonPath).exists()) {
+				if (new File(pythonPath).isFile()) {
+					command.append(pythonPath);
+				}else {
+					command.append(new File(pythonPath,"python").toString());
+				}
+			}
+			command.append(" ");
+			if (sqlmapPath != null && new File(sqlmapPath).exists()) {
+				if (new File(sqlmapPath).isFile()) {
+					command.append(pythonPath);
+				}else {
+					command.append(new File(sqlmapPath,"sqlmap.py").toString());
+				}
+			}else {
+				command.append("sqlmap.py");
+			}
+			
+			command.append(" -r "+requestFilePath);
 			String sqlmapOptions = burp.tableModel.getConfigByKey("SQLMap-Options");
 			if (sqlmapOptions != null && !sqlmapOptions.equals("")) {
 				command.append(" "+sqlmapOptions);
 			}
 			
 			
-			File batFile = new File(basedir,"sqlmap.bat");
+			File batFile = new File(basedir,"sqlmap-latest-command.bat");
 			if (!batFile.exists()) {
 			    batFile.createNewFile();
 			}
@@ -147,7 +167,7 @@ class RunSQLMap_Action implements ActionListener{
 			String recordString  = "\"2\",\"test cmd\",\"Completed\",\"2019/7/2 19:02:46\",\"2019/7/2 19:02:46\"";
 			
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-File-Path");
+			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				basedir = configBasedir;
 			}
