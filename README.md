@@ -41,6 +41,10 @@ A extension that add some small function[ one key to update cookie, one key add 
 
    Dismiss useless requests (eg. *.firefox.com *.mozilla.com) from proxy. see below screen shot to know more.
 
+8. Run SQLMap
+
+   One key to run sqlmap with current selected request.
+
 ##### Tab
 
 1. U2C
@@ -75,5 +79,11 @@ payload(Hackbar++):
 Dismiss:
 
 ![dismiss](/img/dismiss.gif)
+
+Run SQLMap:
+
+![runsqlmap](img/runsqlmap.gif)
+
+
 
 any issue, advice, suggestion are welcome, Thanks！

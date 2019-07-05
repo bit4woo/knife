@@ -1,5 +1,8 @@
 package knife;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -107,20 +110,21 @@ class RunSQLMap_Action implements ActionListener{
 	public String genbatFile(String requestFilePath) {
 		try {
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-File-Path");
+			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				basedir = configBasedir;
 			}
 			
-			StringBuilder command = new StringBuilder();
-			command.append("cd "+basedir+System.lineSeparator());
+			StringBuilder prefixcommand = new StringBuilder();
+			prefixcommand.append("cd "+basedir+System.lineSeparator());
 			if (Utils.isWindows()) {
 				String diskString = basedir.split(":")[0];
-				command.append(diskString+":"+System.lineSeparator());
+				prefixcommand.append(diskString+":"+System.lineSeparator());
 			}
 			
 			String pythonPath = burp.tableModel.getConfigByKey("SQLMap-Python-Path");
 			String sqlmapPath = burp.tableModel.getConfigByKey("SQLMap-SQLMap.py-Path");
+			StringBuilder command = new StringBuilder();
 			if (pythonPath != null && new File(pythonPath).exists()) {
 				if (new File(pythonPath).isFile()) {
 					command.append(pythonPath);
@@ -145,12 +149,19 @@ class RunSQLMap_Action implements ActionListener{
 				command.append(" "+sqlmapOptions);
 			}
 			
+			//将命令写入剪切板
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			StringSelection selection = new StringSelection(command.toString());
+			clipboard.setContents(selection, null);
 			
 			File batFile = new File(basedir,"sqlmap-latest-command.bat");
 			if (!batFile.exists()) {
 			    batFile.createNewFile();
 			}
-			FileUtils.writeByteArrayToFile(batFile, command.toString().getBytes());
+			
+			prefixcommand.append(command);
+			
+			FileUtils.writeByteArrayToFile(batFile, prefixcommand.toString().getBytes());
 			return batFile.getAbsolutePath();
 		} catch (IOException e) {
 			e.printStackTrace(stderr);

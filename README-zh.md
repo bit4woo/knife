@@ -24,7 +24,7 @@
 
    ![updatecookie](img/updatecookie.png)
 
-1. add host to scope
+2. add host to scope
 
    将当前选中的请求的所有host都加入到scope当中，burp默认是讲当前请求的URL加入到scope中。
 
@@ -32,7 +32,7 @@
 
    ![confirm](img/confirm.png)
 
-2. update header
+3. update header
 
    这是对update cookie的增强，因为有些网站的用户表示并不是存在cookie中，而是以某个header存在。
 
@@ -42,7 +42,7 @@
 
    ![updateheader](img/updateheader.png)
 
-3. open with browser
+4. open with browser
 
    使用浏览器打开当前选中的URL或者当前请求的URL。优先判断当前选中内容是否是有效的URL，如果是则打开选中的URL，如果否则打开当前请求的URL。
 
@@ -54,7 +54,7 @@
 
    ![openwithbrowser](img/openwithbrowser.gif)
 
-4. hackbar++
+5. hackbar++
 
    该菜单集成了 [Hackbar](https://github.com/d3vilbug/HackBar) ，可以在当前请求中插入payload进行手动测试。
 
@@ -69,12 +69,22 @@
    对当前请求的响应包的header添加set cookie的header，使整个站的后续请求都带上这些cookie。
 
    使用场景：当我们使用IP地址访问一个web的时候，由于cookie的域的限制，大多都不会带上cookie。但是当我们是知道它是某个域的站点（比如它是*.jd.com），可以通过这个方法主动给他设置与某个站点相同的cookie（比如www.jd.com的cookie）。
-   
+
 7. Dismiss
 
    让一些无用的、不想看到的请求包从眼前消失！它自动drop而不会拦截，需配合proxy history中的过滤器。
 
    ![dismiss](/img/dismiss.gif)
+
+8. Run SQLMap
+
+   一键对当前数据包跑sqlmap，可以通过配置如下几个参数来保证sqlmap正常启动
+
+    SQLMap-Python-Path   ---python的位置
+    SQLMap-SQLMap.py-Path--- sqlmap的位置
+    SQLMap-Request-File-Path  --保存请求文件的为准，也就是工作目录
+    SQLMap-Options --- sqlmap命令的额外参数
+   ![runsqlmap](img/runsqlmap.gif)
 
 ##### Tab
 
