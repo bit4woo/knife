@@ -10,10 +10,12 @@ import java.net.URL;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
+import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import burp.Utils;
 import config.ConfigEntry;
 
 public class OpenWithBrowserMenu extends JMenuItem {
@@ -50,17 +52,20 @@ class OpenWithBrowser_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		try{
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+			
+			if (messages == null ) {
+				return;
+			}
+			
+			String browserPath = burp.tableModel.getConfigByKey("browserPath");
+			if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
 
-			if (messages !=null) {
+			}else {//when no browserPath in config, the value will be null
+				browserPath = "default";
+			}
+			
+			if (messages.length == 1) {
 				IHttpRequestResponse message = messages[0];
-
-				String browserPath = burp.tableModel.getConfigByKey("browserPath");
-				if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
-
-				}else {//when no browserPath in config, the value will be null
-					browserPath = "default";
-				}
-
 				/////////////selected url/////////////////
 				byte[] source = null;
 
@@ -92,41 +97,26 @@ class OpenWithBrowser_Action implements ActionListener{
 					}else if(selectedUrl.startsWith("//")) {
 						selectedUrl = message.getHttpService().getProtocol()+":"+selectedUrl;
 					}
-					open(selectedUrl,browserPath);
+					Utils.browserOpen(selectedUrl,browserPath);
 					//stdout.println(selectedUrl);
 				}else {
-					open(hosturl,browserPath);
+					Utils.browserOpen(hosturl,browserPath);
 				}
+			}
+			else if (messages.length > 1 &&  messages.length <=50) {
+				for(IHttpRequestResponse message:messages) {
+					Getter getter = new Getter(helpers);
+					URL targetShortUrl = getter.getURL(message);
+					Utils.browserOpen(targetShortUrl,browserPath);
+				}
+			}else {
+				stderr.println("Please Select Less URLs to Open");
 			}
 		}
 		catch (Exception e1)
 		{
 			e1.printStackTrace(stderr);
 		}
-	}
-
-	public static void open(Object url,String browser) throws Exception{
-		String urlString = null;
-		URI uri = null;
-		if (url instanceof String) {
-			urlString = (String) url;
-			uri = new URI((String)url);
-		}else if (url instanceof URL) {
-			uri = ((URL)url).toURI();
-			urlString = url.toString();
-		}
-		if(browser =="default" || browser=="") {
-			Desktop desktop = Desktop.getDesktop();
-			if(Desktop.isDesktopSupported()&&desktop.isSupported(Desktop.Action.BROWSE)){
-				desktop.browse(uri);
-			}
-		}else {
-			Runtime runtime = Runtime.getRuntime();
-			runtime.exec(browser+" "+urlString);
-			//C:\Program Files\Mozilla Firefox\firefox.exe
-			//C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe
-		}
-
 	}
 
 	public static boolean isFullUrl(String url) {

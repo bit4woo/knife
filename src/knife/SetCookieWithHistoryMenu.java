@@ -48,21 +48,29 @@ class SetCookieWithHistory_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 
-		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-		Getter getter = new Getter(helpers);
-		String shortUrl = getter.getShortUrl(selectedItems[0]);
-
 		String cookieToSetHistory = burp.config.getTmpMap().get("cookieToSetHistory");
 		String targetUrl = cookieToSetHistory.split(CookieUtils.SPLITER)[0];
 		String originUrl = cookieToSetHistory.split(CookieUtils.SPLITER)[1];
 		String cookieValue = cookieToSetHistory.split(CookieUtils.SPLITER)[2];
 
-//		if (shortUrl.equalsIgnoreCase(targetUrl)){//update request, processProxyMessage will deal response.
-//			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0],cookieValue);
-//			selectedItems[0].setRequest(newRequest);
-//		}
+		//		if (shortUrl.equalsIgnoreCase(targetUrl)){//update request, processProxyMessage will deal response.
+		//			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0],cookieValue);
+		//			selectedItems[0].setRequest(newRequest);
+		//		}
 
-		this.burp.config.getTmpMap().put("cookieToSet", shortUrl+CookieUtils.SPLITER+originUrl+CookieUtils.SPLITER+cookieValue);
-		//这个设置，让proxy处理它的响应包，shortUrl是新的target
+		try{
+			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+			for(IHttpRequestResponse message:messages) {
+				Getter getter = new Getter(helpers);
+				String shortUrl = getter.getShortUrl(message);
+
+				this.burp.config.getTmpMap().put("cookieToSet", shortUrl+CookieUtils.SPLITER+originUrl+CookieUtils.SPLITER+cookieValue);
+				//这个设置，让proxy处理它的响应包，shortUrl是新的target
+			}
+		}
+		catch (Exception e1)
+		{
+			e1.printStackTrace(stderr);
+		}
 	}
 }
