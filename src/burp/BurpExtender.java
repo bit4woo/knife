@@ -19,6 +19,16 @@ import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
+import hackbar.File_Payload_Menu;
+import hackbar.LFI_Menu;
+import hackbar.Reverse_Shell_Menu;
+import hackbar.SQL_Error;
+import hackbar.SQL_Menu;
+import hackbar.SQli_LoginBypass;
+import hackbar.SSTI_Menu;
+import hackbar.WebShell_Menu;
+import hackbar.XSS_Menu;
+import hackbar.XXE_Menu;
 import knife.*;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
@@ -77,7 +87,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		byte context = invocation.getInvocationContext();
-		menu_list.add(new DismissMenu(this));
+		
+		String dismissed  = this.tableModel.getConfigByKey("DismissedHost");
+		if (dismissed != null) {
+			menu_list.add(new DismissMenu(this));
+		}
+
 		menu_list.add(new AddHostToScopeMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMap(this));
@@ -86,8 +101,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			
 			menu_list.add(new UpdateCookieMenu(this));
-			menu_list.add(new UpdateCookieWithHistoryMenu(this));
-
+			if (this.config.getTmpMap().containsKey("UsedCookie")){
+				menu_list.add(new UpdateCookieWithHistoryMenu(this));
+			}
 
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
@@ -98,7 +114,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		
 		menu_list.add(new SetCookieMenu(this));
-		menu_list.add(new SetCookieWithHistoryMenu(this));
+		if (this.config.getTmpMap().containsKey("cookieToSetHistory")){
+			menu_list.add(new SetCookieWithHistoryMenu(this));
+		}
+
 
 		JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
 		Hack_Bar_Menu.add(new SQL_Menu(this));
@@ -498,6 +517,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	public boolean isDismissedHost(String host){
 		String dissmissed  = tableModel.getConfigByKey("DismissedHost");
+		if (dissmissed == null) return false;//表示配置被禁用了
 		String[] dissmissedHosts = dissmissed.split(",");
 		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();
 		while (it.hasNext()){
