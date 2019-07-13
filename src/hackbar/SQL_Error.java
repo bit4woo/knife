@@ -3,13 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigInteger;
 import java.util.Arrays;
 import javax.swing.JMenu;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -30,7 +34,7 @@ public class SQL_Error extends JMenu {
         {"MS-Get Version", "MS-Get Database", "MS-Get User", "MSSQL DIOS"}
     };
     
-    SQL_Error(BurpExtender burp){
+    public SQL_Error(BurpExtender burp){
         this.setText("SQLi:Error Based");
         this.myburp = burp;
         Methods.Create_Main_Menu(this, SQL_Error_Menu, SQL_Error_MenuItem, new SQLErrorItemListener(this.myburp));

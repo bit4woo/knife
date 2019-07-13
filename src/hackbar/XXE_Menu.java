@@ -1,4 +1,4 @@
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -6,12 +6,16 @@ import java.util.HashMap;
 
 import javax.swing.JMenu;
 
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
+
 //https://github.com/EdOverflow/bugbounty-cheatsheet/blob/master/cheatsheets/xxe.md
 public class XXE_Menu extends JMenu {
     public BurpExtender myburp;
     public String[] XXE_MenuItems = {"Basic Test","XXE 1", "XXE 2", "XXE 3", "Php wrapper in XXE", "Php wrapper in XXE 2","XXE in SOAP"};
     
-    XXE_Menu(BurpExtender burp){
+    public XXE_Menu(BurpExtender burp){
         this.setText("XXE");
         this.myburp = burp;
         Methods.add_MenuItem_and_listener(this, XXE_MenuItems, new XXEItemListener(myburp));

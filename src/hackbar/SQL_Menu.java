@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +12,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -40,7 +44,7 @@ public class SQL_Menu extends JMenu{
         {"DB Names"}    
     };
     
-    SQL_Menu(BurpExtender burp){
+    public SQL_Menu(BurpExtender burp){
         this.setText("SQL Injection");
         this.myburp = burp;
         Methods.Create_Main_Menu(this, SQL_MenuItem, SQL_MenuItems, new SQLMenuItemListener(myburp));

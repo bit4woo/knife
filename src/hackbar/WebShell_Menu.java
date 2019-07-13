@@ -3,11 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenu;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -17,7 +21,7 @@ public class WebShell_Menu extends JMenu {
     public BurpExtender myburp;
     public String[] WebShell_MenuItems = {"php", "asp", "aspx","jsp", "perl", "cfm"};
     
-    WebShell_Menu(BurpExtender burp){
+    public WebShell_Menu(BurpExtender burp){
         this.setText("Web Shell");
         this.myburp = burp;
         Methods.add_MenuItem_and_listener(this, WebShell_MenuItems, new WebShellItemListener(myburp));

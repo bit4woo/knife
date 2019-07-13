@@ -3,12 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import javax.swing.JMenu;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -26,7 +30,7 @@ public class LFI_Menu extends JMenu {
         {"C:\\boot.ini", "C:\\WINDOWS\\win.ini", "C:\\WINDOWS\\php.ini", "C:\\WINDOWS\\System32\\Config\\SAM", "C:\\WINNT\\php.ini", "C:\\xampp\\phpMyAdmin\\config.inc", "C:\\xampp\\phpMyAdmin\\phpinfo.php", "C:\\xampp\\phpmyadmin\\config.inc.php", "C:\\xampp\\apache\\conf\\httpd.conf", "C:\\xampp\\MercuryMail\\mercury.ini", "C:\\xampp\\php\\php.ini", "C:\\xampp\\phpMyAdmin\\config.inc.php", "C:\\xampp\\tomcat\\conf\\tomcat-users.xml", "C:\\xampp\\tomcat\\conf\\web.xml", "C:\\xampp\\sendmail\\sendmail.ini", "C:\\xampp\\webalizer\\webalizer.conf", "C:\\xampp\\webdav\\webdav.txt", "C:\\xampp\\apache\\logs\\error.log", "C:\\xampp\\apache\\logs\\access.log", "C:\\xampp\\FileZillaFTP\\Logs", "C:\\xampp\\FileZillaFTP\\Logs\\error.log", "C:\\xampp\\FileZillaFTP\\Logs\\access.log", "C:\\xampp\\MercuryMail\\LOGS\\error.log", "C:\\xampp\\MercuryMail\\LOGS\\access.log", "C:\\xampp\\mysql\\data\\mysql.err", "C:\\xampp\\sendmail\\sendmail.log"}
         };
     
-    LFI_Menu(BurpExtender burp){
+    public LFI_Menu(BurpExtender burp){
         this.setText("LFI");
         this.myburp = burp;
         Methods.Create_Main_Menu(this, LFI_Menu, LFIMenuItems, new LFIItemListener(myburp));
