@@ -19,6 +19,16 @@ import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
+import hackbar.File_Payload_Menu;
+import hackbar.LFI_Menu;
+import hackbar.Reverse_Shell_Menu;
+import hackbar.SQL_Error;
+import hackbar.SQL_Menu;
+import hackbar.SQli_LoginBypass;
+import hackbar.SSTI_Menu;
+import hackbar.WebShell_Menu;
+import hackbar.XSS_Menu;
+import hackbar.XXE_Menu;
 import knife.*;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
@@ -77,7 +87,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		byte context = invocation.getInvocationContext();
-		menu_list.add(new DismissMenu(this));
+		
+		String dismissed  = this.tableModel.getConfigByKey("DismissedHost");
+		if (dismissed != null) {
+			menu_list.add(new DismissMenu(this));
+		}
+
 		menu_list.add(new AddHostToScopeMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMap(this));
@@ -86,8 +101,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			
 			menu_list.add(new UpdateCookieMenu(this));
-			menu_list.add(new UpdateCookieWithHistoryMenu(this));
-
+			if (this.config.getUsedCookie()!=null){
+				menu_list.add(new UpdateCookieWithHistoryMenu(this));
+			}
 
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
@@ -98,7 +114,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		
 		menu_list.add(new SetCookieMenu(this));
-		menu_list.add(new SetCookieWithHistoryMenu(this));
+		if (this.config.getUsedCookie() != null){
+			menu_list.add(new SetCookieWithHistoryMenu(this));
+		}
+
 
 		JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
 		Hack_Bar_Menu.add(new SQL_Menu(this));
@@ -176,17 +195,19 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 
 		//当函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSet必然为空。
-		String cookieToSet = config.getTmpMap().get("cookieToSet");
+		HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
 		//stderr.println("called"+cookieToSet);
-		if (cookieToSet != null){//第二次调用如果cookie不为空，就走到这里
-			String targetUrl = cookieToSet.split(CookieUtils.SPLITER)[0];
-			String originUrl = cookieToSet.split(CookieUtils.SPLITER)[1];
-			String cookieValue = cookieToSet.split(CookieUtils.SPLITER)[2];
+		if (cookieToSetMap != null && !cookieToSetMap.isEmpty()){//第二次调用如果cookie不为空，就走到这里
 
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
 			String CurrentUrl = messageInfo.getHttpService().toString();
 			//stderr.println(CurrentUrl+" "+targetUrl);
-			if (targetUrl.equalsIgnoreCase(CurrentUrl)){
+			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
+			if (cookieToSet != null){
+				
+				String targetUrl = cookieToSet.getTargetUrl();
+				String cookieValue = cookieToSet.getHeaderValue();
+				
 				if (messageIsRequest) {
 					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
 					messageInfo.setRequest(newRequest);
@@ -200,9 +221,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
 
 					messageInfo.setResponse(response);
-					config.getTmpMap().remove("cookieToSet");//only need to set once
-					config.getTmpMap().put("cookieToSetHistory",cookieToSet);//store used cookie, change name to void change every request of host
-					//临时换名称存储，避免这个参数影响这里的逻辑，导致域名下的每个请求都会进行该操作。
+					cookieToSetMap.remove(CurrentUrl);//only need to set once
 				}
 			}
 
@@ -344,144 +363,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 	}
 
-	@Deprecated
-	public void processHttpMessageWithEditor(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-		//messageeditor
-		synchronized (messageInfo) {
-			if (messageIsRequest) {
-
-				boolean isRequestChanged = false;
-				MessageEditor editer = new MessageEditor(messageIsRequest, messageInfo, helpers);
-
-				URL url = editer.getURL();
-				String path = url.getPath();
-				String host = editer.getHost();
-				byte[] body = editer.getBody();
-				LinkedHashMap<String, String> headers = editer.getHeaderMap();//this will lost the first line
-
-
-				//remove header
-				List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
-				for (ConfigEntry entry : configEntries) {
-					String key = entry.getKey();
-					if (headers.remove(key) != null) {
-						isRequestChanged = true;
-					}
-				}
-
-				if (config.getTmpMap().containsKey(host)) {//自动更新cookie
-					String cookieValue = config.getTmpMap().get(host);
-					String[] values = cookieValue.split("::::");
-					String trueCookie = values[1];
-					headers.put("Cookie", trueCookie);
-					isRequestChanged = true;
-				}
-
-				//add/update/append header
-				if (toolFlag == (toolFlag & checkEnabledFor())) {
-					//if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
-					if (!config.isOnlyForScope()||callbacks.isInScope(url)){
-						try {
-							List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
-							for (ConfigEntry entry : updateOrAddEntries) {
-								String key = entry.getKey();
-								String value = entry.getValue();
-
-								if (value.contains("%host")) {
-									value = value.replaceAll("%host", host);
-									//stdout.println("3333"+value);
-								}
-
-								if (value.toLowerCase().contains("%dnslogserver")) {
-									String dnslog = tableModel.getConfigByKey("DNSlogServer");
-									Pattern p = Pattern.compile("(?u)%dnslogserver");
-									Matcher m = p.matcher(value);
-
-									while (m.find()) {
-										String found = m.group(0);
-										value = value.replaceAll(found, dnslog);
-									}
-								}
-
-								if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
-									headers.put(key, value);
-									isRequestChanged = true;
-
-								} else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
-									value = headers.get(key) + value;
-									headers.put(key, value);
-									isRequestChanged = true;
-									//stdout.println("2222"+value);
-								} else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
-									headers.put("Transfer-Encoding", "chunked");
-									isRequestChanged = true;
-
-									try {
-										boolean useComment = false;
-										if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
-											useComment = true;
-										}
-										String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
-										int len = 10;
-										if (lenStr != null) {
-											len = Integer.parseInt(lenStr);
-										}
-										body = Methods.encoding(body, len, useComment);
-										editer.setBody(body);
-									} catch (UnsupportedEncodingException e) {
-										e.printStackTrace(stderr);
-									}
-								}
-							}
-
-
-							///proxy function should be here
-							//reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
-							String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
-							String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
-
-							if (proxy != null) {//if enable is false, will return null.
-								List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
-
-								if (mode != null) {//random mode
-									proxyServerIndex = (int) (Math.random() * proxyList.size());
-									//proxyServerIndex = new Random().nextInt(proxyList.size());
-								} else {
-									proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
-								}
-								String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
-								int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
-								editer.setService(
-										helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
-								String firstrline = editer.getFirstLineOfHeader().replaceFirst(path, url.toString().split("\\?",0)[0]);
-								editer.setFirstLineOfHeader(firstrline);
-								isRequestChanged = true;
-								//success or failed,need to check?
-							}
-						} catch (Exception e) {
-							e.printStackTrace(stderr);
-						}
-					}
-				}
-				//set final request
-				editer.setHeaderMap(headers);
-				messageInfo = editer.getMessageInfo();
-
-				if (isRequestChanged) {
-					//debug
-					List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
-					//List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
-					stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
-					for (String entry : finalheaders) {
-						stdout.println(entry);
-					}
-				}
-			}
-		}//sync
-	}
-
-
-
 	public List<String> GetSetCookieHeaders(String cookies){
 		if (cookies.startsWith("Cookie: ")){
 			cookies = cookies.replaceFirst("Cookie: ","");
@@ -498,6 +379,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	public boolean isDismissedHost(String host){
 		String dissmissed  = tableModel.getConfigByKey("DismissedHost");
+		if (dissmissed == null) return false;//表示配置被禁用了
 		String[] dissmissedHosts = dissmissed.split(",");
 		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();
 		while (it.hasNext()){

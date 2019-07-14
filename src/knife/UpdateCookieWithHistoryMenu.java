@@ -3,8 +3,7 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.List;
+
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
@@ -12,16 +11,15 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import burp.IRequestInfo;
 
 public class UpdateCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public UpdateCookieWithHistoryMenu(BurpExtender burp){
-		if (burp.config.getTmpMap().containsKey("UsedCookie")) {
-			String urlAndcookieValue = burp.config.getTmpMap().get("UsedCookie");
-			String url = urlAndcookieValue.split(CookieUtils.SPLITER)[0];
-			String cookieValue = urlAndcookieValue.split(CookieUtils.SPLITER)[1];
-			this.setText("^_^ Update Cookie ("+url+")");
+		HeaderEntry usedCookie = burp.config.getUsedCookie();
+		if (usedCookie != null) {
+			String fromUrl = usedCookie.getHeaderSource();
+			String cookieValue = usedCookie.getHeaderValue();
+			this.setText("^_^ Update Cookie ("+fromUrl+")");
 			this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.context,cookieValue));
 		}
 	}

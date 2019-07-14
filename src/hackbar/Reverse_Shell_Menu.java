@@ -3,11 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenu;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -21,7 +25,7 @@ public class Reverse_Shell_Menu extends JMenu {
         {}
     };
     
-    Reverse_Shell_Menu(BurpExtender burp){
+    public Reverse_Shell_Menu(BurpExtender burp){
         this.setText("Reverse Shell");
         this.myburp = burp;
         Methods.Create_Main_Menu(this, Reverse_Shell_Menu, Reverse_Shell_Menuitems, new ReverseShellItemListener(myburp));

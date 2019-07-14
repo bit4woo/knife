@@ -28,7 +28,8 @@ public class ChunkedEncodingMenu extends JMenuItem {
     	this.invocation = burp.context;
     	this.burp = burp;
     	this.getter = new Getter(burp.helpers);
-    	String chunked = getter.getHeaderValueOf(true, this.invocation.getSelectedMessages()[0], "Transfer-Encoding");
+    	IHttpRequestResponse[] messages = this.invocation.getSelectedMessages();
+    	String chunked = getter.getHeaderValueOf(true, messages[0], "Transfer-Encoding");
     	if (chunked == null || !chunked.equalsIgnoreCase("chunked") ) {
     		this.setText("^_^ Chunked Encoding");
     	}else {

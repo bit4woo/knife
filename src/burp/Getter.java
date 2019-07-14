@@ -57,6 +57,7 @@ public class Getter {
 	public LinkedHashMap<String,String> getHeaderHashMap(boolean messageIsRequest,IHttpRequestResponse messageInfo) {
 		List<String> headers = getHeaderList(messageIsRequest,messageInfo);
 		LinkedHashMap<String,String> result = new LinkedHashMap<String, String>();
+		if (headers.size() <=0) return result;
 		headers.remove(0);
 		for (String header : headers) {
 			try {

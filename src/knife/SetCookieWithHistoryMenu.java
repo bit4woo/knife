@@ -3,10 +3,15 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.*;
+
 import javax.swing.JMenuItem;
 
-import burp.*;
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
 
 public class SetCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -14,12 +19,11 @@ public class SetCookieWithHistoryMenu extends JMenuItem {
 	private static final long serialVersionUID = 1L;
 
 	public SetCookieWithHistoryMenu(BurpExtender burp){
-		if (burp.config.getTmpMap().containsKey("cookieToSetHistory")) {
-			String cookieToSetHistory = burp.config.getTmpMap().get("cookieToSetHistory");
-
-			String targetUrl = cookieToSetHistory.split(CookieUtils.SPLITER)[0];
-			String originUrl = cookieToSetHistory.split(CookieUtils.SPLITER)[1];
-			String cookieValue = cookieToSetHistory.split(CookieUtils.SPLITER)[2];
+		HeaderEntry cookieToSetHistory = burp.config.getUsedCookie();
+		if (cookieToSetHistory != null) {
+			String targetUrl = cookieToSetHistory.getTargetUrl();
+			String originUrl = cookieToSetHistory.getHeaderSource();
+			String cookieValue = cookieToSetHistory.getHeaderValue();
 
 			this.setText(String.format("^_^ Set Cookie (%s)",originUrl));
 			this.addActionListener(new SetCookieWithHistory_Action(burp,burp.context));
@@ -48,21 +52,26 @@ class SetCookieWithHistory_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 
-		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-		Getter getter = new Getter(helpers);
-		String shortUrl = getter.getShortUrl(selectedItems[0]);
+		HeaderEntry cookieToSetHistory = burp.config.getUsedCookie();
 
-		String cookieToSetHistory = burp.config.getTmpMap().get("cookieToSetHistory");
-		String targetUrl = cookieToSetHistory.split(CookieUtils.SPLITER)[0];
-		String originUrl = cookieToSetHistory.split(CookieUtils.SPLITER)[1];
-		String cookieValue = cookieToSetHistory.split(CookieUtils.SPLITER)[2];
+		//		if (shortUrl.equalsIgnoreCase(targetUrl)){//update request, processProxyMessage will deal response.
+		//			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0],cookieValue);
+		//			selectedItems[0].setRequest(newRequest);
+		//		}
 
-//		if (shortUrl.equalsIgnoreCase(targetUrl)){//update request, processProxyMessage will deal response.
-//			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0],cookieValue);
-//			selectedItems[0].setRequest(newRequest);
-//		}
-
-		this.burp.config.getTmpMap().put("cookieToSet", shortUrl+CookieUtils.SPLITER+originUrl+CookieUtils.SPLITER+cookieValue);
-		//这个设置，让proxy处理它的响应包，shortUrl是新的target
+		try{
+			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+			for(IHttpRequestResponse message:messages) {
+				Getter getter = new Getter(helpers);
+				String targetShortUrl = getter.getShortUrl(message);
+				cookieToSetHistory.setTargetUrl(targetShortUrl);
+				this.burp.config.getSetCookieMap().put(targetShortUrl, cookieToSetHistory);
+				//这个设置，让proxy处理它的响应包，shortUrl是新的target
+			}
+		}
+		catch (Exception e1)
+		{
+			e1.printStackTrace(stderr);
+		}
 	}
 }

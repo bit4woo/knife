@@ -3,8 +3,15 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+
 import javax.swing.JMenuItem;
-import burp.*;
+
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
 
 public class UpdateCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -36,8 +43,8 @@ class UpdateCookieAction implements ActionListener {
 
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 
-		String shorturl = selectedItems[0].getHttpService().toString();
-		String latestCookie = CookieUtils.getLatestCookieFromHistory(shorturl);//自行查找一次
+		String sourceshorturl = selectedItems[0].getHttpService().toString();
+		HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
 		
 		int time = 0;
 		while (!isVaildCookie(latestCookie) && time <2) {
@@ -46,29 +53,26 @@ class UpdateCookieAction implements ActionListener {
 		}
 		
 		if (isVaildCookie(latestCookie)) {
-			String latestCookieValue = latestCookie.split(CookieUtils.SPLITER)[1];
-			shorturl = latestCookie.split(CookieUtils.SPLITER)[0];
+			String latestCookieValue = latestCookie.getHeaderValue();
+			sourceshorturl = latestCookie.getHeaderSource();
 			
 			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0], latestCookieValue);
 			selectedItems[0].setRequest(newRequest);
 
-			if (shorturl.startsWith("http")) {
-				this.burp.config.getTmpMap().put("UsedCookie", latestCookie);
+			if (sourceshorturl.startsWith("http")) {
+				this.burp.config.setUsedCookie(latestCookie);
 			}
 		}else {
 			//do nothing
 		}
 	}
 	
-	public boolean isVaildCookie(String urlAndCookieString) {
-		if (urlAndCookieString == null || urlAndCookieString == "") {
-			return false;
-		}
-		if (!urlAndCookieString.contains(CookieUtils.SPLITER)) {
+	public boolean isVaildCookie(HeaderEntry urlAndCookieString) {
+		if (urlAndCookieString == null) {
 			return false;
 		}
 		String currentCookie = new Getter(helpers).getHeaderValueOf(true,invocation.getSelectedMessages()[0],"Cookie");
-		String foundCookie = urlAndCookieString.split(CookieUtils.SPLITER)[1];
+		String foundCookie = urlAndCookieString.getHeaderValue();
 		if (foundCookie.equalsIgnoreCase(currentCookie)) {
 			return false;
 		}

@@ -3,12 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -27,7 +31,7 @@ public class XSS_Menu extends JMenu{
         {"onerror=alert;throw 1;","onerror=eval;throw'=alert\\x281\\x29';"}
     };
     
-    XSS_Menu(BurpExtender burp){
+    public XSS_Menu(BurpExtender burp){
         this.setText("XSS");
         this.myburp = burp;
         Methods.Create_Main_Menu(this, XSS_MainMenu, XSS_MenuItem, new XXSItemListener(myburp));

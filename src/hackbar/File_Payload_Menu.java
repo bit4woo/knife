@@ -1,8 +1,12 @@
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenu;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 
 /**
@@ -26,7 +30,7 @@ public class File_Payload_Menu extends JMenu {
 			{"PDF XSS"}
 	};//TODO
 
-	File_Payload_Menu(BurpExtender burp){
+	public File_Payload_Menu(BurpExtender burp){
 		this.setText("File Payload");
 		this.myburp = burp;
 		Methods.Create_Main_Menu(this, Second_Menu, Third_MenuItems, new File_Upload_Menu_ItemListener(myburp));

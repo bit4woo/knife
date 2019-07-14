@@ -1,8 +1,12 @@
-package burp;
+package hackbar;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenu;
+
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 /**
  *
@@ -12,7 +16,7 @@ public class SSTI_Menu extends JMenu {
     public BurpExtender myburp;
     public String[] SSTI_MenuItems = {"Flask-Jinja2","Flask-Jinja2-getAllClasses","FreeMarker","FreeMarker2","Velocity"};
     
-    SSTI_Menu(BurpExtender burp){
+    public SSTI_Menu(BurpExtender burp){
         this.setText("SSTI");
         this.myburp = burp;
         Methods.add_MenuItem_and_listener(this, SSTI_MenuItems, new SSTI_ItemListener(myburp));

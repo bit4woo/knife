@@ -1,9 +1,12 @@
 package knife;
 
-import burp.*;
-
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 
 public class CookieUtils {
 
@@ -25,7 +28,7 @@ public class CookieUtils {
 	return a String url_which_cookie_from+SPLITER+cookievalue
 	 */
 
-    public static String getLatestHeaderFromHistory(String shortUrl,String headerName){
+    public static HeaderEntry getLatestHeaderFromHistory(String shortUrl,String headerName){
         //还是草粉师傅说得对，直接从history里面拿最好
 
         IHttpRequestResponse[]  historyMessages = Reverse(BurpExtender.callbacks.getProxyHistory());
@@ -53,7 +56,9 @@ public class CookieUtils {
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String cookieValue = getter.getHeaderValueOf(true,historyMessage,headerName);
                 if (cookieValue != null){
-                    return shortUrl+SPLITER+cookieValue;
+                	HeaderEntry entry = new HeaderEntry(shortUrl,headerName,cookieValue, null);
+                	return entry;
+                    //return shortUrl+SPLITER+cookieValue;
                 }
             }
         }
@@ -61,15 +66,15 @@ public class CookieUtils {
         return null;
     }
 
-    public static String getLatestCookieFromHistory(String shortUrl){
+    public static HeaderEntry getLatestCookieFromHistory(String shortUrl){
         return getLatestHeaderFromHistory(shortUrl,"Cookie");
     }
 
     /*
     return a String url_which_cookie_from+SPLITER+cookievalue
      */
-    public static String getLatestCookieFromSpeicified() {
-        String latestCookie = null;
+    public static HeaderEntry getLatestCookieFromSpeicified() {
+        HeaderEntry latestCookie = null;
         String domainOrCookie = Methods.prompt_and_validate_input("cookie OR cookie of ", null);
         String url1 = "";
         String url2 = "";
@@ -77,12 +82,14 @@ public class CookieUtils {
             if (domainOrCookie == null){
                 return null;
             }else if (domainOrCookie.contains("=") && !domainOrCookie.contains("?") && !domainOrCookie.contains("/")){//直接是cookie
-                latestCookie = domainOrCookie.trim();
-                if (latestCookie.startsWith("Cookie:")){
-                    latestCookie = latestCookie.replaceFirst("Cookie:","").trim();
+                String cookieValue = domainOrCookie.trim();
+                
+                if (cookieValue.startsWith("Cookie:")){
+                	cookieValue = cookieValue.replaceFirst("Cookie:","").trim();
                 }
-                String tips = "Cookie: "+latestCookie.substring(0,latestCookie.indexOf("="))+"...";
-                latestCookie = tips+SPLITER+latestCookie;
+                String tips = "Cookie: "+cookieValue.substring(0,cookieValue.indexOf("="))+"...";
+                latestCookie = new HeaderEntry(tips,"Cookie",cookieValue, null);
+              
                 return latestCookie;
             }else if (domainOrCookie.startsWith("http://") || domainOrCookie.startsWith("https://")) {//不包含协议头的域名或url
                 url1 = domainOrCookie;
