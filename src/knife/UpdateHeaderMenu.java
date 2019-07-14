@@ -3,7 +3,12 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -14,7 +19,6 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import burp.IRequestInfo;
 
 
 public class UpdateHeaderMenu extends JMenu {
@@ -93,7 +97,7 @@ class UpdateHeader_Action implements ActionListener{
 		IHttpRequestResponse messageInfo = selectedItems[0];
 
 		String shorturl = selectedItems[0].getHttpService().toString();//current
-		String urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,headerName);
+		HeaderEntry urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,headerName);
 
 		if (urlAndtoken !=null) {
 
@@ -102,7 +106,7 @@ class UpdateHeader_Action implements ActionListener{
 			LinkedHashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
 			byte[] body = getter.getBody(true,messageInfo);
 
-			headers.put(headerName,urlAndtoken.split(CookieUtils.SPLITER)[1]);
+			headers.put(headerName,urlAndtoken.getHeaderValue());
 			List<String> headerList = getter.HeaderMapToList(firstline,headers);
 
 			byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
