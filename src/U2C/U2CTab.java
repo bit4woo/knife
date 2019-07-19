@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
@@ -38,6 +39,13 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
     @Override
     public boolean isEnabled(byte[] content, boolean isRequest)
     {
+    	try {
+			if (BurpExtender.jsonBeautifier.isEnabled(content, isRequest)) {
+				return false;
+			}
+		} catch (Exception e) {
+			
+		}
     	
     	if(content!=null && !isRequest && needtoconvert(new String(content))) {
     		originContent = content;

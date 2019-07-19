@@ -44,6 +44,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public int proxyServerIndex=-1;
+	public static JSONBeautifier jsonBeautifier;
 
 
 	@Override
@@ -67,11 +68,14 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		table.setupTypeColumn();//call this function must after table data loaded !!!!
 		
+		
+		jsonBeautifier = new JSONBeautifier(null, false, helpers, callbacks);
+		
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
 		callbacks.setExtensionName(this.ExtensionName);
 		callbacks.registerContextMenuFactory(this);// for menus
 		callbacks.registerMessageEditorTabFactory(new U2CTab(null, false, helpers, callbacks));// for U2C
-		callbacks.registerMessageEditorTabFactory(new JSONBeautifier(null, false, helpers, callbacks));
+		callbacks.registerMessageEditorTabFactory(jsonBeautifier);
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);
