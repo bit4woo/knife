@@ -56,12 +56,14 @@ class InsertXSSAction implements ActionListener {
 		
 		for(IParameter para:paras) {
 			String value = para.getValue();
-			if (isInt(value)) {
-				continue;
-			}else {
-				value = value+xsspayload;
-				IParameter newPara = helpers.buildParameter(para.getName(), value, para.getType());
-				newRequest = helpers.updateParameter(newRequest, newPara);
+			if (para.getType() != IParameter.PARAM_COOKIE) {
+				if (isInt(value)) {
+					continue;
+				}else {
+					value = value+xsspayload;
+					IParameter newPara = helpers.buildParameter(para.getName(), value, para.getType());
+					newRequest = helpers.updateParameter(newRequest, newPara);
+				}
 			}
 		}
 		messageInfo.setRequest(newRequest);
