@@ -4,12 +4,18 @@ import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+
 import com.alibaba.fastjson.JSON;
 
 import U2C.JSONBeautifier;
@@ -29,7 +35,19 @@ import hackbar.SSTI_Menu;
 import hackbar.WebShell_Menu;
 import hackbar.XSS_Menu;
 import hackbar.XXE_Menu;
-import knife.*;
+import knife.AddHostToScopeMenu;
+import knife.ChunkedEncodingMenu;
+import knife.CookieUtils;
+import knife.DismissMenu;
+import knife.HeaderEntry;
+import knife.InsertXSSMenu;
+import knife.OpenWithBrowserMenu;
+import knife.RunSQLMap;
+import knife.SetCookieMenu;
+import knife.SetCookieWithHistoryMenu;
+import knife.UpdateCookieMenu;
+import knife.UpdateCookieWithHistoryMenu;
+import knife.UpdateHeaderMenu;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -103,6 +121,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		menu_list.add(new ChunkedEncodingMenu(this));
 		
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			
+			if (this.tableModel.getConfigByKey("XSS-Payload")!=null){
+				menu_list.add(new InsertXSSMenu(this));
+			}
 			
 			menu_list.add(new UpdateCookieMenu(this));
 			if (this.config.getUsedCookie()!=null){
