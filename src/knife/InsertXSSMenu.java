@@ -51,31 +51,47 @@ class InsertXSSAction implements ActionListener {
 
 		if (xsspayload == null) return;
 
+		boolean jsonHandled = false;
 		for(IParameter para:paras) {
-			if (para.getType() == IParameter.PARAM_COOKIE) {
-				continue;
-			}
-
 			String value = para.getValue();
-
-			if (isInt(value)) {
+			byte type = para.getType();
+			if (type == IParameter.PARAM_COOKIE || isInt(value)) {
 				continue;
+			}else if (para.getType() == IParameter.PARAM_JSON ) {//json参数的更新方法，这里只是针对body是json
+				if (!jsonHandled){
+					stdout.println(para.getValue());
+					List<String> headers = helpers.analyzeRequest(newRequest).getHeaders();
+					String body = new String(getter.getBody(true,newRequest));
+					if (isJSONValid(body)){
+						try {
+							body = updateJSONValue(new JSONObject(body),xsspayload).toString();
+						} catch (Exception e) {
+							e.printStackTrace(stderr);
+						}
+					}
+					newRequest = helpers.buildHttpMessage(headers,helpers.stringToBytes(body));
+					jsonHandled = true;
+				}
+			}else {
+				if (type == IParameter.PARAM_URL) {//url中的参数需要编码
+					value = helpers.urlDecode(value);
+				}
+				if (isJSONValid(value)){//当参数的值是json格式
+					try {
+						value = updateJSONValue(new JSONObject(value),xsspayload).toString();
+					} catch (Exception e) {
+						e.printStackTrace(stderr);
+					}
+				}else {
+					value = value+xsspayload;
+				}
+
+				if (type == IParameter.PARAM_URL) {//url中的参数需要编码
+					value = helpers.urlEncode(value);
+				}
+				IParameter newPara = helpers.buildParameter(para.getName(), value, para.getType());
+				newRequest = helpers.updateParameter(newRequest, newPara);
 			}
-
-			if (para.getType() == IParameter.PARAM_JSON) {
-				System.out.println(para.getValue());
-			}
-
-			if (para.getType() == IParameter.PARAM_URL) {
-				value = value + helpers.urlEncode(xsspayload);
-			}else{
-				value = value+xsspayload;
-			}
-
-
-
-			IParameter newPara = helpers.buildParameter(para.getName(), value, para.getType());
-			newRequest = helpers.updateParameter(newRequest, newPara);
 		}
 		messageInfo.setRequest(newRequest);
 	}
@@ -95,6 +111,21 @@ class InsertXSSAction implements ActionListener {
 		}
 	}
 
+	//org.json
+	public static boolean isJSONValid(String test) {
+		try {
+			new JSONObject(test);
+		} catch (JSONException ex) {
+			try {
+				new JSONArray(test);
+			} catch (JSONException ex1) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	//org.json
 	public static JSONObject updateJSONValue(JSONObject obj, String newValue) throws Exception {
 		// We need to know keys of Jsonobject
 		Iterator iterator = obj.keys();
@@ -104,8 +135,13 @@ class InsertXSSAction implements ActionListener {
 			// if object is just string we change value in key
 			if ((obj.optJSONArray(key)==null) && (obj.optJSONObject(key)==null)) {
 				// put new value
-				String value = (String) obj.get(key);
-				obj.put(key, value+newValue);
+				try{//string
+					String value = (String) obj.get(key);
+					obj.put(key, value+newValue);
+				}catch (Exception e){
+					//if int, nothing to do
+				}
+
 			}
 
 			// if it's jsonobject
