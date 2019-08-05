@@ -59,7 +59,7 @@ class InsertXSSAction implements ActionListener {
 				continue;
 			}else if (para.getType() == IParameter.PARAM_JSON ) {//json参数的更新方法，这里只是针对body是json
 				if (!jsonHandled){
-					stdout.println(para.getValue());
+					//stdout.println(para.getValue());
 					List<String> headers = helpers.analyzeRequest(newRequest).getHeaders();
 					String body = new String(getter.getBody(true,newRequest));
 					if (isJSONValid(body)){
