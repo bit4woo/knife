@@ -102,12 +102,11 @@ class UpdateHeader_Action implements ActionListener{
 		if (urlAndtoken !=null) {
 
 			Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-			String firstline = getter.getHeaderFirstLine(true,messageInfo);
-			LinkedHashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
+			HashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
 			byte[] body = getter.getBody(true,messageInfo);
 
 			headers.put(headerName,urlAndtoken.getHeaderValue());
-			List<String> headerList = getter.HeaderMapToList(firstline,headers);
+			List<String> headerList = getter.headerMapToHeaderList(headers);
 
 			byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
 			selectedItems[0].setRequest(newRequestBytes);

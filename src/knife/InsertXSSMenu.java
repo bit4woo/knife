@@ -1,16 +1,24 @@
 package knife;
 
-import burp.*;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JMenuItem;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.IParameter;
 
 public class InsertXSSMenu extends JMenuItem {
 	//JMenuItem vs. JMenu

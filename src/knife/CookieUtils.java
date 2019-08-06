@@ -1,5 +1,6 @@
 package knife;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -116,15 +117,14 @@ public class CookieUtils {
 
     public static byte[] updateCookie(IHttpRequestResponse messageInfo,String cookieValue){
         Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-        String firstline = getter.getHeaderFirstLine(true,messageInfo);
-        LinkedHashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
+        HashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
         byte[] body = getter.getBody(true,messageInfo);
 
         if(cookieValue.startsWith("Cookie: ")) {
             cookieValue = cookieValue.replaceFirst("Cookie: ","");
         }
         headers.put("Cookie",cookieValue);
-        List<String> headerList = getter.HeaderMapToList(firstline,headers);
+        List<String> headerList = getter.headerMapToHeaderList(headers);
 
         byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
         return newRequestBytes;

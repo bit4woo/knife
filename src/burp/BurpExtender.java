@@ -267,8 +267,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			URL url = getter.getURL(messageInfo);
 			String host = getter.getHost(messageInfo);
 			String path = url.getPath();
-			String firstLineOfHeader = getter.getHeaderFirstLine(messageIsRequest,messageInfo);
-			LinkedHashMap headers = getter.getHeaderHashMap(messageIsRequest,messageInfo);
+			HashMap<String, String> headers = getter.getHeaderHashMap(messageIsRequest,messageInfo);
 			IHttpService service = messageInfo.getHttpService();
 			byte[] body = getter.getBody(messageIsRequest,messageInfo);
 
@@ -358,8 +357,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
 
 							messageInfo.setHttpService(helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
-
-							firstLineOfHeader = firstLineOfHeader.replaceFirst(path, url.toString().split("\\?",0)[0]);
+							
+							String method = helpers.analyzeRequest(messageInfo).getMethod();
+							headers.put(method, url.toString());
 							isRequestChanged = true;
 							//success or failed,need to check?
 						}
@@ -370,7 +370,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}
 			if (isRequestChanged){
 				//set final request
-				List<String> headerList = getter.HeaderMapToList(firstLineOfHeader,headers);
+				List<String> headerList = getter.headerMapToHeaderList(headers);
 				messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
 			}
 

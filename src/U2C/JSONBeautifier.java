@@ -67,7 +67,7 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
              //Take the input, determine request/response, parse as json, then print prettily.
              Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create();
              //Get only the JSON part of the content
-             byte[] body = new Getter().getBody(isRequest, content);
+             byte[] body = new Getter(helpers).getBody(isRequest, content);
              try {
                  JsonParser jp = new JsonParser();
                  JsonElement je = jp.parse(new String(body));
