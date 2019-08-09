@@ -226,7 +226,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (cookieToSetMap != null && !cookieToSetMap.isEmpty()){//第二次调用如果cookie不为空，就走到这里
 
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
-			String CurrentUrl = messageInfo.getHttpService().toString();
+			//String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
+			Getter getter = new Getter(helpers);
+			String CurrentUrl = getter.getShortUrl(messageInfo);
 			//stderr.println(CurrentUrl+" "+targetUrl);
 			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
 			if (cookieToSet != null){
@@ -238,7 +240,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
 					messageInfo.setRequest(newRequest);
 				}else {
-					Getter getter = new Getter(helpers);
 					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
 					byte[] responseBody = getter.getBody(false,messageInfo);
 					List<String> setHeaders = GetSetCookieHeaders(cookieValue);
@@ -266,9 +267,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 			URL url = getter.getURL(messageInfo);
 			String host = getter.getHost(messageInfo);
-			String path = url.getPath();
-			HashMap<String, String> headers = getter.getHeaderHashMap(messageIsRequest,messageInfo);
-			IHttpService service = messageInfo.getHttpService();
+			LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
 			byte[] body = getter.getBody(messageIsRequest,messageInfo);
 
 			boolean isRequestChanged = false;
@@ -421,6 +420,5 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		return false;
 	}
-
 
 }

@@ -52,8 +52,10 @@ public class CookieUtils {
         if (shortUrl.lastIndexOf("/") > "https://".length()){
             shortUrl = shortUrl.substring(0,shortUrl.indexOf("/",8));
         }
+        
         for (IHttpRequestResponse historyMessage:historyMessages) {
-            String hisShortUrl = historyMessage.getHttpService().toString();
+            String hisShortUrl = getter.getShortUrl(historyMessage);
+            
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String cookieValue = getter.getHeaderValueOf(true,historyMessage,headerName);
                 if (cookieValue != null){
@@ -117,7 +119,7 @@ public class CookieUtils {
 
     public static byte[] updateCookie(IHttpRequestResponse messageInfo,String cookieValue){
         Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-        HashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
+        LinkedHashMap<String, String> headers = getter.getHeaderMap(true,messageInfo);
         byte[] body = getter.getBody(true,messageInfo);
 
         if(cookieValue.startsWith("Cookie: ")) {

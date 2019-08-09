@@ -43,7 +43,8 @@ class UpdateCookieAction implements ActionListener {
 
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 
-		String sourceshorturl = selectedItems[0].getHttpService().toString();
+		Getter getter = new Getter(helpers);
+		String sourceshorturl = getter.getShortUrl(selectedItems[0]);
 		HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
 		
 		int time = 0;
