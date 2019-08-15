@@ -4,12 +4,18 @@ import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+
 import com.alibaba.fastjson.JSON;
 
 import U2C.JSONBeautifier;
@@ -29,7 +35,19 @@ import hackbar.SSTI_Menu;
 import hackbar.WebShell_Menu;
 import hackbar.XSS_Menu;
 import hackbar.XXE_Menu;
-import knife.*;
+import knife.AddHostToScopeMenu;
+import knife.ChunkedEncodingMenu;
+import knife.CookieUtils;
+import knife.DismissMenu;
+import knife.HeaderEntry;
+import knife.InsertXSSMenu;
+import knife.OpenWithBrowserMenu;
+import knife.RunSQLMap;
+import knife.SetCookieMenu;
+import knife.SetCookieWithHistoryMenu;
+import knife.UpdateCookieMenu;
+import knife.UpdateCookieWithHistoryMenu;
+import knife.UpdateHeaderMenu;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -44,6 +62,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public int proxyServerIndex=-1;
+	public static JSONBeautifier jsonBeautifier;
 
 
 	@Override
@@ -67,11 +86,14 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		table.setupTypeColumn();//call this function must after table data loaded !!!!
 		
+		
+		jsonBeautifier = new JSONBeautifier(null, false, helpers, callbacks);
+		
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
 		callbacks.setExtensionName(this.ExtensionName);
 		callbacks.registerContextMenuFactory(this);// for menus
 		callbacks.registerMessageEditorTabFactory(new U2CTab(null, false, helpers, callbacks));// for U2C
-		callbacks.registerMessageEditorTabFactory(new JSONBeautifier(null, false, helpers, callbacks));
+		callbacks.registerMessageEditorTabFactory(jsonBeautifier);
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);
@@ -99,6 +121,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		menu_list.add(new ChunkedEncodingMenu(this));
 		
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			
+			if (this.tableModel.getConfigByKey("XSS-Payload")!=null){
+				menu_list.add(new InsertXSSMenu(this));
+			}
 			
 			menu_list.add(new UpdateCookieMenu(this));
 			if (this.config.getUsedCookie()!=null){
@@ -200,7 +226,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (cookieToSetMap != null && !cookieToSetMap.isEmpty()){//第二次调用如果cookie不为空，就走到这里
 
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
-			String CurrentUrl = messageInfo.getHttpService().toString();
+			//String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
+			Getter getter = new Getter(helpers);
+			String CurrentUrl = getter.getShortUrl(messageInfo);
 			//stderr.println(CurrentUrl+" "+targetUrl);
 			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
 			if (cookieToSet != null){
@@ -212,7 +240,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
 					messageInfo.setRequest(newRequest);
 				}else {
-					Getter getter = new Getter(helpers);
 					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
 					byte[] responseBody = getter.getBody(false,messageInfo);
 					List<String> setHeaders = GetSetCookieHeaders(cookieValue);
@@ -240,10 +267,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 			URL url = getter.getURL(messageInfo);
 			String host = getter.getHost(messageInfo);
-			String path = url.getPath();
-			String firstLineOfHeader = getter.getHeaderFirstLine(messageIsRequest,messageInfo);
-			LinkedHashMap headers = getter.getHeaderHashMap(messageIsRequest,messageInfo);
-			IHttpService service = messageInfo.getHttpService();
+			LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
 			byte[] body = getter.getBody(messageIsRequest,messageInfo);
 
 			boolean isRequestChanged = false;
@@ -332,8 +356,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
 
 							messageInfo.setHttpService(helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
-
-							firstLineOfHeader = firstLineOfHeader.replaceFirst(path, url.toString().split("\\?",0)[0]);
+							
+							String method = helpers.analyzeRequest(messageInfo).getMethod();
+							headers.put(method, url.toString());
 							isRequestChanged = true;
 							//success or failed,need to check?
 						}
@@ -344,7 +369,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}
 			if (isRequestChanged){
 				//set final request
-				List<String> headerList = getter.HeaderMapToList(firstLineOfHeader,headers);
+				List<String> headerList = getter.headerMapToHeaderList(headers);
 				messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
 			}
 
@@ -395,6 +420,5 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		return false;
 	}
-
 
 }

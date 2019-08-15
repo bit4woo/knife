@@ -86,6 +86,10 @@
     SQLMap-Options --- sqlmap命令的额外参数
    ![runsqlmap](img/runsqlmap.gif)
 
+9. Insert XSS
+
+   一键对当前数据包中非数字型和非cookie的参数插入XSS payload
+
 ##### Tab
 
 1. U2C

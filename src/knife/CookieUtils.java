@@ -51,8 +51,10 @@ public class CookieUtils {
         if (shortUrl.lastIndexOf("/") > "https://".length()){
             shortUrl = shortUrl.substring(0,shortUrl.indexOf("/",8));
         }
+
         for (IHttpRequestResponse historyMessage:historyMessages) {
-            String hisShortUrl = historyMessage.getHttpService().toString();
+            String hisShortUrl = getter.getShortUrl(historyMessage);
+
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String cookieValue = getter.getHeaderValueOf(true,historyMessage,headerName);
                 if (cookieValue != null){
@@ -83,13 +85,13 @@ public class CookieUtils {
                 return null;
             }else if (domainOrCookie.contains("=") && !domainOrCookie.contains("?") && !domainOrCookie.contains("/")){//直接是cookie
                 String cookieValue = domainOrCookie.trim();
-                
+
                 if (cookieValue.startsWith("Cookie:")){
                 	cookieValue = cookieValue.replaceFirst("Cookie:","").trim();
                 }
                 String tips = "Cookie: "+cookieValue.substring(0,cookieValue.indexOf("="))+"...";
                 latestCookie = new HeaderEntry(tips,"Cookie",cookieValue, null);
-              
+
                 return latestCookie;
             }else if (domainOrCookie.startsWith("http://") || domainOrCookie.startsWith("https://")) {//不包含协议头的域名或url
                 url1 = domainOrCookie;
@@ -104,7 +106,7 @@ public class CookieUtils {
                     latestCookie = getLatestCookieFromHistory(url2);
                 }
             } catch (Exception e) {
-
+            	e.printStackTrace();
             }
             return latestCookie;
 
@@ -116,15 +118,14 @@ public class CookieUtils {
 
     public static byte[] updateCookie(IHttpRequestResponse messageInfo,String cookieValue){
         Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-        String firstline = getter.getHeaderFirstLine(true,messageInfo);
-        LinkedHashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
+        LinkedHashMap<String, String> headers = getter.getHeaderMap(true,messageInfo);
         byte[] body = getter.getBody(true,messageInfo);
 
         if(cookieValue.startsWith("Cookie: ")) {
             cookieValue = cookieValue.replaceFirst("Cookie: ","");
         }
         headers.put("Cookie",cookieValue);
-        List<String> headerList = getter.HeaderMapToList(firstline,headers);
+        List<String> headerList = getter.headerMapToHeaderList(headers);
 
         byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
         return newRequestBytes;

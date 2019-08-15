@@ -43,7 +43,7 @@ public class UpdateHeaderMenu extends JMenu {
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 		//byte selectedInvocationContext = invocation.getInvocationContext();
 		Getter getter = new Getter(burp.callbacks.getHelpers());
-		HashMap<String, String> headers = getter.getHeaderHashMap(true, selectedItems[0]);
+		LinkedHashMap<String, String> headers = getter.getHeaderMap(true, selectedItems[0]);
 
 		List<String> keywords = Arrays.asList(burp.tableModel.getConfigByKey("tokenHeaders").split(","));
 		List<String> ResultHeaders = new ArrayList<String>();
@@ -95,19 +95,16 @@ class UpdateHeader_Action implements ActionListener{
 
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 		IHttpRequestResponse messageInfo = selectedItems[0];
-
-		String shorturl = selectedItems[0].getHttpService().toString();//current
+		Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
+		String shorturl = getter.getShortUrl(messageInfo);//current
 		HeaderEntry urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,headerName);
 
 		if (urlAndtoken !=null) {
-
-			Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-			String firstline = getter.getHeaderFirstLine(true,messageInfo);
-			LinkedHashMap<String, String> headers = getter.getHeaderHashMap(true,messageInfo);
+			LinkedHashMap<String, String> headers = getter.getHeaderMap(true,messageInfo);
 			byte[] body = getter.getBody(true,messageInfo);
 
 			headers.put(headerName,urlAndtoken.getHeaderValue());
-			List<String> headerList = getter.HeaderMapToList(firstline,headers);
+			List<String> headerList = getter.headerMapToHeaderList(headers);
 
 			byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
 			selectedItems[0].setRequest(newRequestBytes);
