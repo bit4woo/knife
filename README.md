@@ -45,6 +45,10 @@ A extension that add some small function[ one key to update cookie, one key add 
 
    One key to run sqlmap with current selected request.
 
+9. Insert XSS
+
+   One key to insert XSS payload to parameters that not in cookie and not number.
+
 ##### Tab
 
 1. U2C
