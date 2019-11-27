@@ -1,6 +1,7 @@
 package U2C;
 
 import java.awt.Component;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -58,7 +59,7 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
     @Override
     public void setMessage(byte[] content, boolean isRequest)
     {    	
-    	 String json = "";
+    	 String jsonBody = "";
          if (content == null) {
              // clear our display
              txtInput.setText("none".getBytes());
@@ -67,12 +68,18 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
              //Take the input, determine request/response, parse as json, then print prettily.
              Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create();
              //Get only the JSON part of the content
-             byte[] body = new Getter(helpers).getBody(isRequest, content);
+             Getter getter = new Getter(helpers);
+             byte[] body = getter.getBody(isRequest, content);
+             List<String> headers = getter.getHeaderList(isRequest, content);
+             
              try {
                  JsonParser jp = new JsonParser();
                  JsonElement je = jp.parse(new String(body));
-                 json = gson.toJson(je);
-                 txtInput.setText(json.getBytes());
+                 jsonBody = gson.toJson(je);
+                 byte[] newContet = helpers.buildHttpMessage(headers, jsonBody.getBytes());
+    			 newContet = CharSet.covertCharSetToByte(newContet);
+
+                 txtInput.setText(newContet);
              } catch (Exception e) {
                  txtInput.setText(e.toString().getBytes());
              }

@@ -60,16 +60,21 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
     public void setMessage(byte[] content, boolean isRequest)
     {
     	String UnicodeResp = "";
+
     	if(content != null) {
-        	String resp= new String(content);
+        	String resp;
+			if (!isRequest) {
+				content = CharSet.covertCharSetToByte(content);
+        	}
+			resp= new String(content);
+
         	try {
             	while (needtoconvert(resp)) {
-            		resp = Unicode.unicodeDecode(resp);
-            	}
-			} catch (Exception e) {
-            	while (needtoconvert(resp)) {
+            		//resp = Unicode.unicodeDecode(resp);
             		resp = StringEscapeUtils.unescapeJava(resp);
             	}
+			} catch (Exception e) {
+				e.printStackTrace(BurpExtender.getStderr());
 			}
         	UnicodeResp = resp;
     	}

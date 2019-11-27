@@ -39,6 +39,7 @@ import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
 import knife.DismissMenu;
+import knife.DoActiveScanMenu;
 import knife.HeaderEntry;
 import knife.InsertXSSMenu;
 import knife.OpenWithBrowserMenu;
@@ -58,8 +59,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	public static IBurpExtenderCallbacks callbacks;
 	public IExtensionHelpers helpers;
-	public PrintWriter stdout;
-	public PrintWriter stderr;
+	public static PrintWriter stdout;
+	public static PrintWriter stderr;
 	public IContextMenuInvocation context;
 	public int proxyServerIndex=-1;
 	public static JSONBeautifier jsonBeautifier;
@@ -100,6 +101,26 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		callbacks.registerExtensionStateListener(this);
 	}
 
+	
+	private static void flushStd(){
+		try{
+			stdout = new PrintWriter(callbacks.getStdout(), true);
+			stderr = new PrintWriter(callbacks.getStderr(), true);
+		}catch (Exception e){
+			stdout = new PrintWriter(System.out, true);
+			stderr = new PrintWriter(System.out, true);
+		}
+	}
+
+	public static PrintWriter getStdout() {
+		flushStd();//不同的时候调用这个参数，可能得到不同的值
+		return stdout;
+	}
+
+	public static PrintWriter getStderr() {
+		flushStd();
+		return stderr;
+	}
 
 	@Override
 	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
@@ -116,6 +137,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 
 		menu_list.add(new AddHostToScopeMenu(this));
+		if (!callbacks.getBurpVersion().toString().startsWith("1.")) {
+			menu_list.add(new DoActiveScanMenu(this));
+		}
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMap(this));
 		menu_list.add(new ChunkedEncodingMenu(this));

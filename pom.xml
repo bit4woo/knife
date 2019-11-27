@@ -72,7 +72,7 @@
 		<dependency>
 			<groupId>com.github.bit4woo</groupId>
 			<artifactId>burp-api-common</artifactId>
-			<version>v0.0.6</version>
+			<version>v0.0.7</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec <dependency> 
@@ -84,7 +84,7 @@
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
-			<version>1.2.63</version>
+			<version>1.2.62</version>
 		</dependency>
 
 		<!-- Files -->
