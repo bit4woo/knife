@@ -77,7 +77,7 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
                  JsonElement je = jp.parse(new String(body));
                  jsonBody = gson.toJson(je);
                  byte[] newContet = helpers.buildHttpMessage(headers, jsonBody.getBytes());
-    			 newContet = CharSet.covertCharSetToByte(newContet);
+    			 //newContet = CharSet.covertCharSetToByte(newContet);
 
                  txtInput.setText(newContet);
              } catch (Exception e) {

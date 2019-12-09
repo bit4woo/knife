@@ -252,7 +252,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
 			//String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
 			Getter getter = new Getter(helpers);
-			String CurrentUrl = getter.getShortUrl(messageInfo);
+			String CurrentUrl = getter.getShortURL(messageInfo).toString();
 			//stderr.println(CurrentUrl+" "+targetUrl);
 			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
 			if (cookieToSet != null){
@@ -289,7 +289,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (messageIsRequest) {
 			Getter getter = new Getter(helpers);
 
-			URL url = getter.getURL(messageInfo);
+			URL url = getter.getFullURL(messageInfo);
 			String host = getter.getHost(messageInfo);
 			LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
 			byte[] body = getter.getBody(messageIsRequest,messageInfo);
@@ -387,6 +387,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							//success or failed,need to check?
 						}
 					} catch (Exception e) {
+						e.printStackTrace();
 						stderr.print(e.getStackTrace());
 					}
 				}

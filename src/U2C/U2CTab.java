@@ -63,9 +63,9 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 
     	if(content != null) {
         	String resp;
-			if (!isRequest) {
-				content = CharSet.covertCharSetToByte(content);
-        	}
+//			if (!isRequest) {
+//				content = CharSet.covertCharSetToByte(content);
+//        	}
 			resp= new String(content);
 
         	try {
