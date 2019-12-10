@@ -53,7 +53,7 @@ public class CookieUtils {
         }
 
         for (IHttpRequestResponse historyMessage:historyMessages) {
-            String hisShortUrl = getter.getShortUrl(historyMessage);
+            String hisShortUrl = getter.getShortURL(historyMessage).toString();
 
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String cookieValue = getter.getHeaderValueOf(true,historyMessage,headerName);

@@ -106,7 +106,7 @@ class OpenWithBrowser_Action implements ActionListener{
 			else if (messages.length > 1 &&  messages.length <=50) {
 				for(IHttpRequestResponse message:messages) {
 					Getter getter = new Getter(helpers);
-					URL targetShortUrl = getter.getURL(message);
+					URL targetShortUrl = getter.getFullURL(message);
 					Utils.browserOpen(targetShortUrl,browserPath);
 				}
 			}else {

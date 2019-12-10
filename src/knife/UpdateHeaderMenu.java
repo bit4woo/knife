@@ -96,7 +96,7 @@ class UpdateHeader_Action implements ActionListener{
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 		IHttpRequestResponse messageInfo = selectedItems[0];
 		Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-		String shorturl = getter.getShortUrl(messageInfo);//current
+		String shorturl = getter.getShortURL(messageInfo).toString();//current
 		HeaderEntry urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,headerName);
 
 		if (urlAndtoken !=null) {

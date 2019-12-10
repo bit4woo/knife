@@ -63,7 +63,7 @@ class SetCookieWithHistory_Action implements ActionListener{
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 			for(IHttpRequestResponse message:messages) {
 				Getter getter = new Getter(helpers);
-				String targetShortUrl = getter.getShortUrl(message);
+				String targetShortUrl = getter.getShortURL(message).toString();
 				cookieToSetHistory.setTargetUrl(targetShortUrl);
 				this.burp.config.getSetCookieMap().put(targetShortUrl, cookieToSetHistory);
 				//这个设置，让proxy处理它的响应包，shortUrl是新的target

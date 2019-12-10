@@ -67,11 +67,12 @@
 			<artifactId>burp-extender-api</artifactId>
 			<version>1.7.22</version>
 		</dependency>
-
+		
+		<!-- https://github.com/bit4woo/burp-api-common -->
 		<dependency>
 			<groupId>com.github.bit4woo</groupId>
 			<artifactId>burp-api-common</artifactId>
-			<version>v0.0.6</version>
+			<version>v0.0.10</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec <dependency> 
@@ -83,7 +84,7 @@
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
-			<version>1.2.58</version>
+			<version>1.2.62</version>
 		</dependency>
 
 		<!-- Files -->
