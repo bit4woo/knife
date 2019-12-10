@@ -126,7 +126,6 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 
 	@Override
 	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-		// TODO Auto-generated method stub
 		return new JSONBeautifier(null, false, BurpExtender.callbacks.getHelpers(), BurpExtender.callbacks);
 	}
 }
