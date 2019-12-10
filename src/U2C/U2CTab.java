@@ -16,123 +16,121 @@ import burp.ITextEditor;
 
 public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 {
-    private ITextEditor txtInput;
-    private byte[] originContent;
-    public U2CTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
-    {
-        txtInput = callbacks.createTextEditor();
-        txtInput.setEditable(editable);
-    }
+	private ITextEditor txtInput;
+	private byte[] originContent;
+	public U2CTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
+	{
+		txtInput = callbacks.createTextEditor();
+		txtInput.setEditable(editable);
+	}
 
-    @Override
-    public String getTabCaption()
-    {
-        return "U2C";
-    }
+	@Override
+	public String getTabCaption()
+	{
+		return "U2C";
+	}
 
-    @Override
-    public Component getUiComponent()
-    {
-        return txtInput.getComponent();
-    }
+	@Override
+	public Component getUiComponent()
+	{
+		return txtInput.getComponent();
+	}
 
-    @Override
-    public boolean isEnabled(byte[] content, boolean isRequest)
-    {
-    	try {
-    		if(content==null) {
-    			return false;
-    		}
+	@Override
+	public boolean isEnabled(byte[] content, boolean isRequest)
+	{
+		try {
+			if(content==null) {
+				return false;
+			}
 			if (BurpExtender.jsonBeautifier.isEnabled(content, isRequest)) {
 				return false;
 			}
-			
-    		if (!isRequest && needtoconvert(new String(content))) {
-        		originContent = content;
-        		return true;
-        	}else {
-        		return false;
-        	}
+
+			if (!isRequest && needtoconvert(new String(content))) {
+				originContent = content;
+				return true;
+			}else {
+				return false;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			e.printStackTrace(BurpExtender.getStderr());
 			return false;
 		}
-    }
+	}
 
-    @Override
-    public void setMessage(byte[] content, boolean isRequest)
-    {
-    	String UnicodeResp = "";
+	@Override
+	public void setMessage(byte[] content, boolean isRequest)
+	{
+		try {
+			String UnicodeResp = "";
 
-    	if(content != null) {
-        	String resp;
-//			if (!isRequest) {
-//				content = CharSet.covertCharSetToByte(content);
-//        	}
-			resp= new String(content);
-
-        	try {
-            	while (needtoconvert(resp)) {
-            		//resp = Unicode.unicodeDecode(resp);
-            		resp = StringEscapeUtils.unescapeJava(resp);
-            	}
-			} catch (Exception e) {
-				e.printStackTrace(BurpExtender.getStderr());
+			if(content != null) {
+				String resp= new String(content);
+				int i=0;
+				while (needtoconvert(resp) && i<=3) {
+					//resp = Unicode.unicodeDecode(resp);//弃用
+					resp = StringEscapeUtils.unescapeJava(resp);
+					i= i+1;
+				}
+				UnicodeResp = resp;
 			}
-        	UnicodeResp = resp;
-    	}
-    	txtInput.setText(UnicodeResp.getBytes());
-    }
+			txtInput.setText(UnicodeResp.getBytes());
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
+			txtInput.setText(e.getStackTrace().toString().getBytes());
+		}
+	}
 
-    @Override
-    public byte[] getMessage()
-    {
-    	//byte[] text = txtInput.getText();
-        //return text;
-    	return originContent;
-    	//change the return value of getMessage() method to the origin content to tell burp don't change the original response
+	@Override
+	public byte[] getMessage()
+	{
+		//byte[] text = txtInput.getText();
+		//return text;
+		return originContent;
+		//change the return value of getMessage() method to the origin content to tell burp don't change the original response
 
-    }
+	}
 
-    @Override
-    public boolean isModified()
-    {
-        //return txtInput.isTextModified();
-        return false;
-        //change the return value of isModified() method to false. to let burp don't change the original response) 
-    }
+	@Override
+	public boolean isModified()
+	{
+		//return txtInput.isTextModified();
+		return false;
+		//change the return value of isModified() method to false. to let burp don't change the original response) 
+	}
 
-    @Override
-    public byte[] getSelectedData()
-    {
-        return txtInput.getSelectedText();
-    }
-    
-    
-    public static boolean needtoconvert(String str) {
-    	Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
-    	//Pattern pattern = Pattern.compile("(\\\\u([A-Fa-f0-9]{4}))");//和上面的效果一样
-    	Matcher matcher = pattern.matcher(str.toLowerCase());
-    	
-    	if (matcher.find() ){
-    		return true;
-//    		String found = matcher.group();
-//    		//！@#￥%……&*（）——-=，。；：“‘{}【】+
-//    		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b";
-//    		if (("\\u4e00").compareTo(found)<= 0 && found.compareTo("\\u9fa5")<=0)
-//    			return true;
-//    		else if(chineseCharacter.contains(found)){
-//    			return true;
-//    		}else{
-//    			return false;
-//    		}
-    	}else {
-    		return false;
-    	}
-    }
-    
-    public static void main(String args[]) {
+	@Override
+	public byte[] getSelectedData()
+	{
+		return txtInput.getSelectedText();
+	}
+
+
+	public static boolean needtoconvert(String str) {
+		Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
+		//Pattern pattern = Pattern.compile("(\\\\u([A-Fa-f0-9]{4}))");//和上面的效果一样
+		Matcher matcher = pattern.matcher(str.toLowerCase());
+
+		if (matcher.find() ){
+			return true;
+			//    		String found = matcher.group();
+			//    		//！@#￥%……&*（）——-=，。；：“‘{}【】+
+			//    		String chineseCharacter = "\\uff01\\u0040\\u0023\\uffe5\\u0025\\u2026\\u2026\\u0026\\u002a\\uff08\\uff09\\u2014\\u2014\\u002d\\u003d\\uff0c\\u3002\\uff1b\\uff1a\\u201c\\u2018\\u007b\\u007d\\u3010\\u3011\\u002b";
+			//    		if (("\\u4e00").compareTo(found)<= 0 && found.compareTo("\\u9fa5")<=0)
+			//    			return true;
+			//    		else if(chineseCharacter.contains(found)){
+			//    			return true;
+			//    		}else{
+			//    			return false;
+			//    		}
+		}else {
+			return false;
+		}
+	}
+
+	public static void main(String args[]) {
 		System.out.print(needtoconvert("\\u0000"));
 	}
 

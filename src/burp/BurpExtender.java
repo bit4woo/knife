@@ -64,16 +64,16 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public IContextMenuInvocation context;
 	public int proxyServerIndex=-1;
 	public static JSONBeautifier jsonBeautifier;
+	public static U2CTab u2ctab;
 
 
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
 		BurpExtender.callbacks = callbacks;
 		this.helpers = callbacks.getHelpers();
-		this.stdout = new PrintWriter(callbacks.getStdout(), true);
-		this.stderr = new PrintWriter(callbacks.getStderr(), true);
-		this.stdout.println(ExtensionName);
-		this.stdout.println(github);
+		flushStd();
+		BurpExtender.stdout.println(ExtensionName);
+		BurpExtender.stdout.println(github);
 
 		table = new ConfigTable(new ConfigTableModel());
 		configPanel.setViewportView(table);
@@ -89,11 +89,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		jsonBeautifier = new JSONBeautifier(null, false, helpers, callbacks);
+		u2ctab = new U2CTab(null, false, helpers, callbacks);
 
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
 		callbacks.setExtensionName(this.ExtensionName);
 		callbacks.registerContextMenuFactory(this);// for menus
-		callbacks.registerMessageEditorTabFactory(new U2CTab(null, false, helpers, callbacks));// for U2C
+		callbacks.registerMessageEditorTabFactory(u2ctab);// for U2C
 		callbacks.registerMessageEditorTabFactory(jsonBeautifier);
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
