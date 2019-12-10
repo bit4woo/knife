@@ -40,20 +40,24 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
     public boolean isEnabled(byte[] content, boolean isRequest)
     {
     	try {
+    		if(content==null) {
+    			return false;
+    		}
 			if (BurpExtender.jsonBeautifier.isEnabled(content, isRequest)) {
 				return false;
 			}
-		} catch (Exception e) {
 			
+    		if (!isRequest && needtoconvert(new String(content))) {
+        		originContent = content;
+        		return true;
+        	}else {
+        		return false;
+        	}
+		} catch (Exception e) {
+			e.printStackTrace();
+			e.printStackTrace(BurpExtender.getStderr());
+			return false;
 		}
-    	
-    	if(content!=null && !isRequest && needtoconvert(new String(content))) {
-    		originContent = content;
-    		return true;
-    	}else {
-    		return false;
-    	}
-    	
     }
 
     @Override

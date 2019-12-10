@@ -86,10 +86,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			showToUI(JSON.parseObject(initConfig(), Config.class));
 		}
 		table.setupTypeColumn();//call this function must after table data loaded !!!!
-		
-		
+
+
 		jsonBeautifier = new JSONBeautifier(null, false, helpers, callbacks);
-		
+
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
 		callbacks.setExtensionName(this.ExtensionName);
 		callbacks.registerContextMenuFactory(this);// for menus
@@ -101,7 +101,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		callbacks.registerExtensionStateListener(this);
 	}
 
-	
+
 	private static void flushStd(){
 		try{
 			stdout = new PrintWriter(callbacks.getStdout(), true);
@@ -130,7 +130,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		byte context = invocation.getInvocationContext();
-		
+
 		String dismissed  = this.tableModel.getConfigByKey("DismissedHost");
 		if (dismissed != null) {
 			menu_list.add(new DismissMenu(this));
@@ -143,13 +143,13 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMap(this));
 		menu_list.add(new ChunkedEncodingMenu(this));
-		
+
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-			
+
 			if (this.tableModel.getConfigByKey("XSS-Payload")!=null){
 				menu_list.add(new InsertXSSMenu(this));
 			}
-			
+
 			menu_list.add(new UpdateCookieMenu(this));
 			if (this.config.getUsedCookie()!=null){
 				menu_list.add(new UpdateCookieWithHistoryMenu(this));
@@ -162,7 +162,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				menu_list.add(uhmenu);
 			}
 		}
-		
+
 		menu_list.add(new SetCookieMenu(this));
 		if (this.config.getUsedCookie() != null){
 			menu_list.add(new SetCookieWithHistoryMenu(this));
@@ -189,7 +189,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return menu_list;
 	}
 
-	
+
 	@Override
 	public String getTabCaption() {
 		return ("Knife");
@@ -200,7 +200,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public Component getUiComponent() {
 		return this.getContentPane();
 	}
-	
+
 	@Override
 	public void extensionUnloaded() {
 		callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
@@ -218,7 +218,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
 		//same action will be executed twice! if call processHttpMessage() here.
 		//请求和响应到达proxy时，都各自调用一次,如下部分是测试代码，没毛病啊！
-/*		IHttpRequestResponse messageInfo = message.getMessageInfo();
+		/*		IHttpRequestResponse messageInfo = message.getMessageInfo();
 		if (messageIsRequest) {
 			byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"111111111");
 			message.getMessageInfo().setRequest(newRequest);
@@ -256,10 +256,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			//stderr.println(CurrentUrl+" "+targetUrl);
 			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
 			if (cookieToSet != null){
-				
+
 				String targetUrl = cookieToSet.getTargetUrl();
 				String cookieValue = cookieToSet.getHeaderValue();
-				
+
 				if (messageIsRequest) {
 					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
 					messageInfo.setRequest(newRequest);
@@ -286,30 +286,31 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-		if (messageIsRequest) {
-			Getter getter = new Getter(helpers);
+		try {
+			if (messageIsRequest) {
+				Getter getter = new Getter(helpers);
 
-			URL url = getter.getFullURL(messageInfo);
-			String host = getter.getHost(messageInfo);
-			LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
-			byte[] body = getter.getBody(messageIsRequest,messageInfo);
+				URL url = getter.getFullURL(messageInfo);
+				String host = getter.getHost(messageInfo);
+				LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
+				byte[] body = getter.getBody(messageIsRequest,messageInfo);
 
-			boolean isRequestChanged = false;
+				boolean isRequestChanged = false;
 
-			//remove header
-			List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
-			for (ConfigEntry entry : configEntries) {
-				String key = entry.getKey();
-				if (headers.remove(key) != null) {
-					isRequestChanged = true;
+				//remove header
+				List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
+				for (ConfigEntry entry : configEntries) {
+					String key = entry.getKey();
+					if (headers.remove(key) != null) {
+						isRequestChanged = true;
+					}
 				}
-			}
 
-			//add/update/append header
-			if (toolFlag == (toolFlag & checkEnabledFor())) {
-				//if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
-				if (!config.isOnlyForScope()||callbacks.isInScope(url)){
-					try {
+				//add/update/append header
+				if (toolFlag == (toolFlag & checkEnabledFor())) {
+					//if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
+					if (!config.isOnlyForScope()||callbacks.isInScope(url)){
+
 						List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
 						for (ConfigEntry entry : updateOrAddEntries) {
 							String key = entry.getKey();
@@ -380,36 +381,37 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
 
 							messageInfo.setHttpService(helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
-							
+
 							String method = helpers.analyzeRequest(messageInfo).getMethod();
 							headers.put(method, url.toString());
 							isRequestChanged = true;
 							//success or failed,need to check?
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						stderr.print(e.getStackTrace());
+
 					}
 				}
-			}
-			if (isRequestChanged){
-				//set final request
-				List<String> headerList = getter.headerMapToHeaderList(headers);
-				messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
-			}
-
-
-			if (isRequestChanged) {
-				//debug
-				List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
-				//List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
-				stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
-				for (String entry : finalheaders) {
-					stdout.println(entry);
+				if (isRequestChanged){
+					//set final request
+					List<String> headerList = getter.headerMapToHeaderList(headers);
+					messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
 				}
-			}
-		}else {//response
 
+
+				if (isRequestChanged) {
+					//debug
+					List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
+					//List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
+					stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
+					for (String entry : finalheaders) {
+						stdout.println(entry);
+					}
+				}
+			}else {//response
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			stderr.print(e.getStackTrace());
 		}
 	}
 

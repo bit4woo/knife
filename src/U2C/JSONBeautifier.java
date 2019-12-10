@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import burp.BurpExtender;
 import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
@@ -45,15 +46,23 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
     @Override
     public boolean isEnabled(byte[] content, boolean isRequest)
     {   
-    	originContent = content;
-        if (isRequest) {
-        	IRequestInfo requestInfo = helpers.analyzeRequest(content);
-            return requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON;
-        } else {
-        	IResponseInfo responseInfo = helpers.analyzeResponse(content);
-            return responseInfo.getInferredMimeType().equals("JSON");
-        }
-    	
+    	try {
+			if (content== null) {
+				return false;
+			}
+			originContent = content;
+			if (isRequest) {
+				IRequestInfo requestInfo = helpers.analyzeRequest(content);
+			    return requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON;
+			} else {
+				IResponseInfo responseInfo = helpers.analyzeResponse(content);
+			    return responseInfo.getInferredMimeType().equals("JSON");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			e.printStackTrace(BurpExtender.getStderr());
+			return false;
+		}
     }
 
     @Override
