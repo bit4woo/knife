@@ -23,14 +23,14 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
 
-public class RunSQLMap extends JMenuItem {
+public class RunSQLMapMenu extends JMenuItem {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
 	//JMenuItem vs. JMenu
-	public RunSQLMap(BurpExtender burp){
+	public RunSQLMapMenu(BurpExtender burp){
 		this.setText("^_^ Run SQLMap");
 		this.addActionListener(new RunSQLMap_Action(burp,burp.context));
 	}
