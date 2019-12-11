@@ -40,6 +40,7 @@ import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
 import knife.DismissMenu;
 import knife.DoActiveScanMenu;
+import knife.DoPortScanMenu;
 import knife.HeaderEntry;
 import knife.InsertXSSMenu;
 import knife.OpenWithBrowserMenu;
@@ -141,6 +142,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (!callbacks.getBurpVersion().toString().startsWith("1.")) {
 			menu_list.add(new DoActiveScanMenu(this));
 		}
+		menu_list.add(new DoPortScanMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMapMenu(this));
 		menu_list.add(new ChunkedEncodingMenu(this));
