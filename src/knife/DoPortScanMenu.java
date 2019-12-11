@@ -8,6 +8,9 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.swing.JMenuItem;
 
 import org.apache.commons.io.FileUtils;
@@ -56,12 +59,19 @@ class DoPortScan_Action implements ActionListener{
 	public void actionPerformed(ActionEvent actionEvent) {
 		try{
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+			Set<String> hosts = new HashSet<String>();
+			
         	for(IHttpRequestResponse message:messages) {
         		String host = message.getHttpService().getHost();
-				String batFilePathString  = genbatFile(host);
-				String command = NmapScanCommand(batFilePathString);
-				Process process = Runtime.getRuntime().exec(command);
+        		hosts.add(host);
 			}
+        	
+        	for(String host:hosts) {
+    			String batFilePathString  = genbatFile(host);
+    			String command = NmapScanCommand(batFilePathString);
+    			Process process = Runtime.getRuntime().exec(command);
+			}
+
 		}
 		catch (Exception e1)
 		{
