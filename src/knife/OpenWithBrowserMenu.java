@@ -90,7 +90,7 @@ class OpenWithBrowser_Action implements ActionListener{
 					int selectedLength = selectedIndex[1]-selectedIndex[0];
 					byte[] selectedBytes = new byte[selectedLength];
 					System.arraycopy(source, selectedIndex[0], selectedBytes, 0, selectedLength);//新的内容替换选中内容
-					String selectedUrl = new String(selectedBytes);
+					String selectedUrl = new String(selectedBytes).trim();
 					//stdout.println(selectedUrl);
 					if(!isFullUrl(selectedUrl)) {
 						selectedUrl = message.getHttpService().toString()+"/"+selectedUrl;
