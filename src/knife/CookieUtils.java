@@ -33,24 +33,6 @@ public class CookieUtils {
 
         IHttpRequestResponse[]  historyMessages = Reverse(BurpExtender.callbacks.getProxyHistory());
         Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-        //callbacks.printOutput("length of history: "+ historyMessages.length);
-
-/*        for (IHttpRequestResponse historyMessage:historyMessages) {
-            //String hisShortUrl = historyMessage.getHttpService().toString();
-            String hisUrlString = getter.getURL(historyMessage).toString().replaceFirst(":80/","/").replaceFirst(":443/","/");
-            //这里转换成字符串会包含默认端口！！
-            if (hisUrlString.startsWith(shortUrl)) {
-                String cookieValue = getter.getHeaderValueOf(true,historyMessage,headerName);
-                if (cookieValue != null){
-                    return shortUrl+SPLITER+cookieValue;
-                }
-            }
-        }*/
-
-        //以上是完整URL精确匹配，如果失败，尝试根据短url粗糙匹配
-        if (shortUrl.lastIndexOf("/") > "https://".length()){
-            shortUrl = shortUrl.substring(0,shortUrl.indexOf("/",8));
-        }
 
         for (IHttpRequestResponse historyMessage:historyMessages) {
             String hisShortUrl = getter.getShortURL(historyMessage).toString();
