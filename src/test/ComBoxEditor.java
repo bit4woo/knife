@@ -1,4 +1,4 @@
-package config;
+package test;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;

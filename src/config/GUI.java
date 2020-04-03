@@ -223,7 +223,7 @@ public class GUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				saveConfigToBurp();
 			}});
-		btnSave.setToolTipText("Save Config To A File");
+		btnSave.setToolTipText("Save Config To Extension Setting");
 		panel_1.add(btnSave);
 		
 		panel_1.add(new Label(" |"));
