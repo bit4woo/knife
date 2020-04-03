@@ -2,11 +2,11 @@ package config;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -27,19 +27,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.google.gson.Gson;
 
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
@@ -50,7 +45,7 @@ public class GUI extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public String ExtensionName = "Knife v1.6 by bit4woo";
+	public String ExtensionName = "Knife v1.7 by bit4woo";
 	public String github = "https://github.com/bit4woo/knife";
 
 	public Config config = new Config("default");
@@ -197,7 +192,43 @@ public class GUI extends JFrame {
 		TargetSplitPane.setRightComponent(panel_1);
 		panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-		JButton btnOpen = new JButton("Open");
+		
+		AddButton = new JButton("Add New Line");
+		AddButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//tableModel = table.getModel();
+				tableModel.addNewConfigEntry(new ConfigEntry("","","",true));
+				stdout.println("add: "+new Gson().toJson(config));
+				saveConfigToBurp();
+				//会触发modelListener 更新config。所以需要调用showToUI。
+				//showToUI(config);
+			}
+		});
+		panel_1.add(AddButton);
+
+
+		RemoveButton = new JButton("Remove Selected Line");
+		panel_1.add(RemoveButton);
+		RemoveButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int[] rowindexs = table.getSelectedModelRows();
+				tableModel.removeRows(rowindexs);
+				saveConfigToBurp();
+			}
+		});
+		
+		
+		JButton btnSave = new JButton("Save Config");
+		btnSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveConfigToBurp();
+			}});
+		btnSave.setToolTipText("Save Config To A File");
+		panel_1.add(btnSave);
+		
+		panel_1.add(new Label(" |"));
+		
+		JButton btnOpen = new JButton("Import Config(Override)");
 		btnOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc=new JFileChooser();
@@ -210,7 +241,7 @@ public class GUI extends JFrame {
 					try {
 						File file=fc.getSelectedFile();
 						String contents = Files.toString(file, Charsets.UTF_8);
-						config = JSON.parseObject(contents, Config.class);
+						config = new Gson().fromJson(contents, Config.class);
 						stdout.println("Load knife config from"+ file.getName());
 						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
 						showToUI(config);
@@ -224,7 +255,7 @@ public class GUI extends JFrame {
 		btnOpen.setToolTipText("Load Config File");
 		panel_1.add(btnOpen);
 		
-		JButton btnImport = new JButton("Import");
+		JButton btnImport = new JButton("Import Config(Combine)");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
@@ -238,7 +269,7 @@ public class GUI extends JFrame {
 					try {
 						File file=fc.getSelectedFile();
 						String contents = Files.toString(file, Charsets.UTF_8);
-						config = JSON.parseObject(contents, Config.class);
+						config = new Gson().fromJson(contents, Config.class);
 						List<String> newEntries = config.getStringConfigEntries();
 						List<String> newEntryNames = new ArrayList<String>(); 
 						for (String config:newEntries) {
@@ -268,43 +299,20 @@ public class GUI extends JFrame {
 		btnImport.setToolTipText("Combine your configration with current");
 		panel_1.add(btnImport);
 
-		JButton btnSave = new JButton("Save");
-		btnSave.addActionListener(new ActionListener() {
+		JButton btnExport = new JButton("Export Config");
+		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				saveConfigToBurp();
 				saveDialog();
 			}});
-		btnSave.setToolTipText("Save Config To A File");
-		panel_1.add(btnSave);
+		btnExport.setToolTipText("Export Config To A File");
+		panel_1.add(btnExport);
 
-		AddButton = new JButton("Add");
-		AddButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//tableModel = table.getModel();
-				tableModel.addNewConfigEntry(new ConfigEntry("","","",true));
-				stdout.println("add: "+JSON.toJSONString(config));
-				saveConfigToBurp();
-				//会触发modelListener 更新config。所以需要调用showToUI。
-				//showToUI(config);
-			}
-		});
-		panel_1.add(AddButton);
-
-
-		RemoveButton = new JButton("Remove");
-		panel_1.add(RemoveButton);
-		RemoveButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				int[] rowindexs = table.getSelectedModelRows();
-				tableModel.removeRows(rowindexs);
-				saveConfigToBurp();
-			}
-		});
-
-		RestoreButton = new JButton("Restore");
+		RestoreButton = new JButton("Restore Defaults");
 		RestoreButton.setToolTipText("Restore all config to default!");
 		RestoreButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//TODO need confirm
 				showToUI(new Config().FromJson(initConfig()));
 			}
 		});

@@ -1,4 +1,4 @@
-package burp;
+package knife;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,6 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JMenu;
 
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 import config.ConfigEntry;
 
 /**
@@ -27,8 +30,8 @@ public class Custom_Payload_Menu extends JMenu {
 	//sub level menu of hackbar++, the name of payload;
 
 
-	Custom_Payload_Menu(BurpExtender burp){
-		this.setText("Custom Payload");
+	public Custom_Payload_Menu(BurpExtender burp){
+		this.setText("^_^ Custom Payload");
 		this.myburp = burp;
 
 		List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
