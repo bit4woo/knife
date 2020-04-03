@@ -250,6 +250,7 @@ public class GUI extends JFrame {
 						e1.printStackTrace(stderr);
 					}
 				}
+				saveConfigToBurp();
 			}
 		});
 		btnOpen.setToolTipText("Load Config File");
@@ -312,8 +313,13 @@ public class GUI extends JFrame {
 		RestoreButton.setToolTipText("Restore all config to default!");
 		RestoreButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO need confirm
-				showToUI(new Config().FromJson(initConfig()));
+				int user_input = JOptionPane.showConfirmDialog(null, "Are you sure to restore all config to default?","Restore Config",JOptionPane.YES_NO_OPTION);
+				if (JOptionPane.YES_OPTION == user_input) {
+					showToUI(new Config().FromJson(initConfig()));
+					saveConfigToBurp();
+				}else {
+					
+				}
 			}
 		});
 		panel_1.add(RestoreButton);
