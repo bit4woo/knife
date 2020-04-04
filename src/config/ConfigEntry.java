@@ -14,7 +14,8 @@ public class ConfigEntry {
 	public static final String Action_Append_To_header_value = "Action_Append_To_header_value";
 	public static final String Action_Remove_From_Headers = "Action_Remove_From_Headers";
 	
-	public static final String Config_Custom_Payload = "Config_Custom_Payload";;
+	public static final String Config_Custom_Payload = "Config_Custom_Payload";
+	public static final String Config_Custom_Payload_Base64 = "Config_Custom_Payload_Base64";
 	public static final String Config_Basic_Variable = "Config_Basic_Variable";
 	public static final String Config_Chunked_Variable = "Config_Chunked_Variable";
 	public static final String Config_Proxy_Variable = "Config_Proxy_Variable";

@@ -82,7 +82,7 @@ class DoPortScan_Action implements ActionListener{
 	public String genbatFile(String host) {
 		try {
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String nmapPath = burp.tableModel.getConfigByKey("Nmap-File-Path");
+			String nmapPath = burp.tableModel.getConfigValueByKey("Nmap-File-Path");
 			if (nmapPath ==null || nmapPath.trim().equals("")) {
 				nmapPath = "nmap";
 			}else if (nmapPath.contains(" ")) {//如果路径中包含空格，需要引号

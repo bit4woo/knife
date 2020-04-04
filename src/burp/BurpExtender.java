@@ -122,7 +122,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		byte context = invocation.getInvocationContext();
 
-		String dismissed  = this.tableModel.getConfigByKey("DismissedHost");
+		String dismissed  = this.tableModel.getConfigValueByKey("DismissedHost");
 		if (dismissed != null) {
 			menu_list.add(new DismissMenu(this));
 		}
@@ -139,7 +139,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 
-			if (this.tableModel.getConfigByKey("XSS-Payload")!=null){
+			if (this.tableModel.getConfigValueByKey("XSS-Payload")!=null){
 				menu_list.add(new InsertXSSMenu(this));
 			}
 
@@ -298,7 +298,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							}
 
 							if (value.toLowerCase().contains("%dnslogserver")) {
-								String dnslog = tableModel.getConfigByKey("DNSlogServer");
+								String dnslog = tableModel.getConfigValueByKey("DNSlogServer");
 								Pattern p = Pattern.compile("(?u)%dnslogserver");
 								Matcher m = p.matcher(value);
 
@@ -323,10 +323,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 								try {
 									boolean useComment = false;
-									if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+									if (this.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
 										useComment = true;
 									}
-									String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
+									String lenStr = this.tableModel.getConfigValueByKey("Chunked-Length");
 									int len = 10;
 									if (lenStr != null) {
 										len = Integer.parseInt(lenStr);
@@ -341,8 +341,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 						///proxy function should be here
 						//reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
-						String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
-						String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+						String proxy = this.tableModel.getConfigValueByKey("Proxy-ServerList");
+						String mode = this.tableModel.getConfigValueByKey("Proxy-UseRandomMode");
 
 						if (proxy != null) {//if enable is false, will return null.
 							List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
@@ -406,7 +406,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	}
 
 	public boolean isDismissedHost(String host){
-		String dissmissed  = tableModel.getConfigByKey("DismissedHost");
+		String dissmissed  = tableModel.getConfigValueByKey("DismissedHost");
 		if (dissmissed == null) return false;//表示配置被禁用了
 		String[] dissmissedHosts = dissmissed.split(",");
 		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();

@@ -90,7 +90,7 @@ class RunSQLMap_Action implements ActionListener{
 			String filename = host+"."+timeString+".req";
 
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-Request-File-Path");
+			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				basedir = configBasedir;
 			}
@@ -110,7 +110,7 @@ class RunSQLMap_Action implements ActionListener{
 	public String genbatFile(String requestFilePath) {
 		try {
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-Request-File-Path");
+			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				basedir = configBasedir;
 			}
@@ -122,8 +122,8 @@ class RunSQLMap_Action implements ActionListener{
 				prefixcommand.append(diskString+":"+System.lineSeparator());
 			}
 			
-			String pythonPath = burp.tableModel.getConfigByKey("SQLMap-Python-Path");
-			String sqlmapPath = burp.tableModel.getConfigByKey("SQLMap-SQLMap.py-Path");
+			String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
+			String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
 			StringBuilder command = new StringBuilder();
 			if (pythonPath != null && new File(pythonPath).exists()) {
 				if (new File(pythonPath).isFile()) {
@@ -144,7 +144,7 @@ class RunSQLMap_Action implements ActionListener{
 			}
 			
 			command.append(" -r "+requestFilePath);
-			String sqlmapOptions = burp.tableModel.getConfigByKey("SQLMap-Options");
+			String sqlmapOptions = burp.tableModel.getConfigValueByKey("SQLMap-Options");
 			if (sqlmapOptions != null && !sqlmapOptions.equals("")) {
 				command.append(" "+sqlmapOptions);
 			}
@@ -178,7 +178,7 @@ class RunSQLMap_Action implements ActionListener{
 			String recordString  = "\"2\",\"test cmd\",\"Completed\",\"2019/7/2 19:02:46\",\"2019/7/2 19:02:46\"";
 			
 			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigByKey("SQLMap-Request-File-Path");
+			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				basedir = configBasedir;
 			}
