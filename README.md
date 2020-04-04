@@ -24,15 +24,15 @@ A extension that add some small function[ one key to update cookie, one key add 
 
 3. update header
 
-  update Header that likes token,authorization .
+   update Header that likes token,authorization .
 
 4. open with browser
 
-  open URL of current request or selected URL with browser you configured.
+   open URL of current request or selected URL with browser you configured.
 
-5. hackbar++
+5. Custom Payload
 
-   insert payload of [Hackbar](https://github.com/d3vilbug/HackBar) or self-configured to current request
+   you can config your own payloads with string or base64 formate.
 
 6. Set Cookie
    scenes: when you visit a website with IP address, It may not contains cookie, but you know it should contains same cookie with some site. you can use this function in Proxy. It will edit response to set the same cookie to let whole web site use the specified cookie.

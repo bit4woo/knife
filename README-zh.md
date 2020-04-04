@@ -54,13 +54,13 @@
 
    ![openwithbrowser](img/openwithbrowser.gif)
 
-5. hackbar++
+5. Custom Payload
 
-   该菜单集成了 [Hackbar](https://github.com/d3vilbug/HackBar) ，可以在当前请求中插入payload进行手动测试。
-
-   该菜单最主要的改进是：可以配置自己常用的payload，配置后可以在hackbar++的custom payload中看到。
-
-   另外，payload的值中可以包含2个变量：分别是%host和%DNSlogServer，会在使用payload时使用对应的值替换。
+   可以在配置中自定义个人的常用payload。
+   
+   Config_Custom_Payload：字符串格式的payload，payload的值中可以包含2个变量：分别是%host和%DNSlogServer，会在使用payload时使用对应的值替换。
+   
+   Config_Custom_Payload_Base64：base64格式的payload，当payload包含换行等特殊字符，或者是二进制文件等格式，可以先将内容转换成base64格式然后设置。
 
    ![insertpayload](img/insertpayload.gif)
 

@@ -131,7 +131,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 //		if (!callbacks.getBurpVersion().toString().startsWith("1.")) {
 //			menu_list.add(new DoActiveScanMenu(this));
 //		}
-		//2.0后续版本添加了主动扫描选项，移除该菜单
+		//2.0后续版本添加了主动扫描选项，移除该菜单；2020.2版本之后
 		menu_list.add(new DoPortScanMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMapMenu(this));
