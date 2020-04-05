@@ -61,6 +61,8 @@ class SetCookie_Action implements ActionListener{
 			{
 				e1.printStackTrace(stderr);
 			}
+		}else {
+			stderr.println("No cookie found with you input");
 		}
 	}
 }

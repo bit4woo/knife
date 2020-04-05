@@ -31,6 +31,7 @@ public class CookieUtils {
     public static HeaderEntry getLatestHeaderFromHistory(String shortUrl,String headerName){
         //还是草粉师傅说得对，直接从history里面拿最好
 
+    	shortUrl = Getter.formateURLString(shortUrl);//url格式标准化，以保证后面比较的准确性。
         IHttpRequestResponse[]  historyMessages = Reverse(BurpExtender.callbacks.getProxyHistory());
         Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
 
@@ -83,6 +84,8 @@ public class CookieUtils {
             }
 
             try {
+            	url1 = Getter.formateURLString(url1);
+            	url2 = Getter.formateURLString(url2);
                 latestCookie = getLatestCookieFromHistory(url1);
                 if (latestCookie == null && url2 != ""){
                     latestCookie = getLatestCookieFromHistory(url2);
