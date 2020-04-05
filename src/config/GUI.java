@@ -47,7 +47,7 @@ public class GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
 	public String ExtensionName = "Knife v1.7 by bit4woo";
 	public String github = "https://github.com/bit4woo/knife";
-
+  
 	public Config config = new Config("default");
 
 	public PrintWriter stdout;
