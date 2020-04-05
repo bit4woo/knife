@@ -81,10 +81,10 @@ class ChunkedEncoding_Action implements ActionListener{
         	
             try {
             	boolean useComment =false;
-            	if (burp.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+            	if (burp.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
             		useComment = true;
             	}
-            	String lenStr = burp.tableModel.getConfigByKey("Chunked-Length");
+            	String lenStr = burp.tableModel.getConfigValueByKey("Chunked-Length");
             	int len =10;
             	if (lenStr !=null) {
             		len = Integer.parseInt(lenStr);

@@ -1,8 +1,6 @@
 package config;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.annotation.JSONField;
+import com.google.gson.Gson;
 
 public class ConfigEntry {
 	
@@ -16,7 +14,8 @@ public class ConfigEntry {
 	public static final String Action_Append_To_header_value = "Action_Append_To_header_value";
 	public static final String Action_Remove_From_Headers = "Action_Remove_From_Headers";
 	
-	public static final String Config_Custom_Payload = "Config_Custom_Payload";;
+	public static final String Config_Custom_Payload = "Config_Custom_Payload";
+	public static final String Config_Custom_Payload_Base64 = "Config_Custom_Payload_Base64";
 	public static final String Config_Basic_Variable = "Config_Basic_Variable";
 	public static final String Config_Chunked_Variable = "Config_Chunked_Variable";
 	public static final String Config_Proxy_Variable = "Config_Proxy_Variable";
@@ -81,11 +80,11 @@ public class ConfigEntry {
 	}
 
 	public String ToJson(){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return JSONObject.toJSONString(this);
+		return new Gson().toJson(this);
 	}
 	
 	public ConfigEntry FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return JSON.parseObject(json, ConfigEntry.class);
+		return new Gson().fromJson(json, ConfigEntry.class);
 	}
 
 }

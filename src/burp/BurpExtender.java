@@ -13,10 +13,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
-import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
 
 import U2C.JSONBeautifier;
 import U2C.U2CTab;
@@ -25,25 +24,16 @@ import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
-import hackbar.File_Payload_Menu;
-import hackbar.LFI_Menu;
-import hackbar.Reverse_Shell_Menu;
-import hackbar.SQL_Error;
-import hackbar.SQL_Menu;
-import hackbar.SQli_LoginBypass;
-import hackbar.SSTI_Menu;
-import hackbar.WebShell_Menu;
-import hackbar.XSS_Menu;
-import hackbar.XXE_Menu;
 import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
+import knife.Custom_Payload_Menu;
 import knife.DismissMenu;
-import knife.DoActiveScanMenu;
+import knife.DoPortScanMenu;
 import knife.HeaderEntry;
 import knife.InsertXSSMenu;
 import knife.OpenWithBrowserMenu;
-import knife.RunSQLMap;
+import knife.RunSQLMapMenu;
 import knife.SetCookieMenu;
 import knife.SetCookieWithHistoryMenu;
 import knife.UpdateCookieMenu;
@@ -80,10 +70,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		String content = callbacks.loadExtensionSetting("knifeconfig");
 		if (content!=null) {
-			config = JSON.parseObject(content, Config.class);
+			config = new Gson().fromJson(content, Config.class);
 			showToUI(config);
 		}else {
-			showToUI(JSON.parseObject(initConfig(), Config.class));
+			showToUI(new Gson().fromJson(initConfig(), Config.class));
 		}
 		table.setupTypeColumn();//call this function must after table data loaded !!!!
 
@@ -132,22 +122,24 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		byte context = invocation.getInvocationContext();
 
-		String dismissed  = this.tableModel.getConfigByKey("DismissedHost");
+		String dismissed  = this.tableModel.getConfigValueByKey("DismissedHost");
 		if (dismissed != null) {
 			menu_list.add(new DismissMenu(this));
 		}
 
 		menu_list.add(new AddHostToScopeMenu(this));
-		if (!callbacks.getBurpVersion().toString().startsWith("1.")) {
-			menu_list.add(new DoActiveScanMenu(this));
-		}
+//		if (!callbacks.getBurpVersion().toString().startsWith("1.")) {
+//			menu_list.add(new DoActiveScanMenu(this));
+//		}
+		//2.0后续版本添加了主动扫描选项，移除该菜单；2020.2版本之后
+		menu_list.add(new DoPortScanMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
-		menu_list.add(new RunSQLMap(this));
+		menu_list.add(new RunSQLMapMenu(this));
 		menu_list.add(new ChunkedEncodingMenu(this));
 
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 
-			if (this.tableModel.getConfigByKey("XSS-Payload")!=null){
+			if (this.tableModel.getConfigValueByKey("XSS-Payload")!=null){
 				menu_list.add(new InsertXSSMenu(this));
 			}
 
@@ -169,24 +161,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			menu_list.add(new SetCookieWithHistoryMenu(this));
 		}
 
-
-		JMenu Hack_Bar_Menu = new JMenu("^_^ Hack Bar++");
-		Hack_Bar_Menu.add(new SQL_Menu(this));
-		Hack_Bar_Menu.add(new SQL_Error(this));
-		Hack_Bar_Menu.add(new SQli_LoginBypass(this));
-
-		Hack_Bar_Menu.add(new XSS_Menu(this));
-		Hack_Bar_Menu.add(new XXE_Menu(this));
-		Hack_Bar_Menu.add(new LFI_Menu(this));//learn from this
-		Hack_Bar_Menu.add(new SSTI_Menu(this));
-
-		Hack_Bar_Menu.add(new WebShell_Menu(this));
-		Hack_Bar_Menu.add(new Reverse_Shell_Menu(this));
-
-		Hack_Bar_Menu.add(new File_Payload_Menu(this));
-		Hack_Bar_Menu.add(new Custom_Payload_Menu(this));
-
-		menu_list.add(Hack_Bar_Menu);
+		menu_list.add(new Custom_Payload_Menu(this));
 		return menu_list;
 	}
 
@@ -323,7 +298,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							}
 
 							if (value.toLowerCase().contains("%dnslogserver")) {
-								String dnslog = tableModel.getConfigByKey("DNSlogServer");
+								String dnslog = tableModel.getConfigValueByKey("DNSlogServer");
 								Pattern p = Pattern.compile("(?u)%dnslogserver");
 								Matcher m = p.matcher(value);
 
@@ -348,10 +323,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 								try {
 									boolean useComment = false;
-									if (this.tableModel.getConfigByKey("Chunked-UseComment") != null) {
+									if (this.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
 										useComment = true;
 									}
-									String lenStr = this.tableModel.getConfigByKey("Chunked-Length");
+									String lenStr = this.tableModel.getConfigValueByKey("Chunked-Length");
 									int len = 10;
 									if (lenStr != null) {
 										len = Integer.parseInt(lenStr);
@@ -366,8 +341,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 						///proxy function should be here
 						//reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
-						String proxy = this.tableModel.getConfigByKey("Proxy-ServerList");
-						String mode = this.tableModel.getConfigByKey("Proxy-UseRandomMode");
+						String proxy = this.tableModel.getConfigValueByKey("Proxy-ServerList");
+						String mode = this.tableModel.getConfigValueByKey("Proxy-UseRandomMode");
 
 						if (proxy != null) {//if enable is false, will return null.
 							List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
@@ -431,7 +406,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	}
 
 	public boolean isDismissedHost(String host){
-		String dissmissed  = tableModel.getConfigByKey("DismissedHost");
+		String dissmissed  = tableModel.getConfigValueByKey("DismissedHost");
 		if (dissmissed == null) return false;//表示配置被禁用了
 		String[] dissmissedHosts = dissmissed.split(",");
 		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();

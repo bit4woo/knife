@@ -57,7 +57,7 @@ class OpenWithBrowser_Action implements ActionListener{
 				return;
 			}
 			
-			String browserPath = burp.tableModel.getConfigByKey("browserPath");
+			String browserPath = burp.tableModel.getConfigValueByKey("browserPath");
 			if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
 
 			}else {//when no browserPath in config, the value will be null
@@ -90,7 +90,7 @@ class OpenWithBrowser_Action implements ActionListener{
 					int selectedLength = selectedIndex[1]-selectedIndex[0];
 					byte[] selectedBytes = new byte[selectedLength];
 					System.arraycopy(source, selectedIndex[0], selectedBytes, 0, selectedLength);//新的内容替换选中内容
-					String selectedUrl = new String(selectedBytes);
+					String selectedUrl = new String(selectedBytes).trim();
 					//stdout.println(selectedUrl);
 					if(!isFullUrl(selectedUrl)) {
 						selectedUrl = message.getHttpService().toString()+"/"+selectedUrl;

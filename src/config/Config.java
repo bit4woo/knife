@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.annotation.JSONField;
+import com.google.gson.Gson;
 
 import burp.IBurpExtenderCallbacks;
 import knife.HeaderEntry;
@@ -17,8 +15,8 @@ public class Config {
 	private List<String> stringConfigEntries = new ArrayList<String>();// get from configTableModel
 	private int enableStatus = IBurpExtenderCallbacks.TOOL_PROXY;
 	private boolean onlyForScope = true;
-	private HashMap<String,HeaderEntry> setCookieMap = new HashMap<String,HeaderEntry>();
-	private HeaderEntry usedCookie = null;
+	private transient HashMap<String,HeaderEntry> setCookieMap = new HashMap<String,HeaderEntry>();
+	private transient HeaderEntry usedCookie = null;
     
 	Config(){
     	//to resolve "default constructor not found" error
@@ -60,29 +58,28 @@ public class Config {
 		this.onlyForScope = onlyForScope;
 	}
 
-	@JSONField(serialize=false)//表明不序列号该字段
+
 	public HashMap<String, HeaderEntry> getSetCookieMap() {
 		return setCookieMap;
 	}
-	@JSONField(serialize=false)//表明不序列号该字段
+
 	public void setSetCookieMap(HashMap<String, HeaderEntry> setCookieMap) {
 		this.setCookieMap = setCookieMap;
 	}
-	@JSONField(serialize=false)//表明不序列号该字段
+
 	public HeaderEntry getUsedCookie() {
 		return usedCookie;
 	}
-	@JSONField(serialize=false)//表明不序列号该字段
+
 	public void setUsedCookie(HeaderEntry usedCookie) {
 		this.usedCookie = usedCookie;
 	}
 
-	@JSONField(serialize=false)//表明不序列号该字段
 	public String ToJson(){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return JSONObject.toJSONString(this);
+		return new Gson().toJson(this);
 	}
 	
 	public Config FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return JSON.parseObject(json, Config.class);
+		return new Gson().fromJson(json, Config.class);
 	}
 }

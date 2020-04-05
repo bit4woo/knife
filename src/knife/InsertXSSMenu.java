@@ -47,7 +47,7 @@ class InsertXSSAction implements ActionListener {
 
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
-		String xsspayload = burp.tableModel.getConfigByKey("XSS-Payload");
+		String xsspayload = burp.tableModel.getConfigValueByKey("XSS-Payload");
 
 		if (xsspayload == null) return;
 

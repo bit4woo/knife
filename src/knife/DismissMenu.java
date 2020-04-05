@@ -41,7 +41,7 @@ class Dismiss_Action implements ActionListener{
 	public void actionPerformed(ActionEvent e)
     {
        try{
-		   String dissmissed  = myburp.tableModel.getConfigByKey("DismissedHost");
+		   String dissmissed  = myburp.tableModel.getConfigValueByKey("DismissedHost");
 		   String[] dissmissedHosts = dissmissed.split(",");
 		   List<String> dissmissedHostList = Arrays.asList(dissmissedHosts);
 		   dissmissedHostList = new ArrayList<>(dissmissedHostList);
