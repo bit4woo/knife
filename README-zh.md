@@ -4,11 +4,13 @@
 
 插件的主要的目的是对burp做一些小的改进，更加方便使用。就像用一把**小刀**对其进行小小的雕刻。
 
-
-
 ### 作者
 
 [bit4woo](https://github.com/bit4woo)
+
+### 视频教程
+
+https://www.bilibili.com/video/bv1BC4y1s7nS
 
 ### 功能
 
