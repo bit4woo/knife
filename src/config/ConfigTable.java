@@ -143,6 +143,7 @@ public class ConfigTable extends JTable
 		comboBox.addItem(ConfigEntry.Action_Remove_From_Headers);
 		comboBox.addItem(ConfigEntry.Config_Basic_Variable);
 		comboBox.addItem(ConfigEntry.Config_Custom_Payload);
+		comboBox.addItem(ConfigEntry.Config_Custom_Payload_Base64);
 		comboBox.addItem(ConfigEntry.Config_Chunked_Variable);
 		comboBox.addItem(ConfigEntry.Config_Proxy_Variable);
 		TableColumnModel typeColumn = this.getColumnModel();

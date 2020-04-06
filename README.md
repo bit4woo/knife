@@ -4,7 +4,9 @@
 
 A extension that add some small function[ one key to update cookie, one key add host to scope] to right click context menu.
 
+### Video
 
+https://www.bilibili.com/video/bv1BC4y1s7nS
 
 ### Authors
 
