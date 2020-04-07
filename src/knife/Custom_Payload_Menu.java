@@ -93,7 +93,7 @@ class CustomPayloadItemListener implements ActionListener {
 
 			if(payload.toLowerCase().contains("%dnslogserver")) {
 				String dnslog = myburp.tableModel.getConfigValueByKey("DNSlogServer");
-				Pattern p = Pattern.compile("(?u)%dnslogserver");
+				Pattern p = Pattern.compile("(?i)%dnslogserver");
 				Matcher m  = p.matcher(payload);
 
 				while ( m.find() ) {

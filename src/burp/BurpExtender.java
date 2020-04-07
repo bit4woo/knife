@@ -29,6 +29,7 @@ import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
 import knife.Custom_Payload_Menu;
 import knife.DismissMenu;
+import knife.DoActiveScanMenu;
 import knife.DoPortScanMenu;
 import knife.HeaderEntry;
 import knife.InsertXSSMenu;
@@ -128,10 +129,21 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 
 		menu_list.add(new AddHostToScopeMenu(this));
-//		if (!callbacks.getBurpVersion().toString().startsWith("1.")) {
-//			menu_list.add(new DoActiveScanMenu(this));
-//		}
-		//2.0后续版本添加了主动扫描选项，移除该菜单；2020.2版本之后
+		String majorVersion = callbacks.getBurpVersion()[1];
+		String minorVersion = callbacks.getBurpVersion()[2];
+		//stdout.println(majorVersion+"   "+minorVersion);
+		//2020.2.1 ==>2020   2.1
+		//2.1.06 ==> 2.1   06
+		float majorV = Float.parseFloat(majorVersion);
+		float minorV = Float.parseFloat(minorVersion);
+		if (majorV>=2020 && minorV >= 2.0f) { //2020.2及之后
+			
+		}else if (majorV < 2) {//1点几版本不需要
+			
+		}else {
+			menu_list.add(new DoActiveScanMenu(this));
+		}
+		//2020.2版本之后续版本添加了主动扫描选项
 		menu_list.add(new DoPortScanMenu(this));
 		menu_list.add(new OpenWithBrowserMenu(this));
 		menu_list.add(new RunSQLMapMenu(this));
