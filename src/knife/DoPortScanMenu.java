@@ -1,5 +1,6 @@
 package knife;
 
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -20,6 +21,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import burp.RobotInput;
 import burp.Utils;
 
 
@@ -66,10 +68,12 @@ class DoPortScan_Action implements ActionListener{
         		hosts.add(host);
 			}
         	
+        	RobotInput ri = new RobotInput();
         	for(String host:hosts) {
-    			String batFilePathString  = genbatFile(host);
-    			String command = NmapScanCommand(batFilePathString);
-    			Process process = Runtime.getRuntime().exec(command);
+        		RobotInput.startCmdConsole();
+				String command = genNmapCmd(host);
+				ri.inputString(command);
+
 			}
 
 		}
@@ -79,9 +83,7 @@ class DoPortScan_Action implements ActionListener{
 		}
 	}
 	
-	public String genbatFile(String host) {
-		try {
-			String basedir = (String) System.getProperties().get("java.io.tmpdir");
+	public String genNmapCmd(String host) {
 			String nmapPath = burp.tableModel.getConfigValueByKey("Nmap-File-Path");
 			if (nmapPath ==null || nmapPath.trim().equals("")) {
 				nmapPath = "nmap";
@@ -89,40 +91,11 @@ class DoPortScan_Action implements ActionListener{
 				nmapPath = "\""+nmapPath+"\"";
 			}
 			
-			String command = nmapPath+" -v -A -p 1-65535 "+host.trim();
-
-			//将命令写入剪切板
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			StringSelection selection = new StringSelection(command.toString());
-			clipboard.setContents(selection, null);
-			
-			File batFile = new File(basedir,"Nmap-latest-command.bat");
-			if (!batFile.exists()) {
-			    batFile.createNewFile();
-			}
-			
-			FileUtils.writeByteArrayToFile(batFile, command.toString().getBytes());
-			return batFile.getAbsolutePath();
-		} catch (IOException e) {
-			e.printStackTrace(BurpExtender.getStderr());
-			return null;
-		}
+			String command = nmapPath+" -v -A -p 1-65535 "+host.trim()+System.lineSeparator();
+			return command;
 	}
 	
-	public static String NmapScanCommand(String batfilepath) {
-		String command = "";
-		if (Utils.isWindows()) {
-			command="cmd /c start " + batfilepath;
-		} else {
-			if (new File("/bin/sh").exists()) {
-				command="/bin/sh " + batfilepath;
-			}
-			else if (new File("/bin/bash").exists()) {
-				command="/bin/bash " + batfilepath;
-			}
-		}
-		return command;
-	}
+
 	
 	public static void main(String[] args){
 	}

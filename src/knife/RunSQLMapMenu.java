@@ -1,10 +1,13 @@
 package knife;
 
+import java.awt.AWTException;
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,7 +24,9 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import burp.RobotInput;
 import burp.Utils;
+
 
 public class RunSQLMapMenu extends JMenuItem {
 	/**
@@ -59,13 +64,15 @@ class RunSQLMap_Action implements ActionListener{
 			@Override
 			public void run() {
 				try{
+					RobotInput ri = new RobotInput();
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 					if (messages !=null) {
 						IHttpRequestResponse message = messages[0];
 						String requestFilePath = RequestToFile(message);
-						String batFilePathString  = genbatFile(requestFilePath);
-						String command = SQLMapCommand(batFilePathString);
-						Process process = Runtime.getRuntime().exec(command);
+						RobotInput.startCmdConsole();
+						changeDir();
+						String sqlmapCmd = genSqlmapCmd(requestFilePath);
+						ri.inputString(sqlmapCmd);
 					}
 				}
 				catch (Exception e1)
@@ -104,122 +111,63 @@ class RunSQLMap_Action implements ActionListener{
 		}
 	}
 
+
+
 	/*
-	 * 生产执行sqlmap的bat文件
+	 * 切换工作目录
 	 */
-	public String genbatFile(String requestFilePath) {
-		try {
-			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
-			if (configBasedir != null && new File(configBasedir).exists()) {
-				basedir = configBasedir;
-			}
-			
-			StringBuilder prefixcommand = new StringBuilder();
-			prefixcommand.append("cd "+basedir+System.lineSeparator());
-			if (Utils.isWindows()) {
-				String diskString = basedir.split(":")[0];
-				prefixcommand.append(diskString+":"+System.lineSeparator());
-			}
-			
-			String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
-			String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
-			StringBuilder command = new StringBuilder();
-			if (pythonPath != null && new File(pythonPath).exists()) {
-				if (new File(pythonPath).isFile()) {
-					command.append(pythonPath);
-				}else {
-					command.append(new File(pythonPath,"python").toString());
-				}
-			}
-			command.append(" ");
-			if (sqlmapPath != null && new File(sqlmapPath).exists()) {
-				if (new File(sqlmapPath).isFile()) {
-					command.append(sqlmapPath);
-				}else {
-					command.append(new File(sqlmapPath,"sqlmap.py").toString());
-				}
+	public void changeDir() throws AWTException {
+		//运行命令的工作目录，work path
+		String basedir = (String) System.getProperties().get("java.io.tmpdir");
+		String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
+		if (configBasedir != null && new File(configBasedir).exists()) {
+			basedir = configBasedir;
+		}
+		String command = "cd "+basedir+System.lineSeparator();
+
+		RobotInput ri = new RobotInput();
+		ri.inputString(command.toString()); //切换目录
+
+		if (Utils.isWindows()) {//如果是windows，还要注意不同磁盘的切换
+			String diskString = basedir.split(":")[0];
+			ri.inputString(diskString+":"+System.lineSeparator());
+		}
+	}
+
+	public String genSqlmapCmd(String requestFilePath) {
+
+		String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
+		String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
+		StringBuilder command = new StringBuilder();
+		if (pythonPath != null && new File(pythonPath).exists()) {
+			if (new File(pythonPath).isFile()) {
+				command.append(pythonPath);
 			}else {
-				command.append("sqlmap.py");
-			}
-			
-			command.append(" -r "+requestFilePath);
-			String sqlmapOptions = burp.tableModel.getConfigValueByKey("SQLMap-Options");
-			if (sqlmapOptions != null && !sqlmapOptions.equals("")) {
-				command.append(" "+sqlmapOptions);
-			}
-			
-			//将命令写入剪切板
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			StringSelection selection = new StringSelection(command.toString());
-			clipboard.setContents(selection, null);
-			
-			File batFile = new File(basedir,"sqlmap-latest-command.bat");
-			if (!batFile.exists()) {
-			    batFile.createNewFile();
-			}
-			
-			prefixcommand.append(command);
-			
-			FileUtils.writeByteArrayToFile(batFile, prefixcommand.toString().getBytes());
-			return batFile.getAbsolutePath();
-		} catch (IOException e) {
-			e.printStackTrace(stderr);
-			return null;
-		}
-	}
-	
-	@Deprecated //设想控制history的方法失败
-	public String genPowershellHistory(){
-		try {
-			String modelString = "#TYPE Microsoft.PowerShell.Commands.HistoryInfo\r\n" + 
-					"\"Id\",\"CommandLine\",\"ExecutionStatus\",\"StartExecutionTime\",\"EndExecutionTime\"\r\n" + 
-					"\"1\",\"Get-History | Export-Csv -Path c:\\tmpPowershellHistory.csv\",\"Completed\",\"2019/7/2 19:02:46\",\"2019/7/2 19:02:46\"\r\n";
-			String recordString  = "\"2\",\"test cmd\",\"Completed\",\"2019/7/2 19:02:46\",\"2019/7/2 19:02:46\"";
-			
-			String basedir = (String) System.getProperties().get("java.io.tmpdir");
-			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
-			if (configBasedir != null && new File(configBasedir).exists()) {
-				basedir = configBasedir;
-			}
-			
-			File batFile = new File(basedir,"tmpPowershellHistory.csv");
-			if (!batFile.exists()) {
-			    batFile.createNewFile();
-			}
-			String content = modelString+recordString;
-			FileUtils.writeByteArrayToFile(batFile, content.toString().getBytes());
-			return batFile.getAbsolutePath();
-		} catch (IOException e) {
-			e.printStackTrace(stderr);
-			return null;
-		}
-	}
-	
-	/*
-	 * 执行bat文件的命令，为什么需要bat文件？使用了bat文件执行命令，Ctrl+C才不会退出命令行终端
-	 */
-	public static String SQLMapCommand(String batfilepath) {
-		String command = "";
-		if (Utils.isWindows()) {
-			command="cmd /c start " + batfilepath;
-		} else {
-			if (new File("/bin/sh").exists()) {
-				command="/bin/sh " + batfilepath;
-			}
-			else if (new File("/bin/bash").exists()) {
-				command="/bin/bash " + batfilepath;
+				command.append(new File(pythonPath,"python").toString());
 			}
 		}
-		return command;
+		command.append(" ");
+		if (sqlmapPath != null && new File(sqlmapPath).exists()) {
+			if (new File(sqlmapPath).isFile()) {
+				command.append(sqlmapPath);
+			}else {
+				command.append(new File(sqlmapPath,"sqlmap.py").toString());
+			}
+		}else {
+			command.append("sqlmap.py");
+		}
+
+		command.append(" -r "+requestFilePath);
+		String sqlmapOptions = burp.tableModel.getConfigValueByKey("SQLMap-Options");
+		if (sqlmapOptions != null && !sqlmapOptions.equals("")) {
+			command.append(" "+sqlmapOptions);
+		}
+		command.append(System.lineSeparator());
+		return command.toString();
 	}
-	
+
+
 	public static void main(String[] args) {
-		try {
-			Process process = Runtime.getRuntime().exec(SQLMapCommand("ping www.baidu.com"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 	}
 }
