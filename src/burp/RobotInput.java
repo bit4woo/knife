@@ -78,9 +78,10 @@ public class RobotInput extends Robot {
 		keyRelease(KeyEvent.VK_ALT);
 		delay(100);
 	}
-	
+
 	//输入字符串
-	public void inputString(String str){
+	@Deprecated
+	public void inputStringOld(String str){
 		delay(100);
 		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
 		Transferable origin = clip.getContents(null);//备份之前剪切板的内容
@@ -92,15 +93,30 @@ public class RobotInput extends Robot {
 		delay(100);
 	}
 
+	//输入字符串
+	//https://stackoverflow.com/questions/29665534/type-a-string-using-java-awt-robot
+	public void inputString(String str){
+		delay(100);
+		for (char c : str.toCharArray()) {
+			int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
+			input(keyCode);
+		}
+		delay(100);
+	}
+	private void input(int key) {
+		keyPress(key);
+		keyRelease(key);
+	}
+
 	//单个 按键
-	
+
 	public void InputChar(int key){
 		delay(100);
 		keyPress(key);
 		keyRelease(key);
 		delay(100);
 	}
-	
+
 	public static void startCmdConsole() {
 		try {
 			Process process = null;
