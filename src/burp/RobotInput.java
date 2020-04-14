@@ -78,10 +78,23 @@ public class RobotInput extends Robot {
 		keyRelease(KeyEvent.VK_ALT);
 		delay(100);
 	}
+	
+	// ctrl+shift+ 按键
+	public void inputWithCtrlAndShift(int key) {
+		delay(100);
+		keyPress(KeyEvent.VK_CONTROL);
+		keyPress(KeyEvent.VK_SHIFT);
+		keyPress(key);
+		keyRelease(key);
+		keyRelease(KeyEvent.VK_SHIFT);
+		keyRelease(KeyEvent.VK_CONTROL);
+		delay(100);
+	}
 
 	//输入字符串
+	//win7下的cmd中crtl+v是不行的
 	@Deprecated
-	public void inputStringOld(String str){
+	private void inputStringOld(String str){
 		delay(100);
 		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
 		Transferable origin = clip.getContents(null);//备份之前剪切板的内容
@@ -95,7 +108,9 @@ public class RobotInput extends Robot {
 
 	//输入字符串
 	//https://stackoverflow.com/questions/29665534/type-a-string-using-java-awt-robot
-	public void inputString(String str){
+	//这种方法也有缺陷，当输入法不是英文的状态下有问题。
+	@Deprecated
+	private void inputStringOld1(String str){
 		delay(100);
 		for (char c : str.toCharArray()) {
 			int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
@@ -108,6 +123,33 @@ public class RobotInput extends Robot {
 		keyRelease(key);
 	}
 
+	public void inputString(String str){
+		delay(100);
+		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
+		Transferable origin = clip.getContents(null);//备份之前剪切板的内容
+		Transferable tText = new StringSelection(str);
+		clip.setContents(tText, null); //设置剪切板内容
+		
+		if (Utils.isWindows10()) {
+			inputWithCtrl(KeyEvent.VK_V);
+		}else if (Utils.isWindows()) {
+			inputWithAlt(KeyEvent.VK_SPACE);//
+			InputChar(KeyEvent.VK_E);
+			InputChar(KeyEvent.VK_P);
+		}else if (Utils.isMac()) {
+			keyPress(KeyEvent.VK_META);
+			keyPress(KeyEvent.VK_C);
+			keyRelease(KeyEvent.VK_C);
+			keyRelease(KeyEvent.VK_META);
+		}else if (Utils.isUnix()) {//Ctrl + Shift + V
+			inputWithCtrlAndShift(KeyEvent.VK_C);
+		}
+
+		//delay(100);
+		clip.setContents(origin, null);//恢复之前剪切板的内容
+		delay(100);
+	}
+	
 	//单个 按键
 
 	public void InputChar(int key){
