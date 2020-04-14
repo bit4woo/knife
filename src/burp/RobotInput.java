@@ -130,7 +130,7 @@ public class RobotInput extends Robot {
 		Transferable tText = new StringSelection(str);
 		clip.setContents(tText, null); //设置剪切板内容
 		
-		if (Utils.isWindows10()) {
+		if (Utils.isWindows10()) {//粘贴的不同实现方式
 			inputWithCtrl(KeyEvent.VK_V);
 		}else if (Utils.isWindows()) {
 			inputWithAlt(KeyEvent.VK_SPACE);//

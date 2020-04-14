@@ -145,8 +145,9 @@ class RunSQLMap_Action implements ActionListener{
 			}else {
 				command.append(new File(pythonPath,"python").toString());
 			}
+			command.append(" ");
 		}
-		command.append(" ");
+		
 		if (sqlmapPath != null && new File(sqlmapPath).exists()) {
 			if (new File(sqlmapPath).isFile()) {
 				command.append(sqlmapPath);
