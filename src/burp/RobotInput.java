@@ -7,7 +7,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
-import java.io.File;
 
 //https://bbs.51cto.com/thread-1097189-1.html
 public class RobotInput extends Robot {
@@ -137,15 +136,17 @@ public class RobotInput extends Robot {
 			InputChar(KeyEvent.VK_E);
 			InputChar(KeyEvent.VK_P);
 		}else if (Utils.isMac()) {
+			delay(100);
 			keyPress(KeyEvent.VK_META);
 			keyPress(KeyEvent.VK_C);
+			delay(100);
 			keyRelease(KeyEvent.VK_C);
 			keyRelease(KeyEvent.VK_META);
+			delay(100);
 		}else if (Utils.isUnix()) {//Ctrl + Shift + V
 			inputWithCtrlAndShift(KeyEvent.VK_C);
 		}
 
-		//delay(100);
 		clip.setContents(origin, null);//恢复之前剪切板的内容
 		delay(100);
 	}
@@ -164,12 +165,10 @@ public class RobotInput extends Robot {
 			Process process = null;
 			if (Utils.isWindows()) {
 				process = Runtime.getRuntime().exec("cmd /c start cmd.exe");
-			} else {
-				if (new File("/bin/sh").exists()) {
-					Runtime.getRuntime().exec("/bin/sh");
-				}else if (new File("/bin/bash").exists()) {
-					Runtime.getRuntime().exec("/bin/bash");
-				}
+			} else if (Utils.isMac()){
+				process = Runtime.getRuntime().exec("open -n -F -a /Applications/Utilities/Terminal.app");
+			}else if (Utils.isUnix()) {
+				process = Runtime.getRuntime().exec("/usr/bin/xterm");
 			}
 			process.waitFor();//等待执行完成
 
