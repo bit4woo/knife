@@ -1,12 +1,11 @@
 package knife;
 
-import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.net.URL;
+
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
@@ -16,7 +15,6 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
-import config.ConfigEntry;
 
 public class OpenWithBrowserMenu extends JMenuItem {
 	/**
@@ -52,24 +50,24 @@ class OpenWithBrowser_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		try{
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-			
+
 			if (messages == null ) {
 				return;
 			}
-			
+
 			String browserPath = burp.tableModel.getConfigValueByKey("browserPath");
 			if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
 
 			}else {//when no browserPath in config, the value will be null
 				browserPath = "default";
 			}
-			
+
 			if (messages.length == 1) {
 				IHttpRequestResponse message = messages[0];
 				/////////////selected url/////////////////
 				byte[] source = null;
 
-				String hosturl =helpers.analyzeRequest(message).getUrl().toString();
+
 				int context = invocation.getInvocationContext();
 				if (context==IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST
 						|| context ==IContextMenuInvocation.CONTEXT_MESSAGE_VIEWER_REQUEST
@@ -100,10 +98,10 @@ class OpenWithBrowser_Action implements ActionListener{
 					Utils.browserOpen(selectedUrl,browserPath);
 					//stdout.println(selectedUrl);
 				}else {
+					String hosturl =helpers.analyzeRequest(message).getUrl().toString();
 					Utils.browserOpen(hosturl,browserPath);
 				}
-			}
-			else if (messages.length > 1 &&  messages.length <=50) {
+			}else if (messages.length > 1 &&  messages.length <=50) {
 				for(IHttpRequestResponse message:messages) {
 					Getter getter = new Getter(helpers);
 					URL targetShortUrl = getter.getFullURL(message);
