@@ -1,16 +1,24 @@
 package knife;
 
-import burp.*;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JMenuItem;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.IParameter;
 
 public class InsertXSSMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -61,24 +69,24 @@ class InsertXSSAction implements ActionListener {
 				if (!jsonHandled){
 					//stdout.println(para.getValue());
 					List<String> headers = helpers.analyzeRequest(newRequest).getHeaders();
-					String body = new String(getter.getBody(true,newRequest));
-					if (isJSONValid(body)){
-						try {
-							body = updateJSONValue(new JSONObject(body),xsspayload).toString();
-						} catch (Exception e) {
-							e.printStackTrace(stderr);
+					try {
+						String body = new String(getter.getBody(true,newRequest),"UTF-8");
+						if (isJSON(body)){
+							body = updateJSONValue(body,xsspayload).toString();
+							newRequest = helpers.buildHttpMessage(headers,body.getBytes("UTF-8"));
+							jsonHandled = true;
 						}
+					} catch (Exception e) {
+						e.printStackTrace(stderr);
 					}
-					newRequest = helpers.buildHttpMessage(headers,helpers.stringToBytes(body));
-					jsonHandled = true;
 				}
 			}else {
 				if (type == IParameter.PARAM_URL) {//url中的参数需要编码
 					value = helpers.urlDecode(value);
 				}
-				if (isJSONValid(value)){//当参数的值是json格式
+				if (isJSON(value)){//当参数的值是json格式
 					try {
-						value = updateJSONValue(new JSONObject(value),xsspayload).toString();
+						value = updateJSONValue(value,xsspayload).toString();
 					} catch (Exception e) {
 						e.printStackTrace(stderr);
 					}
@@ -111,67 +119,98 @@ class InsertXSSAction implements ActionListener {
 		}
 	}
 
+	public static boolean isJSON(String test) {
+		if (isJSONObject(test) || isJSONArray(test)) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+
 	//org.json
-	public static boolean isJSONValid(String test) {
+	public static boolean isJSONObject(String test) {
 		try {
 			new JSONObject(test);
+			return true;
 		} catch (JSONException ex) {
-			try {
-				new JSONArray(test);
-			} catch (JSONException ex1) {
-				return false;
-			}
+			return false;
 		}
-		return true;
+	}
+
+
+	public static boolean isJSONArray(String test) {
+		try {
+			new JSONArray(test);
+			return true;
+		} catch (JSONException ex) {
+			return false;
+		}
 	}
 
 	//org.json
-	public static JSONObject updateJSONValue(JSONObject obj, String newValue) throws Exception {
-		// We need to know keys of Jsonobject
-		Iterator iterator = obj.keys();
-		while (iterator.hasNext()) {
-			String key = (String) iterator.next();
+	public static String updateJSONValue(String JSONString, String payload) throws Exception {
 
-			// if object is just string we change value in key
-			if ((obj.optJSONArray(key)==null) && (obj.optJSONObject(key)==null)) {
-				// put new value
-				try{//string
-					String value = (String) obj.get(key);
-					obj.put(key, value+newValue);
-				}catch (Exception e){
-					//if int, nothing to do
+		if (isJSONObject(JSONString)) {
+			JSONObject obj = new JSONObject(JSONString);
+			Iterator<String> iterator = obj.keys();
+			while (iterator.hasNext()) {
+				String key = (String) iterator.next();		// We need to know keys of Jsonobject
+				String value = obj.get(key).toString();
+
+
+				if (isJSONObject(value)) {// if it's jsonobject
+					String newValue = updateJSONValue(value, payload);
+					obj.put(key,new JSONObject(newValue));
+				}else if (isJSONArray(value)) {// if it's jsonarray
+					String newValue = updateJSONValue(value, payload);
+					obj.put(key,new JSONArray(newValue));
+				}else {
+					obj.put(key, value+payload);
 				}
-
 			}
-
-			// if it's jsonobject
-			if (obj.optJSONObject(key) != null) {
-				updateJSONValue(obj.getJSONObject(key), newValue);
+			return obj.toString();
+		}else if(isJSONArray(JSONString)) {
+			JSONArray jArray = new JSONArray(JSONString);
+			JSONArray newjArray = new JSONArray();
+			for (int i=0;i<jArray.length();i++) {
+				String item =jArray.getJSONObject(i).toString();
+				JSONObject newJSONObject = new JSONObject(updateJSONValue(item, payload));
+				newjArray.put(newJSONObject);
 			}
-
-			// if it's jsonarray
-			if (obj.optJSONArray(key) != null) {
-				JSONArray jArray = obj.getJSONArray(key);
-				JSONArray jArrayResult =new JSONArray();
-				for (int i=0;i<=jArray.length();i++) {
-					JSONObject newJSONObject = updateJSONValue(jArray.getJSONObject(i), newValue);
-					jArrayResult.put(newJSONObject);
-				}
-				obj.put(key, jArrayResult);
-			}
+			return newjArray.toString();
+		}else {
+			return JSONString;
 		}
-		return obj;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String args[]) {
 		//System.out.println(isInt("13175192849"));
 		String aaa = "{\r\n" + 
 				" \"person\":{\"name\":\"Sam\", \"surname\":\"ngonma\"},\r\n" + 
 				" \"car\":{\"make\":\"toyota\", \"model\":\"yaris\"}\r\n" + 
 				" }";
-		new JSONObject(aaa);
+		String bbb = "[\r\n" + 
+				"  {\r\n" + 
+				"    \"amount\": \" 12185\",\r\n" + 
+				"    \"job\": \"GAPA\",\r\n" + 
+				"    \"month\": \"JANUARY\",\r\n" + 
+				"    \"year\": \"2010\"\r\n" + 
+				"  },\r\n" + 
+				"  {\r\n" + 
+				"    \"amount\": \"147421\",\r\n" + 
+				"    \"job\": \"GAPA\",\r\n" + 
+				"    \"month\": \"MAY\",\r\n" + 
+				"    \"year\": \"2010\"\r\n" + 
+				"  },\r\n" + 
+				"  {\r\n" + 
+				"    \"amount\": \"2347\",\r\n" + 
+				"    \"job\": \"GAPA\",\r\n" + 
+				"    \"month\": \"AUGUST\",\r\n" + 
+				"    \"year\": \"2010\"\r\n" + 
+				"  }\r\n" + 
+				"]";
 		try {
-			System.out.println(updateJSONValue(new JSONObject(aaa),"11111"));
+			System.out.println(updateJSONValue(bbb,"11111"));
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
