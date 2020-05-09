@@ -47,6 +47,7 @@ class UpdateCookieAction implements ActionListener {
 		String sourceshorturl = getter.getShortURL(selectedItems[0]).toString();
 		HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
 		
+		//通过弹窗交互 获取Cookie
 		int time = 0;
 		while (!isVaildCookie(latestCookie) && time <2) {
 			latestCookie = CookieUtils.getLatestCookieFromSpeicified();

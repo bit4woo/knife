@@ -54,6 +54,28 @@ public class CookieUtils {
     public static HeaderEntry getLatestCookieFromHistory(String shortUrl){
         return getLatestHeaderFromHistory(shortUrl,"Cookie");
     }
+    
+    
+    //Cookie: ISIC_SOP_DES_S22_NG_WEB=ISIC_SOP_DES_S22_NG_196_8; a_authorization_sit=18ac8987-2059-4a3b-a433-7def12dbae4d/97cd8cce-20ba-40df-ac44-0adae67ae2ad/BF32FB9F1479F653496C56DC99299483; custom.name=f12c5888-467d-49af-bcab-9cf4a44c03ff
+    //判断字符串是否是合格的cookie，每个分号分割的部分是否都是键值对格式。
+    public static boolean isCookieString(String input) {
+        String cookieValue = input.trim();
+
+        if (cookieValue.startsWith("Cookie:")){
+        	cookieValue = cookieValue.replaceFirst("Cookie:","").trim();
+        }
+        
+        String[] items = input.split(";");
+        for (String item: items) {
+        	item = item.trim();
+        	if (item.equals("")) {
+        		continue;
+        	}else if (!item.contains("=")) {
+        		return false;
+        	}
+        }
+        return true;
+    }
 
     /*
     return a String url_which_cookie_from+SPLITER+cookievalue
@@ -66,7 +88,7 @@ public class CookieUtils {
         try{
             if (domainOrCookie == null){
                 return null;
-            }else if (domainOrCookie.contains("=") && !domainOrCookie.contains("?") && !domainOrCookie.contains("/")){//直接是cookie
+            }else if (isCookieString(domainOrCookie)){//直接是cookie
                 String cookieValue = domainOrCookie.trim();
 
                 if (cookieValue.startsWith("Cookie:")){
