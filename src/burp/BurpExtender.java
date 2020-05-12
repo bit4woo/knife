@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import com.google.gson.Gson;
@@ -118,7 +119,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
 		this.context = invocation;
 
-		ArrayList<JMenuItem> menu_list = new ArrayList<JMenuItem>();
+		ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();
+		JMenu menu_list = new JMenu("^_^ Knife");
+		Knife.add(menu_list);
 
 
 		byte context = invocation.getInvocationContext();
@@ -137,9 +140,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		float majorV = Float.parseFloat(majorVersion);
 		float minorV = Float.parseFloat(minorVersion);
 		if (majorV>=2020 && minorV >= 2.0f) { //2020.2及之后
-			
+
 		}else if (majorV < 2) {//1点几版本不需要
-			
+
 		}else {
 			menu_list.add(new DoActiveScanMenu(this));
 		}
@@ -174,7 +177,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 
 		menu_list.add(new Custom_Payload_Menu(this));
-		return menu_list;
+
+		return Knife;
 	}
 
 
