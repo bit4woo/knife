@@ -3,6 +3,7 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -171,19 +172,20 @@ class InsertXSSAction implements ActionListener {
 			return obj.toString();
 		}else if(isJSONArray(JSONString)) {
 			JSONArray jArray = new JSONArray(JSONString);
-			JSONArray newjArray = new JSONArray();
-			for (int i=0;i<jArray.length();i++) {
-				String item =jArray.getJSONObject(i).toString();
-				JSONObject newJSONObject = new JSONObject(updateJSONValue(item, payload));
-				newjArray.put(newJSONObject);
+
+			ArrayList<String> newjArray = new ArrayList<String>();
+			for (int i=0;i<jArray.length();i++) {//无论Array中的元素是JSONObject还是String都转换成String进行处理即可
+				String item = jArray.get(i).toString();
+				String newitem = updateJSONValue(item,payload);
+				newjArray.add(newitem);
 			}
 			return newjArray.toString();
 		}else {
-			return JSONString;
+			return JSONString+payload;
 		}
 	}
 
-	public static void main(String args[]) {
+	public static void test() {
 		//System.out.println(isInt("13175192849"));
 		String aaa = "{\r\n" + 
 				" \"person\":{\"name\":\"Sam\", \"surname\":\"ngonma\"},\r\n" + 
@@ -218,5 +220,17 @@ class InsertXSSAction implements ActionListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public static void main(String args[]) throws Exception {
+		String aaa = "[1,2]";
+		String bbb = "['a','b']";
+		String ccc = "{\r\n" + 
+				" \"person\":{\"name\":\"Sam\", \"surname\":\"ngonma\"},\r\n" + 
+				" \"car\":{\"make\":\"toyota\", \"model\":\"yaris\"}\r\n" + 
+				" }";
+		String ddd = "['a':'b',xxxx,1111]";
+		System.out.println(isJSONArray(bbb));
+		System.out.println(updateJSONValue(bbb,"xxx"));
 	}
 }
