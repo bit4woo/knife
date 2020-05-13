@@ -45,16 +45,21 @@ public class UpdateHeaderMenu extends JMenu {
 		Getter getter = new Getter(burp.callbacks.getHelpers());
 		LinkedHashMap<String, String> headers = getter.getHeaderMap(true, selectedItems[0]);
 
-		List<String> keywords = Arrays.asList(burp.tableModel.getConfigValueByKey("tokenHeaders").split(","));
+		String[] tokenHeaders = burp.tableModel.getConfigValueByKey("tokenHeaders").split(",");
+		
 		List<String> ResultHeaders = new ArrayList<String>();
-
-		Iterator<String> it = headers.keySet().iterator();
-		while (it.hasNext()) {
-			String item = it.next();
-			if (containOneOfKeywords(item,keywords,false)) {
-				ResultHeaders.add(item);
+		
+		if (tokenHeaders!= null) {
+			List<String> keywords = Arrays.asList(tokenHeaders);
+			Iterator<String> it = headers.keySet().iterator();
+			while (it.hasNext()) {
+				String item = it.next();
+				if (containOneOfKeywords(item,keywords,false)) {
+					ResultHeaders.add(item);
+				}
 			}
 		}
+
 		return ResultHeaders;
 	}
 
