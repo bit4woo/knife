@@ -119,62 +119,38 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	@Override
 	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
 		ArrayList<JMenuItem> menu_item_list = new ArrayList<JMenuItem>();
-		
+
 		this.invocation = invocation;
-		byte context = invocation.getInvocationContext();
-
-		String dismissed  = this.tableModel.getConfigValueByKey("DismissedHost");
-		if (dismissed != null) {
-			menu_item_list.add(new DismissMenu(this));
-		}
-
-		menu_item_list.add(new AddHostToScopeMenu(this));
-		String majorVersion = callbacks.getBurpVersion()[1];
-		String minorVersion = callbacks.getBurpVersion()[2];
-		//stdout.println(majorVersion+"   "+minorVersion);
-		//2020.2.1 ==>2020   2.1
-		//2.1.06 ==> 2.1   06
-		float majorV = Float.parseFloat(majorVersion);
-		float minorV = Float.parseFloat(minorVersion);
-		if (majorV>=2020 && minorV >= 2.0f) { //2020.2及之后
-
-		}else if (majorV < 2) {//1点几版本不需要
-
-		}else {
-			menu_item_list.add(new DoActiveScanMenu(this));
-		}
-		//2020.2版本之后续版本添加了主动扫描选项
-		menu_item_list.add(new DoPortScanMenu(this));
+		//常用
 		menu_item_list.add(new OpenWithBrowserMenu(this));
-		menu_item_list.add(new RunSQLMapMenu(this));
-		menu_item_list.add(new ChunkedEncodingMenu(this));
+		menu_item_list.add(new Custom_Payload_Menu(this));
+		menu_item_list.add(new InsertXSSMenu(this));
 
-		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-
-			if (this.tableModel.getConfigValueByKey("XSS-Payload")!=null){
-				menu_item_list.add(new InsertXSSMenu(this));
-			}
-
-			menu_item_list.add(new UpdateCookieMenu(this));
-			if (this.config.getUsedCookie()!=null){
-				menu_item_list.add(new UpdateCookieWithHistoryMenu(this));
-			}
-
-			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
-			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
-			/*menu_list.add(uhmenu);*/
-			if(!pHeaders.isEmpty()) {
-				menu_item_list.add(uhmenu);
-			}
-		}
+		//cookie身份凭证相关
+		menu_item_list.add(new UpdateCookieMenu(this));
+		menu_item_list.add(new UpdateCookieWithHistoryMenu(this));
 
 		menu_item_list.add(new SetCookieMenu(this));
-		if (this.config.getUsedCookie() != null){
-			menu_item_list.add(new SetCookieWithHistoryMenu(this));
+		menu_item_list.add(new SetCookieWithHistoryMenu(this));
+
+		UpdateHeaderMenu updateHeader = new UpdateHeaderMenu(this);//JMenuItem vs. JMenu
+		if (updateHeader.getItemCount()>0) {
+			menu_item_list.add(updateHeader);
 		}
 
-		menu_item_list.add(new Custom_Payload_Menu(this));
-		
+		//扫描攻击相关
+		menu_item_list.add(new AddHostToScopeMenu(this));
+		menu_item_list.add(new RunSQLMapMenu(this));
+		menu_item_list.add(new DoActiveScanMenu(this));
+		menu_item_list.add(new DoPortScanMenu(this));
+
+
+		//不太常用的
+		menu_item_list.add(new DismissMenu(this));
+		menu_item_list.add(new ChunkedEncodingMenu(this));
+		//menu_item_list.add(new JMenuItem());
+		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
+
 		String oneMenu  = this.tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
 		if (oneMenu != null) {
 			ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();

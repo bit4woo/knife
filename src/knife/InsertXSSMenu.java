@@ -24,8 +24,12 @@ import burp.IParameter;
 public class InsertXSSMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public InsertXSSMenu(BurpExtender burp){
-		this.setText("^_^ Insert XSS");
-		this.addActionListener(new InsertXSSAction(burp,burp.invocation));
+		if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			if (burp.tableModel.getConfigValueByKey("XSS-Payload")!=null){
+				this.setText("^_^ Insert XSS");
+				this.addActionListener(new InsertXSSAction(burp,burp.invocation));
+			}
+		}
 	}
 }
 

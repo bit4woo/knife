@@ -16,8 +16,10 @@ import burp.IHttpRequestResponse;
 public class UpdateCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public UpdateCookieMenu(BurpExtender burp){
-		this.setText("^_^ Update Cookie");
-		this.addActionListener(new UpdateCookieAction(burp,burp.invocation));
+		if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			this.setText("^_^ Update Cookie");
+			this.addActionListener(new UpdateCookieAction(burp,burp.invocation));
+		}
 	}
 }
 
@@ -46,18 +48,18 @@ class UpdateCookieAction implements ActionListener {
 		Getter getter = new Getter(helpers);
 		String sourceshorturl = getter.getShortURL(selectedItems[0]).toString();
 		HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
-		
+
 		//通过弹窗交互 获取Cookie
 		int time = 0;
 		while (!isVaildCookie(latestCookie) && time <2) {
 			latestCookie = CookieUtils.getLatestCookieFromSpeicified();
 			time++;
 		}
-		
+
 		if (isVaildCookie(latestCookie)) {
 			String latestCookieValue = latestCookie.getHeaderValue();
 			sourceshorturl = latestCookie.getHeaderSource();
-			
+
 			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0], latestCookieValue);
 			selectedItems[0].setRequest(newRequest);
 
@@ -68,7 +70,7 @@ class UpdateCookieAction implements ActionListener {
 			//do nothing
 		}
 	}
-	
+
 	public boolean isVaildCookie(HeaderEntry urlAndCookieString) {
 		if (urlAndCookieString == null) {
 			return false;

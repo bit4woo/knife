@@ -23,6 +23,8 @@ import burp.IHttpRequestResponse;
 
 public class UpdateHeaderMenu extends JMenu {
 	//JMenuItem vs. JMenu
+	//JMenu 可以有子菜单，即使具体实现为空，也会显示
+	//JMenuItem 不可以有子菜单，当实现为空的时候，是不会显示的
 	public BurpExtender burp;
 	public IContextMenuInvocation invocation;
 	public UpdateHeaderMenu(BurpExtender burp){
@@ -30,12 +32,18 @@ public class UpdateHeaderMenu extends JMenu {
 		this.invocation = burp.invocation;
 		this.burp = burp;
 
-		List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
-		this.setText("^_^ Update Header");
-		for (String pheader:pHeaders) {
-			JMenuItem headerItem = new JMenuItem(pheader);
-			headerItem.addActionListener(new UpdateHeader_Action(burp,invocation,pheader));
-			this.add(headerItem);
+		if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+
+			List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
+			/*menu_list.add(uhmenu);*/
+			if(!pHeaders.isEmpty()) {
+				this.setText("^_^ Update Header");
+				for (String pheader:pHeaders) {
+					JMenuItem headerItem = new JMenuItem(pheader);
+					headerItem.addActionListener(new UpdateHeader_Action(burp,invocation,pheader));
+					this.add(headerItem);
+				}
+			}
 		}
 	}
 
@@ -46,9 +54,9 @@ public class UpdateHeaderMenu extends JMenu {
 		LinkedHashMap<String, String> headers = getter.getHeaderMap(true, selectedItems[0]);
 
 		String[] tokenHeaders = burp.tableModel.getConfigValueByKey("tokenHeaders").split(",");
-		
+
 		List<String> ResultHeaders = new ArrayList<String>();
-		
+
 		if (tokenHeaders!= null) {
 			List<String> keywords = Arrays.asList(tokenHeaders);
 			Iterator<String> it = headers.keySet().iterator();
