@@ -20,7 +20,7 @@ public class SetCookieMenu extends JMenuItem {
 
 	public SetCookieMenu(BurpExtender burp){
 		this.setText("^_^ Set Cookie");
-		this.addActionListener(new SetCookie_Action(burp,burp.context));
+		this.addActionListener(new SetCookie_Action(burp,burp.invocation));
 	}
 }
 

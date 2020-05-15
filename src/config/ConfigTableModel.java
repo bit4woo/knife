@@ -21,6 +21,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 	public ConfigTableModel(){
 
+		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
 		configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));

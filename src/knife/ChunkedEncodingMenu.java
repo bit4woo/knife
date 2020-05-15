@@ -25,7 +25,7 @@ public class ChunkedEncodingMenu extends JMenuItem {
 	public Getter getter;
     public ChunkedEncodingMenu(BurpExtender burp){
     	
-    	this.invocation = burp.context;
+    	this.invocation = burp.invocation;
     	this.burp = burp;
     	this.getter = new Getter(burp.helpers);
     	IHttpRequestResponse[] messages = this.invocation.getSelectedMessages();

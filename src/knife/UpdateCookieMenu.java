@@ -17,7 +17,7 @@ public class UpdateCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public UpdateCookieMenu(BurpExtender burp){
 		this.setText("^_^ Update Cookie");
-		this.addActionListener(new UpdateCookieAction(burp,burp.context));
+		this.addActionListener(new UpdateCookieAction(burp,burp.invocation));
 	}
 }
 

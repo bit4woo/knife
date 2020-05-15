@@ -25,7 +25,7 @@ public class InsertXSSMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public InsertXSSMenu(BurpExtender burp){
 		this.setText("^_^ Insert XSS");
-		this.addActionListener(new InsertXSSAction(burp,burp.context));
+		this.addActionListener(new InsertXSSAction(burp,burp.invocation));
 	}
 }
 

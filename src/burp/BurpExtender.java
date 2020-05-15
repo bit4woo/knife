@@ -53,7 +53,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public IExtensionHelpers helpers;
 	public static PrintWriter stdout;
 	public static PrintWriter stderr;
-	public IContextMenuInvocation context;
+	public IContextMenuInvocation invocation;
 	public int proxyServerIndex=-1;
 	public static JSONBeautifier jsonBeautifier;
 	public static U2CTab u2ctab;
@@ -115,23 +115,20 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return stderr;
 	}
 
+	//JMenu 是可以有下级菜单的，而JMenuItem是不能有下级菜单的
 	@Override
 	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
-		this.context = invocation;
-
-		ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();
-		JMenu menu_list = new JMenu("^_^ Knife");
-		Knife.add(menu_list);
-
-
+		ArrayList<JMenuItem> menu_item_list = new ArrayList<JMenuItem>();
+		
+		this.invocation = invocation;
 		byte context = invocation.getInvocationContext();
 
 		String dismissed  = this.tableModel.getConfigValueByKey("DismissedHost");
 		if (dismissed != null) {
-			menu_list.add(new DismissMenu(this));
+			menu_item_list.add(new DismissMenu(this));
 		}
 
-		menu_list.add(new AddHostToScopeMenu(this));
+		menu_item_list.add(new AddHostToScopeMenu(this));
 		String majorVersion = callbacks.getBurpVersion()[1];
 		String minorVersion = callbacks.getBurpVersion()[2];
 		//stdout.println(majorVersion+"   "+minorVersion);
@@ -144,41 +141,52 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}else if (majorV < 2) {//1点几版本不需要
 
 		}else {
-			menu_list.add(new DoActiveScanMenu(this));
+			menu_item_list.add(new DoActiveScanMenu(this));
 		}
 		//2020.2版本之后续版本添加了主动扫描选项
-		menu_list.add(new DoPortScanMenu(this));
-		menu_list.add(new OpenWithBrowserMenu(this));
-		menu_list.add(new RunSQLMapMenu(this));
-		menu_list.add(new ChunkedEncodingMenu(this));
+		menu_item_list.add(new DoPortScanMenu(this));
+		menu_item_list.add(new OpenWithBrowserMenu(this));
+		menu_item_list.add(new RunSQLMapMenu(this));
+		menu_item_list.add(new ChunkedEncodingMenu(this));
 
 		if (context == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 
 			if (this.tableModel.getConfigValueByKey("XSS-Payload")!=null){
-				menu_list.add(new InsertXSSMenu(this));
+				menu_item_list.add(new InsertXSSMenu(this));
 			}
 
-			menu_list.add(new UpdateCookieMenu(this));
+			menu_item_list.add(new UpdateCookieMenu(this));
 			if (this.config.getUsedCookie()!=null){
-				menu_list.add(new UpdateCookieWithHistoryMenu(this));
+				menu_item_list.add(new UpdateCookieWithHistoryMenu(this));
 			}
 
 			UpdateHeaderMenu uhmenu = new UpdateHeaderMenu(this);
 			List<String> pHeaders = uhmenu.possibleHeaderNames(invocation);
 			/*menu_list.add(uhmenu);*/
 			if(!pHeaders.isEmpty()) {
-				menu_list.add(uhmenu);
+				menu_item_list.add(uhmenu);
 			}
 		}
 
-		menu_list.add(new SetCookieMenu(this));
+		menu_item_list.add(new SetCookieMenu(this));
 		if (this.config.getUsedCookie() != null){
-			menu_list.add(new SetCookieWithHistoryMenu(this));
+			menu_item_list.add(new SetCookieWithHistoryMenu(this));
 		}
 
-		menu_list.add(new Custom_Payload_Menu(this));
-
-		return Knife;
+		menu_item_list.add(new Custom_Payload_Menu(this));
+		
+		String oneMenu  = this.tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
+		if (oneMenu != null) {
+			ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();
+			JMenu knifeMenu = new JMenu("^_^ Knife");
+			Knife.add(knifeMenu);
+			for (JMenuItem item : menu_item_list) {
+				knifeMenu.add(item);
+			}
+			return Knife;
+		}else {
+			return menu_item_list;
+		}
 	}
 
 

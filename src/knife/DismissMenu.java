@@ -14,7 +14,7 @@ public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 
     public DismissMenu(BurpExtender burp){
         this.setText("^_^ Dismiss");
-        this.addActionListener(new Dismiss_Action(burp,burp.context));
+        this.addActionListener(new Dismiss_Action(burp,burp.invocation));
     }
 }
 

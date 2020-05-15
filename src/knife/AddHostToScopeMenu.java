@@ -18,7 +18,7 @@ public class AddHostToScopeMenu extends JMenuItem {//JMenuItem vs. JMenu
 
     public AddHostToScopeMenu(BurpExtender burp){
         this.setText("^_^ Add host to scope");
-        this.addActionListener(new AddHostToScope_Action(burp,burp.context));
+        this.addActionListener(new AddHostToScope_Action(burp,burp.invocation));
     }
 }
 

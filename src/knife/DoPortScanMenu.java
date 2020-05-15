@@ -34,7 +34,7 @@ public class DoPortScanMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public DoPortScanMenu(BurpExtender burp){
 		this.setText("^_^ Do Port Scan");
-		this.addActionListener(new DoPortScan_Action(burp,burp.context));
+		this.addActionListener(new DoPortScan_Action(burp,burp.invocation));
 	}
 }
 

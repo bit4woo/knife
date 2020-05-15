@@ -16,7 +16,7 @@ public class DoActiveScanMenu extends JMenuItem {//JMenuItem vs. JMenu
 
     public DoActiveScanMenu(BurpExtender burp){
         this.setText("^_^ Do Active Scan");
-        this.addActionListener(new DoActiveScan_Action(burp,burp.context));
+        this.addActionListener(new DoActiveScan_Action(burp,burp.invocation));
     }
 }
 

@@ -27,7 +27,7 @@ public class UpdateHeaderMenu extends JMenu {
 	public IContextMenuInvocation invocation;
 	public UpdateHeaderMenu(BurpExtender burp){
 
-		this.invocation = burp.context;
+		this.invocation = burp.invocation;
 		this.burp = burp;
 
 		List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change

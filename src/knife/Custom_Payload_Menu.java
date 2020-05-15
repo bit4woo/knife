@@ -61,10 +61,10 @@ class CustomPayloadItemListener implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 
 
-		IHttpRequestResponse req = myburp.context.getSelectedMessages()[0];
+		IHttpRequestResponse req = myburp.invocation.getSelectedMessages()[0];
 		byte[] request = req.getRequest();
 
-		int[] selectedIndex = myburp.context.getSelectionBounds();
+		int[] selectedIndex = myburp.invocation.getSelectionBounds();
 
 		String action = e.getActionCommand();
 
@@ -82,7 +82,7 @@ class CustomPayloadItemListener implements ActionListener {
 
 		if (myburp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload)) {
 			
-			String host = myburp.context.getSelectedMessages()[0].getHttpService().getHost();
+			String host = myburp.invocation.getSelectedMessages()[0].getHttpService().getHost();
 
 
 			if (payload.contains("%host")) {

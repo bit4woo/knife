@@ -20,7 +20,7 @@ public class UpdateCookieWithHistoryMenu extends JMenuItem {
 			String fromUrl = usedCookie.getHeaderSource();
 			String cookieValue = usedCookie.getHeaderValue();
 			this.setText("^_^ Update Cookie ("+fromUrl+")");
-			this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.context,cookieValue));
+			this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.invocation,cookieValue));
 		}
 	}
 }

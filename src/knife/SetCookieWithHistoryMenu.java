@@ -26,7 +26,7 @@ public class SetCookieWithHistoryMenu extends JMenuItem {
 			String cookieValue = cookieToSetHistory.getHeaderValue();
 
 			this.setText(String.format("^_^ Set Cookie (%s)",originUrl));
-			this.addActionListener(new SetCookieWithHistory_Action(burp,burp.context));
+			this.addActionListener(new SetCookieWithHistory_Action(burp,burp.invocation));
 		}
 
 	}
