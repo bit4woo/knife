@@ -150,6 +150,14 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		menu_item_list.add(new ChunkedEncodingMenu(this));
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
+		
+		Iterator<JMenuItem> it = menu_item_list.iterator();
+		while (it.hasNext()) {
+			JMenuItem item = it.next();
+			if (item.getText()==null || item.getText().equals("")) {
+				it.remove();
+			}
+		}
 
 		String oneMenu  = this.tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
 		if (oneMenu != null) {
