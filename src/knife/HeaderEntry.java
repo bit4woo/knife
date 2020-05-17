@@ -6,6 +6,7 @@ public class HeaderEntry {
 	private String headerName;
 	private String headerValue;
 	private String targetUrl;
+	private boolean requestUpdated;//用于标记是否已经更新了请求包的cookie。
 	long birthTime;
 	long endTime;
 	
@@ -57,6 +58,16 @@ public class HeaderEntry {
 	public void setTargetUrl(String targetUrl) {
 		this.targetUrl = targetUrl;
 	}
+	public boolean isRequestUpdated() {
+		return requestUpdated;
+	}
+
+
+	public void setRequestUpdated(boolean requestUpdated) {
+		this.requestUpdated = requestUpdated;
+	}
+
+
 	public long getBirthTime() {
 		return birthTime;
 	}

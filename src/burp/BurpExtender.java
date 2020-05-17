@@ -197,16 +197,22 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return getAllConfig();
 	}
 
+	//IProxyListener中的方法，修改的内容会在proxy中显示为edited
 	@Override
 	public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
 		//processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
 		//same action will be executed twice! if call processHttpMessage() here.
 		//请求和响应到达proxy时，都各自调用一次,如下部分是测试代码，没毛病啊！
-		/*		IHttpRequestResponse messageInfo = message.getMessageInfo();
+		/*
+		HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
+		IHttpRequestResponse messageInfo = message.getMessageInfo();
 		if (messageIsRequest) {
-			byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"111111111");
+			byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"aaa=111111111");
 			message.getMessageInfo().setRequest(newRequest);
+			
+			stderr.println("request called "+cookieToSetMap);
 		}else{
+		stderr.println("response called "+cookieToSetMap);
 			Getter getter = new Getter(helpers);
 			List<String> setHeaders = GetSetCookieHeaders("bbb=2222;");
 			List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
@@ -216,21 +222,31 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
 
 			messageInfo.setResponse(response);
-		}*/
+		}
+		cookieToSetMap.clear();
+		*/
 		if (messageIsRequest) {//丢弃干扰请求
 			String currentHost =  message.getMessageInfo().getHttpService().getHost();
 			if (isDismissedHost(currentHost)){
 				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
-				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
+				//message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
 				message.getMessageInfo().setHighlight("gray");
 				message.getMessageInfo().setComment("Dismissed");
 				return;
 			}
 		}
 
-		//当函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSet必然为空。
+		/*setCookie的实现方案1。请求和响应数据包的修改都由processProxyMessage函数来实现。这种情况下：
+		 * 在Proxy拦截处进行SetCookie的操作时，该函数已经被调用！这个函数的调用时在手动操作之前的。
+		 * 即是说，当这个函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSetMap必然为空，所以需要rehook操作。
+		 *setCookie的实现方案2。主要目标是为了避免rehook，分两种情况分别处理。
+		 * 情况一：当当前是CONTEXT_MESSAGE_EDITOR_REQUEST的情况下（比如proxy和repeater中），
+		 * 更新请求的操作和updateCookie的操作一样，在手动操作时进行更新，而响应包由processProxyMessage来更新。
+		 * 情况二：除了上面的情况，请求包和响应包的更新都由processProxyMessage来实现，非proxy的情况下也不需要再rehook。
+		 * 
+		 */
 		HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
-		//stderr.println("called"+cookieToSet);
+		//stdout.println("processProxyMessage called when messageIsRequest="+messageIsRequest+" "+cookieToSetMap);
 		if (cookieToSetMap != null && !cookieToSetMap.isEmpty()){//第二次调用如果cookie不为空，就走到这里
 
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
@@ -245,8 +261,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				String cookieValue = cookieToSet.getHeaderValue();
 
 				if (messageIsRequest) {
-					byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
-					messageInfo.setRequest(newRequest);
+					if (!cookieToSet.isRequestUpdated()) {
+						byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
+						messageInfo.setRequest(newRequest);
+					}
 				}else {
 					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
 					byte[] responseBody = getter.getBody(false,messageInfo);
@@ -260,16 +278,20 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				}
 			}
 
-		}else {//第一次调用必然走到这里
+		}
+		/*改用方案二，无需再rehook
+		else {//第一次调用必然走到这里
 			message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES_AND_REHOOK);
 			//让burp在等待用户完成操作后再次调用，就相当于再次对request进行处理。
 			//再次调用，即使走到了这里，也不会再增加调用次数，burp自己应该有控制。
-		}
+		}*/
 
 	}
 
+	//IHttpListener中的方法，修改的内容在Proxy中不可见
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+		//stdout.println("processHttpMessage called when messageIsRequest="+messageIsRequest);
 		try {
 			if (messageIsRequest) {
 				Getter getter = new Getter(helpers);
@@ -431,5 +453,4 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		return false;
 	}
-
 }

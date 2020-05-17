@@ -42,32 +42,44 @@ class UpdateCookieAction implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
+		try {
+			//stdout.println("UpdateCookieAction called");
+			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 
-		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
+			Getter getter = new Getter(helpers);
+			String sourceshorturl = getter.getShortURL(selectedItems[0]).toString();
+			HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
 
-		Getter getter = new Getter(helpers);
-		String sourceshorturl = getter.getShortURL(selectedItems[0]).toString();
-		HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
-
-		//通过弹窗交互 获取Cookie
-		int time = 0;
-		while (!isVaildCookie(latestCookie) && time <2) {
-			latestCookie = CookieUtils.getLatestCookieFromSpeicified();
-			time++;
-		}
-
-		if (isVaildCookie(latestCookie)) {
-			String latestCookieValue = latestCookie.getHeaderValue();
-			sourceshorturl = latestCookie.getHeaderSource();
-
-			byte[] newRequest = CookieUtils.updateCookie(selectedItems[0], latestCookieValue);
-			selectedItems[0].setRequest(newRequest);
-
-			if (sourceshorturl.startsWith("http")) {
-				this.burp.config.setUsedCookie(latestCookie);
+			//通过弹窗交互 获取Cookie
+			int time = 0;
+			while (!isVaildCookie(latestCookie) && time <2) {
+				latestCookie = CookieUtils.getLatestCookieFromSpeicified();
+				time++;
 			}
-		}else {
-			//do nothing
+
+			if (isVaildCookie(latestCookie)) {
+				String latestCookieValue = latestCookie.getHeaderValue();
+				sourceshorturl = latestCookie.getHeaderSource();
+
+				byte[] newRequest = CookieUtils.updateCookie(selectedItems[0], latestCookieValue);
+				try{
+					selectedItems[0].setRequest(newRequest);
+				}catch (Exception e){
+					e.printStackTrace(stderr);
+					//stderr.print(e.getMessage());
+					//这是个bug，请求包实际还是被修改了，但是就是报这个错误！
+					//当在proxy中拦截状态下更新请求包的时候，总是会报这个假错误！
+					//"java.lang.UnsupportedOperationException: Request has already been issued"
+				}
+
+				if (sourceshorturl.startsWith("http")) {
+					this.burp.config.setUsedCookie(latestCookie);
+				}
+			}else {
+				//do nothing
+			}
+		}catch (Exception e1){
+			e1.printStackTrace(stderr);
 		}
 	}
 

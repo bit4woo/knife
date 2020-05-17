@@ -43,26 +43,42 @@ class SetCookie_Action implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
+		try{
+			//stdout.println("SetCookie_Action called");
+			HeaderEntry cookieEntry = CookieUtils.getLatestCookieFromSpeicified();
 
-		HeaderEntry cookieEntry = CookieUtils.getLatestCookieFromSpeicified();
-		if (cookieEntry != null) {//当没有找到相应的cookie时为null
-			try{
+			if (cookieEntry != null) {//当没有找到相应的cookie时为null
 				IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+				if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+					byte[] newRequest = CookieUtils.updateCookie(messages[0], cookieEntry.getHeaderValue());
+					try{
+						messages[0].setRequest(newRequest);
+					}catch (Exception e){
+						e.printStackTrace(stderr);
+						//stderr.print(e.getMessage());
+						//这是个bug，请求包实际还是被修改了，但是就是报这个错误！
+						//当在proxy中拦截状态下更新请求包的时候，总是会报这个假错误！
+						//"java.lang.UnsupportedOperationException: Request has already been issued"
+					}
+					cookieEntry.setRequestUpdated(true);//表明请求包已经被更新
+					stdout.print("1111updated....");
+				}
+
 				for(IHttpRequestResponse message:messages) {
 					Getter getter = new Getter(helpers);
 					String targetShortUrl = getter.getShortURL(message).toString();
 					cookieEntry.setTargetUrl(targetShortUrl);
 					this.burp.config.getSetCookieMap().put(targetShortUrl, cookieEntry);
-					//让proxy处理程序，处理响应包的更新
+					//让proxy处理函数processProxyMessage()去处理响应包的更新
 				}
 				this.burp.config.setUsedCookie(cookieEntry);
+			}else {
+				stderr.println("No cookie found with your input");
 			}
-			catch (Exception e1)
-			{
-				e1.printStackTrace(stderr);
-			}
-		}else {
-			stderr.println("No cookie found with you input");
+		}
+		catch (Exception e1)
+		{
+			e1.printStackTrace(stderr);
 		}
 	}
 }
