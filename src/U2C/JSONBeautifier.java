@@ -75,17 +75,12 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 				txtInput.setText("none".getBytes());
 				txtInput.setEditable(false);
 			} else {
-				//Take the input, determine request/response, parse as json, then print prettily.
-				Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create();
 				//Get only the JSON part of the content
 				Getter getter = new Getter(helpers);
 				byte[] body = getter.getBody(isRequest, content);
 				List<String> headers = getter.getHeaderList(isRequest, content);
 
-				JsonParser jp = new JsonParser();
-				JsonElement je = jp.parse(new String(body));
-				jsonBody = gson.toJson(je);
-				byte[] newContet = helpers.buildHttpMessage(headers, jsonBody.getBytes());
+				byte[] newContet = helpers.buildHttpMessage(headers, beauty(new String(body)).getBytes());
 				//newContet = CharSet.covertCharSetToByte(newContet);
 
 				txtInput.setText(newContet);
@@ -93,6 +88,14 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 		} catch (Exception e) {
 			txtInput.setText(e.getStackTrace().toString().getBytes());
 		}
+	}
+	
+	public static String beauty(String inputJson) {
+		//Take the input, determine request/response, parse as json, then print prettily.
+		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create();
+		JsonParser jp = new JsonParser();
+		JsonElement je = jp.parse(inputJson);
+		return gson.toJson(je);
 	}
 
 	@Override
@@ -119,9 +122,9 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 		return txtInput.getSelectedText();
 	}
 
-
 	public static void main(String args[]) {
-		System.out.print("");
+		String aaa = "{\"returnCode\":\"0\",\"description\":\"success\",\"resJson\":\"{\\\"userRouteInfoList\\\":[{\\\"bankVerifyState\\\":1,\\\"channelRoleTypes\\\":[{\\\"allowLogin\\\":1,\\\"innerStatus\\\":0,\\\"roleClassify\\\":1,\\\"roleID\\\":\\\"SMRole\\\"}],\\\"checkExpire\\\":2,\\\"countryCode\\\":\\\"CN\\\",\\\"lastLoginTime\\\":\\\"2020-05-11 08:37:12\\\",\\\"realName\\\":\\\"小明\\\",\\\"siteID\\\":1,\\\"userID\\\":\\\"1\\\",\\\"userType\\\":1,\\\"userValidStatus\\\":1,\\\"verifyRealState\\\":2}],\\\"resultCode\\\":0}\"}";
+		System.out.print(beauty(aaa));
 	}
 
 	@Override
