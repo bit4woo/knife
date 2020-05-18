@@ -21,7 +21,8 @@ public class RobotInput extends Robot {
 	 * @throws AWTException
 	 */
 	public static void main(String[] args) throws Exception {
-		test();
+		startCmdConsole();
+		new RobotInput().inputString("test");
 	}
 
 	public static void test() throws Exception {
@@ -77,7 +78,7 @@ public class RobotInput extends Robot {
 		keyRelease(KeyEvent.VK_ALT);
 		delay(100);
 	}
-	
+
 	// ctrl+shift+ 按键
 	public void inputWithCtrlAndShift(int key) {
 		delay(100);
@@ -126,31 +127,57 @@ public class RobotInput extends Robot {
 		delay(100);
 		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
 		Transferable origin = clip.getContents(null);//备份之前剪切板的内容
-		Transferable tText = new StringSelection(str);
-		clip.setContents(tText, null); //设置剪切板内容
-		
+		StringSelection tText = new StringSelection(str);
+		clip.setContents(tText, tText); //设置剪切板内容,在Linux中这会修改ctrl+shift+v的内容
+
 		if (Utils.isWindows10()) {//粘贴的不同实现方式
 			inputWithCtrl(KeyEvent.VK_V);
 		}else if (Utils.isWindows()) {
 			inputWithAlt(KeyEvent.VK_SPACE);//
 			InputChar(KeyEvent.VK_E);
 			InputChar(KeyEvent.VK_P);
+			//			try {
+			//				System.out.println("剪切板中的内容："+(String)clip.getData(DataFlavor.stringFlavor));
+			//			} catch (UnsupportedFlavorException e) {
+			//				// TODO Auto-generated catch block
+			//				e.printStackTrace();
+			//			} catch (IOException e) {
+			//				// TODO Auto-generated catch block
+			//				e.printStackTrace();
+			//			}
 		}else if (Utils.isMac()) {
 			delay(100);
 			keyPress(KeyEvent.VK_META);
-			keyPress(KeyEvent.VK_C);
+			keyPress(KeyEvent.VK_V);
 			delay(100);
-			keyRelease(KeyEvent.VK_C);
+			keyRelease(KeyEvent.VK_V);
 			keyRelease(KeyEvent.VK_META);
 			delay(100);
-		}else if (Utils.isUnix()) {//Ctrl + Shift + V
-			inputWithCtrlAndShift(KeyEvent.VK_C);
-		}
+		}else if (Utils.isUnix()) {
+			//Ctrl+Shift+V 只可以在/usr/bin/gnome-terminal中生效
+			//shift+insert 在/usr/bin/xterm中和 /usr/bin/gnome-terminal中都可以使用
+			//https://askubuntu.com/questions/202459/keyboard-shortcut-for-pasting-on-the-gnome-terminal
 
+			//https://unix.stackexchange.com/questions/178070/why-does-shiftinsert-paste-from-clipboard-in-some-applications-and-primary-in-o
+			//in gnome-terminal, Shift+Insert should paste from PRIMARY and Ctrl+Shift+V should paste from CLIPBOARD 
+			//(although you have the options to customize some shortcuts).
+
+			inputWithCtrlAndShift(KeyEvent.VK_V);
+			//inputWithShift(KeyEvent.VK_INSERT);
+			//			try {
+			//				System.out.println("剪切板中的内容："+(String)clip.getData(DataFlavor.stringFlavor));
+			//			} catch (UnsupportedFlavorException e) {
+			//				// TODO Auto-generated catch block
+			//				e.printStackTrace();
+			//			} catch (IOException e) {
+			//				// TODO Auto-generated catch block
+			//				e.printStackTrace();
+			//			}
+		}
 		clip.setContents(origin, null);//恢复之前剪切板的内容
 		delay(100);
 	}
-	
+
 	//单个 按键
 
 	public void InputChar(int key){
@@ -168,10 +195,15 @@ public class RobotInput extends Robot {
 			} else if (Utils.isMac()){
 				process = Runtime.getRuntime().exec("open -n -F -a /Applications/Utilities/Terminal.app");
 			}else if (Utils.isUnix()) {
-				process = Runtime.getRuntime().exec("/usr/bin/xterm");
+				process = Runtime.getRuntime().exec("/usr/bin/gnome-terminal");//kali和Ubuntu测试通过
+				//				if(new File("/usr/bin/gnome-terminal").exists()) {
+				//					process = Runtime.getRuntime().exec("/usr/bin/gnome-terminal");
+				//				}else {
+				//					process = Runtime.getRuntime().exec("/usr/bin/xterm");//只能使用shift+insert 进行粘贴操作，但是修改剪切板并不能修改它粘贴的内容。
+				//貌似和使用了openjdk有关，故暂时只支持gnome-terminal. 
+				//				}
 			}
 			process.waitFor();//等待执行完成
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
