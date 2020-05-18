@@ -1,6 +1,5 @@
 package knife;
 
-import java.awt.AWTException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -65,7 +64,6 @@ class RunSQLMap_Action implements ActionListener{
 						IHttpRequestResponse message = messages[0];
 						String requestFilePath = RequestToFile(message);
 						RobotInput.startCmdConsole();
-						changeDir();
 						String sqlmapCmd = genSqlmapCmd(requestFilePath);
 						ri.inputString(sqlmapCmd);
 					}
@@ -111,7 +109,7 @@ class RunSQLMap_Action implements ActionListener{
 	/*
 	 * 切换工作目录
 	 */
-	public void changeDir() throws AWTException {
+	public String changeDirCommand(){
 		//运行命令的工作目录，work path
 		String basedir = (String) System.getProperties().get("java.io.tmpdir");
 		String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
@@ -120,13 +118,11 @@ class RunSQLMap_Action implements ActionListener{
 		}
 		String command = "cd "+basedir+System.lineSeparator();
 
-		RobotInput ri = new RobotInput();
-		ri.inputString(command.toString()); //切换目录
-
 		if (Utils.isWindows()) {//如果是windows，还要注意不同磁盘的切换
 			String diskString = basedir.split(":")[0];
-			ri.inputString(diskString+":"+System.lineSeparator());
+			command =command+ diskString+":"+System.lineSeparator();
 		}
+		return command;
 	}
 
 	public String genSqlmapCmd(String requestFilePath) {
@@ -134,6 +130,9 @@ class RunSQLMap_Action implements ActionListener{
 		String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
 		String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
 		StringBuilder command = new StringBuilder();
+		
+		command.append(changeDirCommand());
+		
 		if (pythonPath != null && new File(pythonPath).exists()) {
 			if (new File(pythonPath).isFile()) {
 				command.append(pythonPath);
