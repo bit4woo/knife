@@ -4,6 +4,7 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
@@ -21,8 +22,9 @@ public class RobotInput extends Robot {
 	 * @throws AWTException
 	 */
 	public static void main(String[] args) throws Exception {
-		startCmdConsole();
-		new RobotInput().inputString("test");
+		System.out.println(new RobotInput().getSelectedString());
+//		startCmdConsole();
+//		new RobotInput().inputString("test");
 	}
 
 	public static void test() throws Exception {
@@ -176,6 +178,23 @@ public class RobotInput extends Robot {
 		}
 		clip.setContents(origin, null);//恢复之前剪切板的内容
 		delay(100);
+	}
+
+	public String getSelectedString(){
+		delay(100);
+		String selectedString= "";
+		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
+		Transferable origin = clip.getContents(null);//备份之前剪切板的内容
+		inputWithCtrl(KeyEvent.VK_C);
+		try {
+			selectedString = (String)clip.getData(DataFlavor.stringFlavor);
+			//System.out.println("剪切板中的内容："+(String)clip.getData(DataFlavor.stringFlavor));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		clip.setContents(origin, null);//恢复之前剪切板的内容
+		return selectedString;
 	}
 
 	//单个 按键
