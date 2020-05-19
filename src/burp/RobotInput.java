@@ -23,8 +23,8 @@ public class RobotInput extends Robot {
 	 */
 	public static void main(String[] args) throws Exception {
 		System.out.println(new RobotInput().getSelectedString());
-//		startCmdConsole();
-//		new RobotInput().inputString("test");
+		//		startCmdConsole();
+		//		new RobotInput().inputString("test");
 	}
 
 	public static void test() throws Exception {
@@ -180,21 +180,33 @@ public class RobotInput extends Robot {
 		delay(100);
 	}
 
-	public String getSelectedString(){
-		delay(100);
-		String selectedString= "";
-		Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
-		Transferable origin = clip.getContents(null);//备份之前剪切板的内容
-		inputWithCtrl(KeyEvent.VK_C);
+	//这个函数单独测试的时候没毛病，但是 一用到burp右键中，获得的结果始终是上一次复制的内容！
+	public final String getSelectedString(){
 		try {
+			Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();//获取剪切板
+			Transferable origin = clip.getContents(null);//备份之前剪切板的内容
+
+			String selectedString = (String)clip.getData(DataFlavor.stringFlavor);
+			System.out.println("复制之前剪切板中的内容："+selectedString);
+			
+			inputWithCtrl(KeyEvent.VK_C);
+			final String result = (String)clip.getData(DataFlavor.stringFlavor);
+			//selectedString = (String)clip.getData(DataFlavor.stringFlavor);
+			System.out.println("复制之后剪切板中的内容："+result);
+
+			clip.setContents(origin, null);//恢复之前剪切板的内容
+
 			selectedString = (String)clip.getData(DataFlavor.stringFlavor);
-			//System.out.println("剪切板中的内容："+(String)clip.getData(DataFlavor.stringFlavor));
+			System.out.println("恢复之后剪切板中的内容："+selectedString);
+			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		clip.setContents(origin, null);//恢复之前剪切板的内容
-		return selectedString;
+		return "";
+//		复制之前剪切板中的内容：printStackTrace
+//		复制之后剪切板中的内容：null
+//		恢复之后剪切板中的内容：printStackTrace
+//		printStackTrace//最后的值随着剪切板的恢复而改变了，应该是引用传递的原因。所有需要将复制后的值设置为final。
 	}
 
 	//单个 按键

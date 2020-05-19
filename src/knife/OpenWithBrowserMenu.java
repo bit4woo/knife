@@ -65,7 +65,12 @@ class OpenWithBrowser_Action implements ActionListener{
 			if (messages.length == 1) {
 				String selectedUrl = getSelectedStringByBurp();
 				//String selectedUrl = new RobotInput().getSelectedString();//为了解决burp API中的bug，尝试用复制粘贴方法获取选中的内容。
-				//stderr.println("selected URL: "+selectedUrl);
+				//不知道为什么这里获取到的结果始终是上一次复制的内容。
+				//难道是因为，当用鼠标点击右键菜单时，当前的选中内容不是burp数据表中的字符串，而是当前菜单项？所以这个方法走不通了？
+				
+				
+				
+				stderr.println("selected URL: "+selectedUrl);
 				if (selectedUrl.length()>10) {// http://a.cn
 					Utils.browserOpen(selectedUrl,browserPath);
 					//stdout.println(selectedUrl);
@@ -87,6 +92,42 @@ class OpenWithBrowser_Action implements ActionListener{
 		{
 			e1.printStackTrace(stderr);
 		}
+	}
+	
+	//只适用于GBK编码格式，UTF-8的格式中的结果是它的结果除以3？？？
+	public static int ChineseCount(byte[] input) {
+		int num = 0;
+		for (int i = 0; i < input.length; i++) {
+			if (input[i] < 0) {
+				num++;
+				i = i + 1;
+			}
+		}
+		return num;
+	}
+	
+	public int isChinese(String a)  {
+		char[] c = a.toCharArray();
+		int count=0;
+		for (char d : c) {
+			Character.UnicodeBlock ub = Character.UnicodeBlock.of(d);
+			if (ub == Character.UnicodeBlock.GENERAL_PUNCTUATION
+					|| ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+					|| ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS
+					|| ub == Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS
+					|| ub == Character.UnicodeBlock.VERTICAL_FORMS
+					|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+					|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+					|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
+					|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_C
+					|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_D
+					|| ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+					|| ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS_SUPPLEMENT) {
+				   count++;
+			} 
+ 
+		}
+		 return count;
 	}
 
 	public String getSelectedStringByBurp(){
@@ -116,15 +157,21 @@ class OpenWithBrowser_Action implements ActionListener{
 			}else {
 				source = message.getResponse();
 			}
+			
+			stderr.println("chinese count: "+isChinese(new String(source)));
 
 			int[] selectedIndex = invocation.getSelectionBounds();//当数据包中有中文或其他宽字符的时候，这里的返回值不正确。已报bug。
+			//获得的index根据选中内容前面中文字数的个数*2 的值前移了。
 			//stdout.println(selectedIndex[0]+":"+selectedIndex[1]);
 
 			if(source!=null && selectedIndex !=null && selectedIndex[1]-selectedIndex[0]>=3) {
 				int selectedLength = selectedIndex[1]-selectedIndex[0];
 				byte[] selectedBytes = new byte[selectedLength];
 				System.arraycopy(source, selectedIndex[0], selectedBytes, 0, selectedLength);//新的内容替换选中内容
+				stderr.println("11--->"+burp.callbacks.getHelpers().bytesToString(selectedBytes));
+				stderr.println("22--->"+ new String(selectedBytes));
 				result = new String(selectedBytes).trim();
+				
 			}
 
 			if(!isFullUrl(result)) {
