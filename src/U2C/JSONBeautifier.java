@@ -24,6 +24,7 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 	private ITextEditor txtInput;
 	private byte[] originContent;
 	private IExtensionHelpers helpers;
+	private boolean workfine = true;//JSON解析是否正常工作，如果JSON解析失败，还是应该要显示U2C。
 	public JSONBeautifier(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
 		txtInput = callbacks.createTextEditor();
@@ -47,6 +48,10 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 	public boolean isEnabled(byte[] content, boolean isRequest)
 	{   
 		try {
+			if (!workfine) {//当JSON解析失败时，还是要尝试显示U2C
+				return false;
+			}
+			
 			if (content== null) {
 				return false;
 			}
@@ -69,7 +74,6 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 	public void setMessage(byte[] content, boolean isRequest)
 	{    	
 		try {
-			String jsonBody = "";
 			if (content == null) {
 				// clear our display
 				txtInput.setText("none".getBytes());
@@ -86,6 +90,7 @@ public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactor
 				txtInput.setText(newContet);
 			}
 		} catch (Exception e) {
+			workfine = false;
 			txtInput.setText(e.getStackTrace().toString().getBytes());
 		}
 	}

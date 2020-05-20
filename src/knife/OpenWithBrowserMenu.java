@@ -9,6 +9,7 @@ import java.net.URL;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
+import burp.CharSet;
 import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
@@ -191,7 +192,7 @@ class OpenWithBrowser_Action implements ActionListener{
 			//burp进行的byte和string之间的转换，没有考虑特定的编码，是一刀切的方式，所以将index用于byte序列上，就不能正确对应。
 
 			if(source!=null && selectedIndex !=null && selectedIndex[1]-selectedIndex[0]>=3) {
-				String originalCharSet = Utils.getResponseCharset(source);
+				String originalCharSet = CharSet.getResponseCharset(source);
 				String text;
 				try {
 					text = new String(source,originalCharSet);
