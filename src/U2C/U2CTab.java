@@ -1,27 +1,39 @@
 package U2C;
 
 import java.awt.Component;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
 import burp.BurpExtender;
+import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
 import burp.IMessageEditorTabFactory;
+import burp.IRequestInfo;
+import burp.IResponseInfo;
 import burp.ITextEditor;
 
 public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 {
 	private ITextEditor txtInput;
 	private byte[] originContent;
+	private byte[] displayContent;
+	private static IExtensionHelpers helpers;
 	public U2CTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
 		txtInput = callbacks.createTextEditor();
 		txtInput.setEditable(editable);
+		this.helpers = helpers;
 	}
 
 	@Override
@@ -43,18 +55,42 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 			if(content==null) {
 				return false;
 			}
-			if (BurpExtender.jsonBeautifier.isEnabled(content, isRequest)) {
-				return false;
+
+			originContent = content;
+			String contentStr = new String(content);
+
+			//先尝试进行JSON格式的美化，如果其中有Unicode编码也会自动完成转换
+			if (isJSON(content, isRequest)) {
+				try {
+					//Get only the JSON part of the content
+					Getter getter = new Getter(helpers);
+					byte[] body = getter.getBody(isRequest, content);
+					List<String> headers = getter.getHeaderList(isRequest, content);
+
+					displayContent = helpers.buildHttpMessage(headers, beauty(new String(body)).getBytes());
+					//newContet = CharSet.covertCharSetToByte(newContet);
+					return true;
+				}catch(Exception e) {
+
+				}
 			}
 
-			if (!isRequest && needtoconvert(new String(content))) {
-				originContent = content;
+			//如果不是JSON，或者JSON美化失败，就尝试Unicode转换
+			int i=0;
+			while (needtoconvert(contentStr) && i<=3) {
+				//resp = Unicode.unicodeDecode(resp);//弃用
+				contentStr = StringEscapeUtils.unescapeJava(contentStr);
+				i++;
+			}
+
+			if (i>0) {//表明至少转换了一次了，需要显示
+				displayContent = contentStr.getBytes();
 				return true;
 			}else {
 				return false;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			displayContent = e.getMessage().getBytes();
 			e.printStackTrace(BurpExtender.getStderr());
 			return false;
 		}
@@ -63,24 +99,7 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 	@Override
 	public void setMessage(byte[] content, boolean isRequest)
 	{
-		try {
-			String UnicodeResp = "";
-
-			if(content != null) {
-				String resp= new String(content);
-				int i=0;
-				while (needtoconvert(resp) && i<=3) {
-					//resp = Unicode.unicodeDecode(resp);//弃用
-					resp = StringEscapeUtils.unescapeJava(resp);
-					i= i+1;
-				}
-				UnicodeResp = resp;
-			}
-			txtInput.setText(UnicodeResp.getBytes());
-		} catch (Exception e) {
-			e.printStackTrace(BurpExtender.getStderr());
-			txtInput.setText(e.getStackTrace().toString().getBytes());
-		}
+		txtInput.setText(displayContent);
 	}
 
 	@Override
@@ -107,6 +126,24 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 		return txtInput.getSelectedText();
 	}
 
+
+	public static boolean isJSON(byte[] content,boolean isRequest) {
+		if (isRequest) {
+			IRequestInfo requestInfo = helpers.analyzeRequest(content);
+			return requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON;
+		} else {
+			IResponseInfo responseInfo = helpers.analyzeResponse(content);
+			return responseInfo.getInferredMimeType().equals("JSON");
+		}
+	}
+
+	public static String beauty(String inputJson) {
+		//Take the input, determine request/response, parse as json, then print prettily.
+		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create();
+		JsonParser jp = new JsonParser();
+		JsonElement je = jp.parse(inputJson);
+		return gson.toJson(je);
+	}
 
 	public static boolean needtoconvert(String str) {
 		Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");

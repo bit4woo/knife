@@ -1,4 +1,4 @@
-package U2C;
+package Deprecated;
 
 import java.awt.Component;
 import java.util.List;
@@ -19,6 +19,7 @@ import burp.IRequestInfo;
 import burp.IResponseInfo;
 import burp.ITextEditor;
 
+@Deprecated
 public class JSONBeautifier implements IMessageEditorTab,IMessageEditorTabFactory
 {
 	private ITextEditor txtInput;

@@ -1,4 +1,4 @@
-package U2C;
+package Deprecated;
 
 import org.apache.commons.text.StringEscapeUtils;
 
