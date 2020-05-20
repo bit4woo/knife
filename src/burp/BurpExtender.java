@@ -18,7 +18,7 @@ import javax.swing.JMenuItem;
 
 import com.google.gson.Gson;
 
-import U2C.U2CTab;
+import U2C.U2CTabFactory;
 import config.Config;
 import config.ConfigEntry;
 import config.ConfigTable;
@@ -54,7 +54,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public static PrintWriter stderr;
 	public IContextMenuInvocation invocation;
 	public int proxyServerIndex=-1;
-	public static U2CTab u2ctab;
 
 
 	@Override
@@ -78,12 +77,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		table.setupTypeColumn();//call this function must after table data loaded !!!!
 
 
-		u2ctab = new U2CTab(null, false, helpers, callbacks);
+		U2CTabFactory u2ctabFactory = new U2CTabFactory(null, false, helpers, callbacks);
 
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
 		callbacks.setExtensionName(this.ExtensionName);
 		callbacks.registerContextMenuFactory(this);// for menus
-		callbacks.registerMessageEditorTabFactory(u2ctab);// for U2C
+		callbacks.registerMessageEditorTabFactory(u2ctabFactory);// for U2C
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);

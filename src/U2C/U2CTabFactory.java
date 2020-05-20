@@ -23,8 +23,23 @@ import burp.IRequestInfo;
 import burp.IResponseInfo;
 import burp.ITextEditor;
 
-public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
+public class U2CTabFactory implements IMessageEditorTabFactory
 {
+	private static IExtensionHelpers helpers;
+	private static IBurpExtenderCallbacks callbacks;
+	public U2CTabFactory(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
+	{
+		U2CTabFactory.callbacks = callbacks;
+		U2CTabFactory.helpers = helpers;
+	}
+
+	@Override
+	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
+		return new U2CTab(controller,editable,helpers,callbacks);
+	}
+}
+
+class U2CTab implements IMessageEditorTab{
 	private ITextEditor txtInput;
 	private byte[] originContent;
 	private byte[] displayContent;
@@ -33,7 +48,7 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 	{
 		txtInput = callbacks.createTextEditor();
 		txtInput.setEditable(editable);
-		this.helpers = helpers;
+		U2CTab.helpers = helpers;
 	}
 
 	@Override
@@ -169,11 +184,5 @@ public class U2CTab implements IMessageEditorTab,IMessageEditorTabFactory
 
 	public static void main(String args[]) {
 		System.out.print(needtoconvert("\\u0000"));
-	}
-
-	@Override
-	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-		// TODO Auto-generated method stub
-		return this;
 	}
 }
