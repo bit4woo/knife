@@ -42,7 +42,7 @@ public class U2CTabFactory implements IMessageEditorTabFactory
 class U2CTab implements IMessageEditorTab{
 	private ITextEditor txtInput;
 	private byte[] originContent;
-	private byte[] displayContent;
+	private byte[] displayContent = "Nothing to show".getBytes();
 	private static IExtensionHelpers helpers;
 	public U2CTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
@@ -66,14 +66,30 @@ class U2CTab implements IMessageEditorTab{
 	@Override
 	public boolean isEnabled(byte[] content, boolean isRequest)
 	{
-		try {
+		System.out.println("isEnabled called");
+		if (isJSON(content, isRequest)) {
+			return true;
+		}
+
+		String contentStr = new String(content);
+		if (needtoconvert(contentStr)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public void setMessage(byte[] content, boolean isRequest)
+	{
+		System.out.println("setMessage called");
+		try{
 			if(content==null) {
-				return false;
+				txtInput.setText(displayContent);
+				return;
 			}
 
 			originContent = content;
-			String contentStr = new String(content);
-
 			//先尝试进行JSON格式的美化，如果其中有Unicode编码也会自动完成转换
 			if (isJSON(content, isRequest)) {
 				try {
@@ -84,7 +100,8 @@ class U2CTab implements IMessageEditorTab{
 
 					displayContent = helpers.buildHttpMessage(headers, beauty(new String(body)).getBytes());
 					//newContet = CharSet.covertCharSetToByte(newContet);
-					return true;
+					txtInput.setText(displayContent);
+					return;//如果JSON美化成功，主动返回。
 				}catch(Exception e) {
 
 				}
@@ -92,29 +109,23 @@ class U2CTab implements IMessageEditorTab{
 
 			//如果不是JSON，或者JSON美化失败，就尝试Unicode转换
 			int i=0;
+			String contentStr = new String(content);
 			while (needtoconvert(contentStr) && i<=3) {
 				//resp = Unicode.unicodeDecode(resp);//弃用
 				contentStr = StringEscapeUtils.unescapeJava(contentStr);
 				i++;
 			}
-
 			if (i>0) {//表明至少转换了一次了，需要显示
 				displayContent = contentStr.getBytes();
-				return true;
-			}else {
-				return false;
+				txtInput.setText(displayContent);
+				return;
 			}
 		} catch (Exception e) {
 			displayContent = e.getMessage().getBytes();
 			e.printStackTrace(BurpExtender.getStderr());
-			return false;
+		} finally{
+			txtInput.setText(displayContent);
 		}
-	}
-
-	@Override
-	public void setMessage(byte[] content, boolean isRequest)
-	{
-		txtInput.setText(displayContent);
 	}
 
 	@Override
