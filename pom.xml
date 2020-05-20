@@ -122,6 +122,13 @@
 			<version>20180813</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+		<!-- 用于文本的编码检测 -->
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>66.1</version>
+		</dependency>
 
 	</dependencies>
 
