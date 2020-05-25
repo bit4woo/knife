@@ -66,7 +66,7 @@ class U2CTab implements IMessageEditorTab{
 	@Override
 	public boolean isEnabled(byte[] content, boolean isRequest)
 	{
-		System.out.println("isEnabled called");
+		//System.out.println("isEnabled called");
 		if (isJSON(content, isRequest)) {
 			return true;
 		}
