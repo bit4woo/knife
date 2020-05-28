@@ -343,7 +343,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 								isRequestChanged = true;
 								//stdout.println("2222"+value);
 							} else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
-								headers.put("Transfer-Encoding", "chunked");
+								headers.put("Transfer-Encoding", " chunked");
 								isRequestChanged = true;
 
 								try {

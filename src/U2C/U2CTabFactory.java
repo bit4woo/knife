@@ -27,6 +27,23 @@ public class U2CTabFactory implements IMessageEditorTabFactory
 {
 	private static IExtensionHelpers helpers;
 	private static IBurpExtenderCallbacks callbacks;
+	
+	public static final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1];
+	public static final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2];
+	//stdout.println(majorVersion+"   "+minorVersion);
+	//2020.2.1 ==>2020   2.1
+	//2.1.06 ==> 2.1   06
+	public static final float majorV = Float.parseFloat(majorVersion);
+	public static final float minorV = Float.parseFloat(minorVersion);
+	
+	public static boolean needJSON() {
+		if (majorV>=2020 && minorV >= 4.0f) { //2020.4及之后已经有了JSON美化的功能，不再需要
+			return false;
+		}
+		return true;
+	}
+
+
 	public U2CTabFactory(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
 		U2CTabFactory.callbacks = callbacks;
@@ -67,7 +84,7 @@ class U2CTab implements IMessageEditorTab{
 	public boolean isEnabled(byte[] content, boolean isRequest)
 	{
 		//System.out.println("isEnabled called");
-		if (isJSON(content, isRequest)) {
+		if (U2CTabFactory.needJSON() && isJSON(content, isRequest)) {
 			return true;
 		}
 
@@ -75,7 +92,6 @@ class U2CTab implements IMessageEditorTab{
 		if (needtoconvert(contentStr)) {
 			return true;
 		}
-
 		return false;
 	}
 

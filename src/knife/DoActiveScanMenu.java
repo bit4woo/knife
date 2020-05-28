@@ -15,8 +15,8 @@ import burp.IHttpRequestResponse;
 public class DoActiveScanMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DoActiveScanMenu(BurpExtender burp){
-		String majorVersion = burp.callbacks.getBurpVersion()[1];
-		String minorVersion = burp.callbacks.getBurpVersion()[2];
+		final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1];
+		final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2];
 		//stdout.println(majorVersion+"   "+minorVersion);
 		//2020.2.1 ==>2020   2.1
 		//2.1.06 ==> 2.1   06
