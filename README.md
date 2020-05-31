@@ -78,9 +78,9 @@ open with browser:
 
 ![openwithbrowser](img/openwithbrowser.gif)
 
-payload(Hackbar++):
+custom payload:
 
-![insertpayload](img/insertpayload.gif)
+![insertpayload](img/custom-payload.gif)
 
 Dismiss:
 
@@ -88,7 +88,7 @@ Dismiss:
 
 Run SQLMap:
 
-![runsqlmap](img/runsqlmap.gif)
+![runsqlmap](img/runsqlmap-new.gif)
 
 
 

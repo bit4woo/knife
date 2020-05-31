@@ -64,7 +64,7 @@ https://www.bilibili.com/video/bv1BC4y1s7nS
    
    Config_Custom_Payload_Base64：base64格式的payload，当payload包含换行等特殊字符，或者是二进制文件等格式，可以先将内容转换成base64格式然后设置。
 
-   ![insertpayload](img/insertpayload.gif)
+   ![insertpayload](img/custom-payload.gif)
 
 6. Set cookie
 
@@ -86,7 +86,7 @@ https://www.bilibili.com/video/bv1BC4y1s7nS
     SQLMap-SQLMap.py-Path--- sqlmap的位置
     SQLMap-Request-File-Path  --保存请求文件的为准，也就是工作目录
     SQLMap-Options --- sqlmap命令的额外参数
-   ![runsqlmap](img/runsqlmap.gif)
+   ![runsqlmap](img/runsqlmap-new.gif)
 
 9. Insert XSS
 
