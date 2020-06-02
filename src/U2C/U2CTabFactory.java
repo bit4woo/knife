@@ -98,7 +98,7 @@ class U2CTab implements IMessageEditorTab{
 	@Override
 	public void setMessage(byte[] content, boolean isRequest)
 	{
-		System.out.println("setMessage called");
+		//System.out.println("setMessage called");
 		try{
 			if(content==null) {
 				txtInput.setText(displayContent);
