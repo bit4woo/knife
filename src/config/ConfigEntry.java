@@ -9,6 +9,7 @@ public class ConfigEntry {
 	private String type ="";
 	private boolean enable = true;
 	private boolean editable = true;//whether can edit name and type
+	private String comment = "";
 	
 	public static final String Action_Add_Or_Replace_Header = "Action_Add_Or_Replace_Header";
 	public static final String Action_Append_To_header_value = "Action_Append_To_header_value";
@@ -37,6 +38,15 @@ public class ConfigEntry {
 		this.type = type;
 		this.enable = enable;
 		this.editable = editable;
+	}
+	
+	public ConfigEntry(String key,String value,String type,boolean enable,boolean editable,String comment){
+		this.key = key;
+		this.value = value;
+		this.type = type;
+		this.enable = enable;
+		this.editable = editable;
+		this.comment = comment;
 	}
 
 	public String getKey() {
@@ -77,6 +87,14 @@ public class ConfigEntry {
 
 	public void setEditable(boolean editable) {
 		this.editable = editable;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
 	public String ToJson(){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。

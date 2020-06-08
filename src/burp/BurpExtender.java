@@ -223,10 +223,15 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (messageIsRequest) {//丢弃干扰请求
 			String currentHost =  message.getMessageInfo().getHttpService().getHost();
 			if (isDismissedHost(currentHost)){
-				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
-				//message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
+				//enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT
+				if (tableModel.getConfigValueByKey("DismissAction") == null) {
+					message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
+					message.getMessageInfo().setComment("Dismissed-ACTION_DONT_INTERCEPT");
+				}else {//default action
+					message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
+					message.getMessageInfo().setComment("Dismissed-ACTION_DROP");
+				}
 				message.getMessageInfo().setHighlight("gray");
-				message.getMessageInfo().setComment("Dismissed");
 				return;
 			}
 		}
