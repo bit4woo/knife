@@ -17,15 +17,19 @@ public class UpdateCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
 	public UpdateCookieWithHistoryMenu(BurpExtender burp){
 
-		if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+		try {
+			if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 
-			HeaderEntry usedCookie = burp.config.getUsedCookie();
-			if (usedCookie != null) {
-				String fromUrl = usedCookie.getHeaderSource();
-				String cookieValue = usedCookie.getHeaderValue();
-				this.setText("^_^ Update Cookie ("+fromUrl+")");
-				this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.invocation,cookieValue));
+				HeaderEntry usedCookie = burp.config.getUsedCookie();
+				if (usedCookie != null) {
+					String fromUrl = usedCookie.getHeaderSource();
+					String cookieValue = usedCookie.getHeaderValue();
+					this.setText("^_^ Update Cookie ("+fromUrl+")");
+					this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.invocation,cookieValue));
+				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
 		}
 	}
 }

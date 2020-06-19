@@ -15,22 +15,28 @@ import burp.IHttpRequestResponse;
 public class DoActiveScanMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DoActiveScanMenu(BurpExtender burp){
-		final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1];
-		final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2];
-		//stdout.println(majorVersion+"   "+minorVersion);
-		//2020.2.1 ==>2020   2.1
-		//2.1.06 ==> 2.1   06
-		float majorV = Float.parseFloat(majorVersion);
-		float minorV = Float.parseFloat(minorVersion);
-		if (majorV>=2020 && minorV >= 2.0f) { //2020.2及之后
+		try {
+			final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1];
+			final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2];
+			//stdout.println(majorVersion+"   "+minorVersion);
+			//2020.2.1 ==>2020   2.1
+			//2.1.06 ==> 2.1   06
+			float majorV = Float.parseFloat(majorVersion);
+			float minorV = Float.parseFloat(minorVersion);
+			if (majorV>=2020 && minorV >= 2.0f) { //2020.2及之后
 
-		}else if (majorV < 2) {//1点几版本不需要
+			}else if (majorV < 2) {//1点几版本不需要
 
-		}else {
+			}else {
+				this.setText("^_^ Do Active Scan");
+				this.addActionListener(new DoActiveScan_Action(burp,burp.invocation));
+			}
+			//2020.2版本之后续版本添加了主动扫描选项
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
 			this.setText("^_^ Do Active Scan");
 			this.addActionListener(new DoActiveScan_Action(burp,burp.invocation));
 		}
-		//2020.2版本之后续版本添加了主动扫描选项
 	}
 }
 

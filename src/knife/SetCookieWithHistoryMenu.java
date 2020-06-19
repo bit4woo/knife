@@ -19,14 +19,18 @@ public class SetCookieWithHistoryMenu extends JMenuItem {
 	private static final long serialVersionUID = 1L;
 
 	public SetCookieWithHistoryMenu(BurpExtender burp){
-		HeaderEntry cookieToSetHistory = burp.config.getUsedCookie();
-		if (cookieToSetHistory != null) {
-			String targetUrl = cookieToSetHistory.getTargetUrl();
-			String originUrl = cookieToSetHistory.getHeaderSource();
-			String cookieValue = cookieToSetHistory.getHeaderValue();
+		try {
+			HeaderEntry cookieToSetHistory = burp.config.getUsedCookie();
+			if (cookieToSetHistory != null) {
+				String targetUrl = cookieToSetHistory.getTargetUrl();
+				String originUrl = cookieToSetHistory.getHeaderSource();
+				String cookieValue = cookieToSetHistory.getHeaderValue();
 
-			this.setText(String.format("^_^ Set Cookie (%s)",originUrl));
-			this.addActionListener(new SetCookieWithHistory_Action(burp,burp.invocation));
+				this.setText(String.format("^_^ Set Cookie (%s)",originUrl));
+				this.addActionListener(new SetCookieWithHistory_Action(burp,burp.invocation));
+			}
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
 		}
 
 	}

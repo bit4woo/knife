@@ -29,21 +29,25 @@ public class UpdateHeaderMenu extends JMenu {
 	public IContextMenuInvocation invocation;
 	public UpdateHeaderMenu(BurpExtender burp){
 
-		this.invocation = burp.invocation;
-		this.burp = burp;
+		try {
+			this.invocation = burp.invocation;
+			this.burp = burp;
 
-		if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 
-			List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
-			/*menu_list.add(uhmenu);*/
-			if(!pHeaders.isEmpty()) {
-				this.setText("^_^ Update Header");
-				for (String pheader:pHeaders) {
-					JMenuItem headerItem = new JMenuItem(pheader);
-					headerItem.addActionListener(new UpdateHeader_Action(burp,invocation,pheader));
-					this.add(headerItem);
+				List<String> pHeaders = possibleHeaderNames(invocation);//HeaderNames without case change
+				/*menu_list.add(uhmenu);*/
+				if(!pHeaders.isEmpty()) {
+					this.setText("^_^ Update Header");
+					for (String pheader:pHeaders) {
+						JMenuItem headerItem = new JMenuItem(pheader);
+						headerItem.addActionListener(new UpdateHeader_Action(burp,invocation,pheader));
+						this.add(headerItem);
+					}
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
 		}
 	}
 
@@ -53,11 +57,12 @@ public class UpdateHeaderMenu extends JMenu {
 		Getter getter = new Getter(burp.callbacks.getHelpers());
 		LinkedHashMap<String, String> headers = getter.getHeaderMap(true, selectedItems[0]);
 
-		String[] tokenHeaders = burp.tableModel.getConfigValueByKey("tokenHeaders").split(",");
+		String tokenHeadersStr = burp.tableModel.getConfigValueByKey("tokenHeaders");
 
 		List<String> ResultHeaders = new ArrayList<String>();
-
-		if (tokenHeaders!= null) {
+		
+		if (tokenHeadersStr!= null && headers != null) {
+			String[] tokenHeaders = tokenHeadersStr.split(",");
 			List<String> keywords = Arrays.asList(tokenHeaders);
 			Iterator<String> it = headers.keySet().iterator();
 			while (it.hasNext()) {

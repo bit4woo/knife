@@ -25,20 +25,24 @@ public class ChunkedEncodingMenu extends JMenuItem {
 	public Getter getter;
     public ChunkedEncodingMenu(BurpExtender burp){
     	
-    	this.invocation = burp.invocation;
-    	this.burp = burp;
-    	this.getter = new Getter(burp.helpers);
-    	IHttpRequestResponse[] messages = this.invocation.getSelectedMessages();
-    	if (messages == null || messages.length == 0) {
-    		return;
-    	}
-    	String chunked = getter.getHeaderValueOf(true, messages[0], "Transfer-Encoding");
-    	if (chunked == null || !chunked.equalsIgnoreCase("chunked") ) {
-    		this.setText("^_^ Chunked Encoding");
-    	}else {
-    		this.setText("^_^ Chunked Decoding");
-    	}
-        this.addActionListener(new ChunkedEncoding_Action(burp,invocation));
+    	try {
+			this.invocation = burp.invocation;
+			this.burp = burp;
+			this.getter = new Getter(burp.helpers);
+			IHttpRequestResponse[] messages = this.invocation.getSelectedMessages();
+			if (messages == null || messages.length == 0) {
+				return;
+			}
+			String chunked = getter.getHeaderValueOf(true, messages[0], "Transfer-Encoding");
+			if (chunked == null || !chunked.equalsIgnoreCase("chunked") ) {
+				this.setText("^_^ Chunked Encoding");
+			}else {
+				this.setText("^_^ Chunked Decoding");
+			}
+			this.addActionListener(new ChunkedEncoding_Action(burp,invocation));
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
+		}
     }
 }
 

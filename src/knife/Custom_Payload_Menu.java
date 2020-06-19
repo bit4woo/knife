@@ -32,21 +32,25 @@ public class Custom_Payload_Menu extends JMenu {
 
 
 	public Custom_Payload_Menu(BurpExtender burp){
-		this.setText("^_^ Custom Payload");
-		this.myburp = burp;
+		try {
+			this.setText("^_^ Custom Payload");
+			this.myburp = burp;
 
-		List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
-		List<ConfigEntry> configs1 = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
-		configs.addAll(configs1);
-		Iterator<ConfigEntry> it = configs.iterator();
-		List<String> tmp = new ArrayList<String>();
-		while (it.hasNext()) {
-			ConfigEntry item = it.next();
-			tmp.add(item.getKey());//custom payload name
+			List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
+			List<ConfigEntry> configs1 = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
+			configs.addAll(configs1);
+			Iterator<ConfigEntry> it = configs.iterator();
+			List<String> tmp = new ArrayList<String>();
+			while (it.hasNext()) {
+				ConfigEntry item = it.next();
+				tmp.add(item.getKey());//custom payload name
+			}
+
+			Custom_Payload_Menu = tmp.toArray(new String[0]);
+			Methods.add_MenuItem_and_listener(this, Custom_Payload_Menu, new CustomPayloadItemListener(myburp));
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
 		}
-
-		Custom_Payload_Menu = tmp.toArray(new String[0]);
-		Methods.add_MenuItem_and_listener(this, Custom_Payload_Menu, new CustomPayloadItemListener(myburp));
 	}
 }
 
