@@ -16,8 +16,8 @@ public class DoActiveScanMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DoActiveScanMenu(BurpExtender burp){
 		try {
-			final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1];
-			final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2];
+			final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1].replaceAll("[a-zA-Z]","");
+			final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2].replaceAll("[a-zA-Z]","");//18beta
 			//stdout.println(majorVersion+"   "+minorVersion);
 			//2020.2.1 ==>2020   2.1
 			//2.1.06 ==> 2.1   06

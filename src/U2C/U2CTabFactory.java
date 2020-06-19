@@ -28,19 +28,25 @@ public class U2CTabFactory implements IMessageEditorTabFactory
 	private static IExtensionHelpers helpers;
 	private static IBurpExtenderCallbacks callbacks;
 	
-	public static final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1];
-	public static final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2];
+	public static final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1].replaceAll("[a-zA-Z]","");
+	public static final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2].replaceAll("[a-zA-Z]","");//18beta
+
 	//stdout.println(majorVersion+"   "+minorVersion);
 	//2020.2.1 ==>2020   2.1
 	//2.1.06 ==> 2.1   06
-	public static final float majorV = Float.parseFloat(majorVersion);
-	public static final float minorV = Float.parseFloat(minorVersion);
 	
 	public static boolean needJSON() {
-		if (majorV>=2020 && minorV >= 4.0f) { //2020.4及之后已经有了JSON美化的功能，不再需要
-			return false;
+		try {
+			float majorV = Float.parseFloat(majorVersion);
+			float minorV = Float.parseFloat(minorVersion);
+			if (majorV>=2020 && minorV >= 4.0f) { //2020.4及之后已经有了JSON美化的功能，不再需要
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
+			return true;
 		}
-		return true;
 	}
 
 
