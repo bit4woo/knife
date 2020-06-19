@@ -12,6 +12,14 @@
 
 https://www.bilibili.com/video/bv1BC4y1s7nS
 
+### 打包方法
+
+```bash
+git clone https://github.com/bit4woo/knife
+cd knife
+mvn package
+```
+
 ### 功能
 
 ##### 右键菜单

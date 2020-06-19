@@ -12,6 +12,14 @@ https://www.bilibili.com/video/bv1BC4y1s7nS
 
 [bit4woo](https://github.com/bit4woo)
 
+### Package
+
+```bash
+git clone https://github.com/bit4woo/knife
+cd knife
+mvn package
+```
+
 ### Functions
 
 ##### Menus (simple is beautiful,some menu deleted)
