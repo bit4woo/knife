@@ -27,7 +27,9 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<addClasspath>true</addClasspath>
+							<addDefaultImplementationEntries>
+								true<!--to get Version from pom.xml -->
+							</addDefaultImplementationEntries>
 						</manifest>
 					</archive>
 				</configuration>
@@ -129,6 +131,13 @@
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
 			<version>66.1</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.beanshell/bsh -->
+		<dependency>
+			<groupId>org.beanshell</groupId>
+			<artifactId>bsh</artifactId>
+			<version>2.0b5</version>
 		</dependency>
 
 	</dependencies>

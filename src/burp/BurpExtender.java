@@ -24,6 +24,7 @@ import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
+
 import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
@@ -55,13 +56,17 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public IContextMenuInvocation invocation;
 	public int proxyServerIndex=-1;
 
-
+	public static String ExtensionName = "Knife";
+	public static String Version = bsh.This.class.getPackage().getImplementationVersion();
+	public static String Author = "by bit4woo";
+	public static String github = "https://github.com/bit4woo/knife";
+	
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
 		BurpExtender.callbacks = callbacks;
 		this.helpers = callbacks.getHelpers();
 		flushStd();
-		BurpExtender.stdout.println(ExtensionName);
+		BurpExtender.stdout.println(getFullExtensionName());
 		BurpExtender.stdout.println(github);
 
 		table = new ConfigTable(new ConfigTableModel());
@@ -80,7 +85,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		U2CTabFactory u2ctabFactory = new U2CTabFactory(null, false, helpers, callbacks);
 
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
-		callbacks.setExtensionName(this.ExtensionName);
+		callbacks.setExtensionName(getFullExtensionName());
 		callbacks.registerContextMenuFactory(this);// for menus
 		callbacks.registerMessageEditorTabFactory(u2ctabFactory);// for U2C
 		callbacks.addSuiteTab(BurpExtender.this);
@@ -110,6 +115,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return stderr;
 	}
 
+	//name+version+author
+	public static String getFullExtensionName(){
+		return ExtensionName+" "+Version+" "+Author;
+	}
+	
 	//JMenu 是可以有下级菜单的，而JMenuItem是不能有下级菜单的
 	@Override
 	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {

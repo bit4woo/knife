@@ -45,8 +45,6 @@ public class GUI extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public String ExtensionName = "Knife v1.8 by bit4woo";
-	public String github = "https://github.com/bit4woo/knife";
   
 	public Config config = new Config("default");
 
@@ -341,13 +339,13 @@ public class GUI extends JFrame {
 		fl_FooterPanel.setAlignment(FlowLayout.LEFT);
 		contentPane.add(FooterPanel, BorderLayout.SOUTH);
 
-		lblNewLabel_2 = new JLabel(ExtensionName+"    "+github);
+		lblNewLabel_2 = new JLabel(BurpExtender.getFullExtensionName()+"    "+BurpExtender.github);
 		lblNewLabel_2.setFont(new Font("宋体", Font.BOLD, 12));
 		lblNewLabel_2.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					URI uri = new URI(github);
+					URI uri = new URI(BurpExtender.github);
 					Desktop desktop = Desktop.getDesktop();
 					if(Desktop.isDesktopSupported()&&desktop.isSupported(Desktop.Action.BROWSE)){
 						desktop.browse(uri);
@@ -355,7 +353,6 @@ public class GUI extends JFrame {
 				} catch (Exception e2) {
 					e2.printStackTrace(stderr);
 				}
-
 			}
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -367,7 +364,6 @@ public class GUI extends JFrame {
 			}
 		});
 		FooterPanel.add(lblNewLabel_2);
-
 	}
 
 
