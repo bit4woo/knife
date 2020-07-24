@@ -4,6 +4,10 @@
 
 A extension that add some small function[ one key to update cookie, one key add host to scope] to right click context menu.
 
+### Caution
+
+**Please change configurations to yourself payload first before use this tool !!!  especially configurations that type starts with "Action"!!!**
+
 ### Video
 
 https://www.bilibili.com/video/bv1BC4y1s7nS
