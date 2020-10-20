@@ -32,6 +32,7 @@ import knife.Custom_Payload_Menu;
 import knife.DismissMenu;
 import knife.DoActiveScanMenu;
 import knife.DoPortScanMenu;
+import knife.DownloadResponseMenu;
 import knife.HeaderEntry;
 import knife.InsertXSSMenu;
 import knife.OpenWithBrowserMenu;
@@ -153,6 +154,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//不太常用的
 		menu_item_list.add(new DismissMenu(this));
 		menu_item_list.add(new ChunkedEncodingMenu(this));
+		menu_item_list.add(new DownloadResponseMenu(this));
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
 		
