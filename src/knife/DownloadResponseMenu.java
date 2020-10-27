@@ -5,6 +5,9 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
@@ -17,6 +20,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import burp.IParameter;
 
 
 public class DownloadResponseMenu extends JMenuItem {
@@ -57,8 +61,19 @@ class Download_Action implements ActionListener{
 				try{
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 					if (messages !=null) {
-						IHttpRequestResponse message = messages[0];
-						SaveToFile(message);
+						File rootPath = selectPath();//指定多个文件保存的根目录
+//						System.out.println("rootPath:"+rootPath);
+						Getter getter = new Getter(helpers);
+						for (IHttpRequestResponse message:messages) {
+							
+							byte[] respBody = getter.getBody(false, message);
+							File fullName = getFileName(message,rootPath);
+							System.out.println("Save file: "+fullName);
+							if (fullName!= null) {
+								//System.out.println(fullName);
+								FileUtils.writeByteArrayToFile(fullName, respBody);
+							}
+						}
 					}
 				}
 				catch (Exception e1)
@@ -70,48 +85,101 @@ class Download_Action implements ActionListener{
 		new Thread(SqlmapRunner).start();
 	}
 
-	/*
-	 * 请求包存入文件
-	 */
-	public void SaveToFile(IHttpRequestResponse message) {
+	public File saveDialog(String defaultFileName) {
 		try {
-			Getter getter = new Getter(helpers);
-			byte[] respBody = getter.getBody(false, message);
-			String filename = getter.getFullURL(message).getFile();
-
-			File downloadFile = saveDialog(filename);
-			if (downloadFile!= null) {
-				FileUtils.writeByteArrayToFile(downloadFile, respBody);
+			JFileChooser fc =  new JFileChooser();
+			if (fc.getCurrentDirectory() != null) {
+				fc = new JFileChooser(fc.getCurrentDirectory());
+			}else {
+				fc = new JFileChooser();
 			}
-		} catch (IOException e) {
-			e.printStackTrace(stderr);
+
+			fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
+			fc.setSelectedFile(new File(defaultFileName));
+
+			int action = fc.showSaveDialog(null);
+
+			if(action==JFileChooser.APPROVE_OPTION){
+				File file=fc.getSelectedFile();
+				return file;
+			}
+			return null;
+		}catch (Exception e){
+			e.printStackTrace();
+			return null;
 		}
 	}
 
-	public File saveDialog(String defaultFileName) {
-        try {
-        	JFileChooser fc =  new JFileChooser();
-            if (fc.getCurrentDirectory() != null) {
-                fc = new JFileChooser(fc.getCurrentDirectory());
-            }else {
-                fc = new JFileChooser();
-            }
+	public File selectPath() {
+		try {
+			JFileChooser fc =  new JFileChooser();
+			if (fc.getCurrentDirectory() != null) {
+				fc = new JFileChooser(fc.getCurrentDirectory());
+			}else {
+				fc = new JFileChooser();
+			}
 
-            fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
-            fc.setSelectedFile(new File(defaultFileName));
+			fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
+			fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-            int action = fc.showSaveDialog(null);
+			int action = fc.showSaveDialog(null);
 
-            if(action==JFileChooser.APPROVE_OPTION){
-                File file=fc.getSelectedFile();
-                return file;
-            }
-            return null;
-        }catch (Exception e){
-            e.printStackTrace();
-            return null;
-        }
-    }
+			if(action==JFileChooser.APPROVE_OPTION){
+				File path=fc.getSelectedFile();
+				return path;
+			}
+			return null;
+		}catch (Exception e){
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
+	public File getFileName(IHttpRequestResponse message,File rootPath) throws IOException{
+		Getter getter = new Getter(helpers);
+		
+		String pathStr = null;
+		//1、从参数名中获取文件名称，任意文件读取多是这种情况
+		List<IParameter> paras = getter.getParas(message);
+		for (IParameter para:paras) {
+			String value = para.getValue();
+			int num = value.length()-value.replaceAll("/", "").length();
+			if (num >=2) {
+				pathStr = value;
+				break;
+			}
+		}
+		
+		for (IParameter para:paras) {
+			String value = para.getValue();
+			int num = value.length()-value.replaceAll("\\\\", "").length();//是正则表达式
+			if (num >=2) {
+				pathStr = value;
+				break;
+			}
+		}
+		
+		//2、使用url Path作为文件名，
+		if (null == pathStr) {
+			pathStr = getter.getFullURL(message).getPath();//getFile()包含了query中的内容
+		}
+		
+		String canonicalFile = new File(pathStr).getCanonicalFile().toString();//移除所有位置切换符号
+		//System.out.println("canonicalFile: "+canonicalFile);
+		canonicalFile = canonicalFile.substring(canonicalFile.indexOf(File.separator));//如果是windows系统，需要去除磁盘符号
+		
+		File fullName = new File(rootPath,canonicalFile);
+		//System.out.println("fullName: "+fullName);
+		
+		if (fullName.exists()){
+			SimpleDateFormat simpleDateFormat = 
+					new SimpleDateFormat("YYMMdd-HHmmss");
+			String timeString = simpleDateFormat.format(new Date());
+			fullName = new File(rootPath,canonicalFile+timeString);
+		}
+		return fullName;
+	}
 
 	public static void main(String[] args) {
 
