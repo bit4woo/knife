@@ -455,10 +455,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	}
 
 	public boolean isDismissedHost(String host){
-		String dissmissed  = tableModel.getConfigValueByKey("DismissedHost");
-		if (dissmissed == null) return false;//表示配置被禁用了
-		String[] dissmissedHosts = dissmissed.split(",");
-		Iterator<String> it = Arrays.asList(dissmissedHosts).iterator();
+		Set<String> dissmissed  = tableModel.getConfigValueSetByKey("DismissedHost");
+		if (dissmissed.contains(host)) return true;
+		Iterator<String> it = dissmissed.iterator();
 		while (it.hasNext()){
 			String dissmissedHost = it.next().trim();
 			if (dissmissedHost.startsWith("*.")){

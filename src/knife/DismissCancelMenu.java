@@ -15,7 +15,7 @@ public class DismissCancelMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DismissCancelMenu(BurpExtender burp){
 		this.setText("^_^ Cancle Dismissed");
-		this.addActionListener(new Dismiss_URL_Action(burp,burp.invocation));
+		this.addActionListener(new Dismiss_Cancel_Action(burp,burp.invocation));
 	}
 }
 
@@ -50,10 +50,8 @@ class Dismiss_Cancel_Action implements ActionListener{
 				if (url.contains("?")){
 					url = url.substring(0,url.indexOf("?"));
 				}
-				System.out.println(url);
-				stderr.println(url);
 				if (myburp.isDismissedURL(url)){
-					stderr.println("is dismissed url");
+					//stderr.println("is dismissed url");
 					Set<String> dismissed  = myburp.tableModel.getConfigValueSetByKey("DismissedURL");
 					dismissed.remove(url);
 					myburp.tableModel.setConfigValueSetByKey("DismissedURL",dismissed);
