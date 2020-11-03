@@ -4,12 +4,7 @@ import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,23 +20,7 @@ import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
 
-import knife.AddHostToScopeMenu;
-import knife.ChunkedEncodingMenu;
-import knife.CookieUtils;
-import knife.Custom_Payload_Menu;
-import knife.DismissMenu;
-import knife.DoActiveScanMenu;
-import knife.DoPortScanMenu;
-import knife.DownloadResponseMenu;
-import knife.HeaderEntry;
-import knife.InsertXSSMenu;
-import knife.OpenWithBrowserMenu;
-import knife.RunSQLMapMenu;
-import knife.SetCookieMenu;
-import knife.SetCookieWithHistoryMenu;
-import knife.UpdateCookieMenu;
-import knife.UpdateCookieWithHistoryMenu;
-import knife.UpdateHeaderMenu;
+import knife.*;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -152,7 +131,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		//不太常用的
-		menu_item_list.add(new DismissMenu(this));
+		menu_item_list.add(new DismissHostMenu(this));
+		menu_item_list.add(new DismissURLMenu(this));
+		menu_item_list.add(new DismissCancelMenu(this));
+
 		menu_item_list.add(new ChunkedEncodingMenu(this));
 		menu_item_list.add(new DownloadResponseMenu(this));
 		//menu_item_list.add(new JMenuItem());
@@ -447,6 +429,31 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		return setHeaderList;
 	}
 
+	public boolean isDismissedURL(String url) {
+		Set<String> dissmissed  = tableModel.getConfigValueSetByKey("DismissedURL");
+		for (String disurl:dissmissed) {
+			try {
+				if (url.contains("?")){
+					url = url.substring(0,url.indexOf("?"));
+				}
+
+				if (disurl.contains("?")){
+					disurl = disurl.substring(0,disurl.indexOf("?"));
+				}
+
+				URL currentUrl = new URL(url);
+				URL disURL = new URL(disurl);
+				if (currentUrl.equals(disURL)) {
+					return true;
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				stderr.print(e.getStackTrace());
+			}
+		}
+		return false;
+	}
+
 	public boolean isDismissedHost(String host){
 		String dissmissed  = tableModel.getConfigValueByKey("DismissedHost");
 		if (dissmissed == null) return false;//表示配置被禁用了
@@ -464,5 +471,19 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}
 		}
 		return false;
+	}
+
+
+	public boolean isDismissed(String url) {
+		try {
+			String host = new URL(url).getHost();
+			if (isDismissedHost(host)) {
+				return true;
+			}else {
+				return isDismissedURL(url);
+			}
+		}catch(Exception e) {
+			return false;
+		}
 	}
 }

