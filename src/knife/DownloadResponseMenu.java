@@ -60,12 +60,23 @@ class Download_Action implements ActionListener{
 			public void run() {
 				try{
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-					if (messages !=null) {
+					Getter getter = new Getter(helpers);
+					if (messages == null) {
+						return;
+					}
+					if (messages.length == 1) {
+						
+						String filename = getter.getFullURL(messages[0]).getFile();
+						byte[] respBody = getter.getBody(false, messages[0]);
+						File downloadFile = saveDialog(filename);
+						if (downloadFile!= null) {
+							FileUtils.writeByteArrayToFile(downloadFile, respBody);
+						}
+					}else {
 						File rootPath = selectPath();//指定多个文件保存的根目录
 //						System.out.println("rootPath:"+rootPath);
-						Getter getter = new Getter(helpers);
+						
 						for (IHttpRequestResponse message:messages) {
-							
 							byte[] respBody = getter.getBody(false, message);
 							File fullName = getFileName(message,rootPath);
 							System.out.println("Save file: "+fullName);
