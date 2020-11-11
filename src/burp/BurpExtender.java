@@ -214,9 +214,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		cookieToSetMap.clear();
 		*/
+		Getter getter = new Getter(helpers);
 		if (messageIsRequest) {//丢弃干扰请求
-			String currentHost =  message.getMessageInfo().getHttpService().getHost();
-			if (isDismissedHost(currentHost)){
+			String url = getter.getFullURL(message.getMessageInfo()).toString();
+			if (isDismissed(url)){
 				//enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT
 				if (tableModel.getConfigValueByKey("DismissAction") == null) {
 					message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
@@ -245,7 +246,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
 			//String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
-			Getter getter = new Getter(helpers);
+
 			String CurrentUrl = getter.getShortURL(messageInfo).toString();
 			//stderr.println(CurrentUrl+" "+targetUrl);
 			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);

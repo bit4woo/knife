@@ -105,11 +105,12 @@ public class ConfigTableModel extends AbstractTableModel{
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getKey().equals(key) && entry.isEnable()) {
 				String tmp = entry.getValue().trim();
-				if (tmp.equals("")){
-
-				}else {
+				if (!tmp.equals("")){
 					String[] tmpArray = tmp.split(",");
-					result.addAll(Arrays.asList(tmpArray));
+					for (String url:tmpArray){
+						result.add(url.trim());
+					}
+					//result.addAll(Arrays.asList(tmpArray));
 				}
 			}
 		}
