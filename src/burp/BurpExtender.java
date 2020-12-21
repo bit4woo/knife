@@ -137,6 +137,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		menu_item_list.add(new ChunkedEncodingMenu(this));
 		menu_item_list.add(new DownloadResponseMenu(this));
+		menu_item_list.add(new ViewChineseMenu(this));
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
 		
