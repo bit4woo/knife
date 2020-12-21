@@ -2,18 +2,19 @@ package knife;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
-import javax.swing.JTextArea;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
-import java.awt.event.ActionListener;
-import java.io.UnsupportedEncodingException;
-import java.awt.event.ActionEvent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
 
 public class ChineseGUI extends JFrame {
 
@@ -48,7 +49,7 @@ public class ChineseGUI extends JFrame {
 		encodingList.add("Big5");
 		encodingList.add("Unicode");
 		
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -59,11 +60,16 @@ public class ChineseGUI extends JFrame {
 		JButton btnNewButton = new JButton("Change Encoding");
 		contentPane.add(btnNewButton, BorderLayout.NORTH);
 		
-		JTextArea textArea = new JTextArea();
-		contentPane.add(textArea, BorderLayout.CENTER);
-		
 		JLabel lblCoding = new JLabel("Encoding: ");
 		contentPane.add(lblCoding, BorderLayout.SOUTH);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		contentPane.add(scrollPane, BorderLayout.CENTER);
+		
+		JTextArea textArea = new JTextArea();
+		textArea.setLineWrap(true);
+		scrollPane.setViewportView(textArea);
 		
 		btnNewButton.addActionListener(new ActionListener() {
 			int i =0;
@@ -72,6 +78,7 @@ public class ChineseGUI extends JFrame {
 					String encoding = encodingList.get(i);
 					lblCoding.setText("Encoding: "+encoding);
 					textArea.setText(new String(body,encoding));
+					textArea.setCaretPosition(0);
 					if (i < encodingList.size()-1) {
 						i++;
 					}else {
@@ -85,5 +92,4 @@ public class ChineseGUI extends JFrame {
 		
 		btnNewButton.doClick();//首次启动需要显示内容
 	}
-
 }

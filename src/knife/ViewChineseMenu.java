@@ -51,6 +51,7 @@ class View_Action implements ActionListener{
 		}
 		if (messages.length == 1) {
 			byte[] respBody = getter.getBody(false, messages[0]);
+
 			EventQueue.invokeLater(new Runnable() {
 				public void run() {
 					try {
