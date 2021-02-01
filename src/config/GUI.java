@@ -58,7 +58,7 @@ public class GUI extends JFrame {
 	protected JScrollPane configPanel;
 	private SortOrder sortedMethod;
 	public ConfigTable table;//create in burpextender.java
-	public ConfigTableModel tableModel;//create in burpextender.java
+	public static ConfigTableModel tableModel;//create in burpextender.java
 	private JButton RemoveButton;
 	private JButton AddButton;
 	private JSplitPane TargetSplitPane;

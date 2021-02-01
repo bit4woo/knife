@@ -1,20 +1,12 @@
 package knife;
 
-import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.JMenuItem;
-
-import org.apache.commons.io.FileUtils;
 
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
@@ -22,7 +14,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
-import burp.Utils;
+import burp.TerminalExec;
 
 
 public class DoPortScanMenu extends JMenuItem {
@@ -33,7 +25,7 @@ public class DoPortScanMenu extends JMenuItem {
 
 	//JMenuItem vs. JMenu
 	public DoPortScanMenu(BurpExtender burp){
-		this.setText("^_^ Do Port Scan");
+		this.setText("^_^ Run Nmap");
 		this.addActionListener(new DoPortScan_Action(burp,burp.invocation));
 	}
 }
@@ -41,7 +33,7 @@ public class DoPortScanMenu extends JMenuItem {
 class DoPortScan_Action implements ActionListener{
 
 	private IContextMenuInvocation invocation;
-    public BurpExtender myburp;
+	public BurpExtender myburp;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
 	public PrintWriter stderr;
@@ -51,52 +43,50 @@ class DoPortScan_Action implements ActionListener{
 	public DoPortScan_Action(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.invocation  = invocation;
 		this.burp = burp;
-        this.helpers = burp.helpers;
-        this.callbacks = burp.callbacks;
-        this.stderr = burp.stderr;
+		this.helpers = burp.helpers;
+		this.callbacks = burp.callbacks;
+		this.stderr = burp.stderr;
 	}
 
-	
+
 	@Override
 	public void actionPerformed(ActionEvent actionEvent) {
 		try{
+			boolean useRobot = (BurpExtender.tableModel.getConfigValueByKey("RunTerminalWithRobotInput") != null);
+			if (useRobot) {
+				RobotInput.startCmdConsole();//尽早启动减少出错概率
+			}
+
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 			Set<String> hosts = new HashSet<String>();
-			
-        	for(IHttpRequestResponse message:messages) {
-        		String host = message.getHttpService().getHost();
-        		hosts.add(host);
-			}
-        	
-        	RobotInput ri = new RobotInput();
-        	for(String host:hosts) {
-        		RobotInput.startCmdConsole();
-				String command = genNmapCmd(host);
-				ri.inputString(command);
 
+			for(IHttpRequestResponse message:messages) {
+				String host = message.getHttpService().getHost();
+				hosts.add(host);
 			}
 
+			String nmapPath = burp.tableModel.getConfigValueByKey("Nmap-File-Path");
+			if (nmapPath ==null || nmapPath.trim().equals("")) {
+				nmapPath = "nmap.exe";
+			}
+			RobotInput ri = new RobotInput();
+			for(String host:hosts) {
+				if (useRobot) {
+					//RobotInput.startCmdConsole();
+					String command = RobotInput.genCmd(null,nmapPath,"-v -A -p 1-65535 "+host.trim());
+					ri.inputString(command);
+				}else {
+					TerminalExec exec = new TerminalExec(null,"nmap-knife.bat",null,nmapPath,"-v -A -p 1-65535 "+host.trim());
+					exec.run();
+				}
+			}
 		}
 		catch (Exception e1)
 		{
 			e1.printStackTrace(BurpExtender.getStderr());
 		}
 	}
-	
-	public String genNmapCmd(String host) {
-			String nmapPath = burp.tableModel.getConfigValueByKey("Nmap-File-Path");
-			if (nmapPath ==null || nmapPath.trim().equals("")) {
-				nmapPath = "nmap";
-			}else if (nmapPath.contains(" ")) {//如果路径中包含空格，需要引号
-				nmapPath = "\""+nmapPath+"\"";
-			}
-			
-			String command = nmapPath+" -v -A -p 1-65535 "+host.trim()+System.lineSeparator();
-			return command;
-	}
-	
 
-	
 	public static void main(String[] args){
 	}
 }

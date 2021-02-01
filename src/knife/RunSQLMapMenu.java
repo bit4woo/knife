@@ -19,6 +19,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
+import burp.TerminalExec;
 import burp.Utils;
 
 
@@ -42,6 +43,7 @@ class RunSQLMap_Action implements ActionListener{
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
+	public String workdir;
 
 	public RunSQLMap_Action(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.burp = burp;
@@ -50,6 +52,7 @@ class RunSQLMap_Action implements ActionListener{
 		this.callbacks = burp.callbacks;
 		this.stderr = burp.stderr;
 		this.stdout = burp.stdout;
+		workdir = (String) System.getProperties().get("java.io.tmpdir");
 	}
 
 	@Override
@@ -61,11 +64,41 @@ class RunSQLMap_Action implements ActionListener{
 					RobotInput ri = new RobotInput();
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 					if (messages !=null) {
+
+						boolean useRobot = (BurpExtender.tableModel.getConfigValueByKey("RunTerminalWithRobotInput") != null);
+						if (useRobot) {
+							RobotInput.startCmdConsole();//尽早启动减少出错概率
+						}
+
 						IHttpRequestResponse message = messages[0];
 						String requestFilePath = RequestToFile(message);
-						RobotInput.startCmdConsole();
-						String sqlmapCmd = genSqlmapCmd(requestFilePath);
-						ri.inputString(sqlmapCmd);
+						String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
+						String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
+						String sqlmapOptions = burp.tableModel.getConfigValueByKey("SQLMap-Options");
+
+						if (pythonPath ==null || pythonPath.trim().equals("")) {
+							pythonPath = "python.exe";
+						}
+
+						if (sqlmapPath ==null || sqlmapPath.trim().equals("")) {
+							sqlmapPath = "sqlmap.py";
+						}
+
+						String paras = " -r "+requestFilePath;
+						if (sqlmapOptions != null) {
+							paras = paras+" "+sqlmapOptions;
+						}
+
+						if (useRobot) {
+							//方案1：使用模拟输入实现
+							//RobotInput.startCmdConsole();//尽早启动减少出错概率
+							String sqlmapCmd = RobotInput.genCmd(pythonPath, sqlmapPath, paras);
+							ri.inputString(sqlmapCmd);
+						}else {
+							//方案2：使用bat文件实现
+							TerminalExec xxx = new TerminalExec(workdir,"sqlmap-knife.bat",pythonPath, sqlmapPath, paras);
+							xxx.run();
+						}
 					}
 				}
 				catch (Exception e1)
@@ -89,13 +122,12 @@ class RunSQLMap_Action implements ActionListener{
 			String timeString = simpleDateFormat.format(new Date());
 			String filename = host+"."+timeString+".req";
 
-			String basedir = (String) System.getProperties().get("java.io.tmpdir");
 			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
-				basedir = configBasedir;
+				workdir = configBasedir;
 			}
 
-			File requestFile = new File(basedir,filename);
+			File requestFile = new File(workdir,filename);
 			FileUtils.writeByteArrayToFile(requestFile, message.getRequest());
 			return requestFile.getAbsolutePath();
 		} catch (IOException e) {
@@ -130,9 +162,9 @@ class RunSQLMap_Action implements ActionListener{
 		String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
 		String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
 		StringBuilder command = new StringBuilder();
-		
+
 		command.append(changeDirCommand());
-		
+
 		if (pythonPath != null && new File(pythonPath).exists()) {
 			if (new File(pythonPath).isFile()) {
 				command.append(pythonPath);
@@ -141,7 +173,7 @@ class RunSQLMap_Action implements ActionListener{
 			}
 			command.append(" ");
 		}
-		
+
 		if (sqlmapPath != null && new File(sqlmapPath).exists()) {
 			if (new File(sqlmapPath).isFile()) {
 				command.append(sqlmapPath);

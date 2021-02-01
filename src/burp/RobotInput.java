@@ -188,7 +188,7 @@ public class RobotInput extends Robot {
 
 			String selectedString = (String)clip.getData(DataFlavor.stringFlavor);
 			System.out.println("复制之前剪切板中的内容："+selectedString);
-			
+
 			inputWithCtrl(KeyEvent.VK_C);
 			final String result = (String)clip.getData(DataFlavor.stringFlavor);
 			//selectedString = (String)clip.getData(DataFlavor.stringFlavor);
@@ -203,10 +203,10 @@ public class RobotInput extends Robot {
 			e.printStackTrace();
 		}
 		return "";
-//		复制之前剪切板中的内容：printStackTrace
-//		复制之后剪切板中的内容：null
-//		恢复之后剪切板中的内容：printStackTrace
-//		printStackTrace//最后的值随着剪切板的恢复而改变了，应该是引用传递的原因。所有需要将复制后的值设置为final。
+		//		复制之前剪切板中的内容：printStackTrace
+		//		复制之后剪切板中的内容：null
+		//		恢复之后剪切板中的内容：printStackTrace
+		//		printStackTrace//最后的值随着剪切板的恢复而改变了，应该是引用传递的原因。所有需要将复制后的值设置为final。
 	}
 
 	//单个 按键
@@ -238,5 +238,14 @@ public class RobotInput extends Robot {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/*
+	 * parserPath --- python.exe java.exe ....
+	 * executerPath --- sqlmap.py nmap.exe ....
+	 * parameters ---- -v -A -r xxx.file .....
+	 */
+	public static String genCmd(String parserPath,String executerPath, String parameter) {
+		return burp.TerminalExec.genCmd(parserPath, executerPath, parameter);
 	}
 }
