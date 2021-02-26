@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
@@ -172,7 +173,14 @@ public class TerminalExec {
 		if (filename == null) {
 			return false;
 		}
-		String pathvalue = System.getenv().get("Path");
+		Map<String, String> values = System.getenv();
+		String pathvalue = values.get("PATH");
+		if (pathvalue == null) {
+			pathvalue = values.get("path");
+		}
+		if (pathvalue == null) {
+			pathvalue = values.get("Path");
+		}
 //		System.out.println(pathvalue);
 		String[] items = pathvalue.split(";");
 		for (String item:items) {
