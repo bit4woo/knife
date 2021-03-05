@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,6 +13,9 @@ import javax.swing.JMenuItem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
 
 import burp.BurpExtender;
 import burp.Getter;
@@ -61,6 +65,7 @@ class InsertXSSAction implements ActionListener {
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
 		String xsspayload = burp.tableModel.getConfigValueByKey("XSS-Payload");
+		String charset = getRequestCharset(newRequest);
 
 		if (xsspayload == null) return;
 
@@ -75,10 +80,10 @@ class InsertXSSAction implements ActionListener {
 					//stdout.println(para.getValue());
 					List<String> headers = helpers.analyzeRequest(newRequest).getHeaders();
 					try {
-						String body = new String(getter.getBody(true,newRequest),"UTF-8");
+						String body = new String(getter.getBody(true,newRequest),charset);
 						if (isJSON(body)){
 							body = updateJSONValue(body,xsspayload).toString();
-							newRequest = helpers.buildHttpMessage(headers,body.getBytes("UTF-8"));
+							newRequest = helpers.buildHttpMessage(headers,body.getBytes(charset));
 							jsonHandled = true;
 						}
 					} catch (Exception e) {
@@ -187,6 +192,39 @@ class InsertXSSAction implements ActionListener {
 		}else {
 			return JSONString+payload;
 		}
+	}
+
+	public String getRequestCharset(byte[] request){
+		Getter getter = new Getter(helpers);
+		String contentType = getter.getHeaderValueOf(false,request,"Content-Type");
+		String tmpcharSet = "ISO-8859-1";//http post的默认编码
+
+		if (contentType != null){//1、尝试从contentTpye中获取
+			if (contentType.toLowerCase().contains("charset=")) {
+				tmpcharSet = contentType.toLowerCase().split("charset=")[1];
+			}
+		}
+
+		if (tmpcharSet == null){//3、尝试使用ICU4J进行编码的检测
+			CharsetDetector detector = new CharsetDetector();
+			detector.setText(request);
+			CharsetMatch cm = detector.detect();
+			tmpcharSet = cm.getName();
+		}
+
+		tmpcharSet = tmpcharSet.toLowerCase().trim();
+		if (tmpcharSet.contains("utf8")){
+			tmpcharSet = "utf-8";
+		}else {
+			//常见的编码格式有ASCII、ANSI、GBK、GB2312、UTF-8、GB18030和UNICODE等。
+			List<String> commonCharSet = Arrays.asList("ASCII,ANSI,GBK,GB2312,UTF-8,GB18030,UNICODE,ISO-8859-1".toLowerCase().split(","));
+			for (String item:commonCharSet) {
+				if (tmpcharSet.contains(item)) {
+					tmpcharSet = item;
+				}
+			}
+		}
+		return tmpcharSet;
 	}
 
 	public static void test() {
