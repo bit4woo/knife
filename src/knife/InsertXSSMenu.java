@@ -56,11 +56,9 @@ class InsertXSSAction implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
-
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-
 		IHttpRequestResponse messageInfo = selectedItems[0];
-		byte[] newRequest = messageInfo.getRequest();
+		byte[] newRequest = messageInfo.getRequest();//为了不影响原始request，通过final进行一次转换
 
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
@@ -75,7 +73,7 @@ class InsertXSSAction implements ActionListener {
 			byte type = para.getType();
 			if (type == IParameter.PARAM_COOKIE || isInt(value)) {
 				continue;
-			}else if (para.getType() == IParameter.PARAM_JSON ) {//json参数的更新方法，这里只是针对body是json
+			}else if (type == IParameter.PARAM_JSON ) {//json参数的更新方法，这里只是针对body是json
 				if (!jsonHandled){
 					//stdout.println(para.getValue());
 					List<String> headers = helpers.analyzeRequest(newRequest).getHeaders();
@@ -175,7 +173,9 @@ class InsertXSSAction implements ActionListener {
 					String newValue = updateJSONValue(value, payload);
 					obj.put(key,new JSONArray(newValue));
 				}else {
-					obj.put(key, value+payload);
+					if (!isBooleanOrNumber(value)){
+						obj.put(key, value+payload);
+					}
 				}
 			}
 			return obj.toString();
@@ -192,6 +192,24 @@ class InsertXSSAction implements ActionListener {
 		}else {
 			return JSONString+payload;
 		}
+	}
+
+	public static boolean isBooleanOrNumber(String input) {
+		if (input.toLowerCase().equals("true") || input.toLowerCase().equals("false")){
+			return true;
+		}else{
+			return isNumeric(input);
+		}
+	}
+
+	public static boolean isNumeric(String str){
+		for(int i=str.length();--i>=0;){
+			int chr=str.charAt(i);
+			if(chr<48 || chr>57) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public String getRequestCharset(byte[] request){
