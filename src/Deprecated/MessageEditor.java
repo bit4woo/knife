@@ -1,4 +1,6 @@
-package burp;
+package Deprecated;
+
+import burp.*;
 
 import java.io.PrintWriter;
 import java.net.URL;

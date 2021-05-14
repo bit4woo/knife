@@ -81,8 +81,9 @@ public class TerminalExec {
 		}
 		try {
 			Process process = Runtime.getRuntime().exec(command);
+			process.waitFor();//等待执行完成
 			return process;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -107,7 +108,9 @@ public class TerminalExec {
 			if (!batFile.exists()) {
 				batFile.createNewFile();
 			}
-
+			if (Utils.isMac()){
+				cmdContent = String.format("osascript -e 'tell app \"Terminal\" to do script \"%s\"'",cmdContent);
+			}
 			FileUtils.writeByteArrayToFile(batFile, cmdContent.getBytes());
 			return batFile.getAbsolutePath();
 		} catch (IOException e) {

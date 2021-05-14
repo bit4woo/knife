@@ -22,9 +22,9 @@ public class RobotInput extends Robot {
 	 * @throws AWTException
 	 */
 	public static void main(String[] args) throws Exception {
-		System.out.println(new RobotInput().getSelectedString());
-		//		startCmdConsole();
-		//		new RobotInput().inputString("test");
+		//System.out.println(new RobotInput().getSelectedString());
+		startCmdConsole();
+		new RobotInput().inputString("test");
 	}
 
 	public static void test() throws Exception {
@@ -224,7 +224,8 @@ public class RobotInput extends Robot {
 			if (Utils.isWindows()) {
 				process = Runtime.getRuntime().exec("cmd /c start cmd.exe");
 			} else if (Utils.isMac()){
-				process = Runtime.getRuntime().exec("open -n -F -a /Applications/Utilities/Terminal.app");
+				///System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal
+				process = Runtime.getRuntime().exec("open -n -F -a /System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal");
 			}else if (Utils.isUnix()) {
 				process = Runtime.getRuntime().exec("/usr/bin/gnome-terminal");//kali和Ubuntu测试通过
 				//				if(new File("/usr/bin/gnome-terminal").exists()) {
