@@ -133,4 +133,8 @@ mvn package
 
 如有更好的建议或者意见，欢迎[提交](https://github.com/bit4woo/knife/issues)
 
+### 鸣谢
 
+感谢 [jetbrains](https://www.jetbrains.com/) 的开源License！
+
+<img src="README.assets/jetbrains.png" alt="jetbrains" style="zoom:25%;" />

@@ -105,3 +105,9 @@ Run SQLMap:
 
 
 any issue, advice, suggestion are welcome, Thanks！
+
+### Thanks
+
+Thanks [Jetbrain](https://www.jetbrains.com/) for Open Source license
+
+<img src="README.assets/jetbrains.png" alt="jetbrains" style="zoom:25%;" />
