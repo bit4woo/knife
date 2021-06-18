@@ -487,4 +487,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			return false;
 		}
 	}
+
+	public static IBurpExtenderCallbacks getCallbacks() {
+		return callbacks;
+	}
 }
