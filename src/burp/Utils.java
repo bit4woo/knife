@@ -59,4 +59,27 @@ public class Utils {
 			//C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe
 		}
 	}
+
+	//拼接多个byte[]数组的方法
+	public static byte[] join(byte[]... arrays)
+	{
+		int len = 0;
+		for (byte[] arr : arrays)
+		{
+			len += arr.length;//计算多个数组的长度总和
+		}
+
+		byte[] result = new byte[len];
+		int idx = 0;
+
+		for (byte[] arr : arrays)
+		{
+			for (byte b : arr)
+			{
+				result[idx++] = b;
+			}
+		}
+
+		return result;
+	}
 }

@@ -1,4 +1,4 @@
-package knife;
+package Deprecated;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,22 +21,23 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IParameter;
+import burp.Utils;
 
 
-public class DownloadResponseMenu extends JMenuItem {
+public class DownloadResponseMenu2 extends JMenuItem {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
 	//JMenuItem vs. JMenu
-	public DownloadResponseMenu(BurpExtender burp){
-		this.setText("^_^ Download Response");
-		this.addActionListener(new Download_Action(burp,burp.invocation));
+	public DownloadResponseMenu2(BurpExtender burp){
+		this.setText("^_^ save Request And Response");
+		this.addActionListener(new Download_Action2(burp,burp.invocation));
 	}
 }
 
-class Download_Action implements ActionListener{
+class Download_Action2 implements ActionListener{
 	private IContextMenuInvocation invocation;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -44,7 +45,7 @@ class Download_Action implements ActionListener{
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
 
-	public Download_Action(BurpExtender burp,IContextMenuInvocation invocation) {
+	public Download_Action2(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.burp = burp;
 		this.invocation  = invocation;
 		this.helpers = burp.helpers;
@@ -65,7 +66,7 @@ class Download_Action implements ActionListener{
 						return;
 					}
 					if (messages.length == 1) {
-
+						
 						String filename = getter.getFullURL(messages[0]).getFile();
 						byte[] respBody = getter.getBody(false, messages[0]);
 						File downloadFile = saveDialog(filename);
@@ -74,19 +75,22 @@ class Download_Action implements ActionListener{
 						}
 					}else {
 						File rootPath = selectPath();//指定多个文件保存的根目录
-						//						System.out.println("rootPath:"+rootPath);
-
+//						System.out.println("rootPath:"+rootPath);
+						
 						for (IHttpRequestResponse message:messages) {
 							try {
-								byte[] respBody = getter.getBody(false, message);
+								byte[] request = message.getRequest();
+								byte[] spliter = (System.lineSeparator()+"##########################"+System.lineSeparator()).getBytes();
+								byte[] response = message.getResponse();
+								byte[] result = Utils.join(request,spliter,response);
 								File fullName = getFileName(message,rootPath);
 								System.out.println("Save file: "+fullName);
 								if (fullName!= null) {
 									//System.out.println(fullName);
-									FileUtils.writeByteArrayToFile(fullName, respBody);
+									FileUtils.writeByteArrayToFile(fullName, result);
 								}
 							} catch (Exception e) {
-								e.printStackTrace(BurpExtender.getStderr());
+								e.printStackTrace();
 							}
 						}
 					}
@@ -149,13 +153,13 @@ class Download_Action implements ActionListener{
 			return null;
 		}
 	}
-
-
+	
+	
 	public File getFileName(IHttpRequestResponse message,File rootPath) throws IOException{
 		String canonicalFile = "KnifeSaved";
 		try {
 			Getter getter = new Getter(helpers);
-
+			
 			String pathStr = null;
 			//1、从参数名中获取文件名称，任意文件读取多是这种情况
 			List<IParameter> paras = getter.getParas(message);
@@ -167,7 +171,7 @@ class Download_Action implements ActionListener{
 					break;
 				}
 			}
-
+			
 			for (IParameter para:paras) {
 				String value = para.getValue();
 				int num = value.length()-value.replaceAll("\\\\", "").length();//是正则表达式
@@ -176,23 +180,23 @@ class Download_Action implements ActionListener{
 					break;
 				}
 			}
-
+			
 			//2、使用url Path作为文件名，
 			if (null == pathStr) {
 				pathStr = getter.getFullURL(message).getPath();//getFile()包含了query中的内容
 				pathStr  = pathStr.substring(pathStr.lastIndexOf("/"));
 			}
-
+			
 			canonicalFile = new File(pathStr).getCanonicalFile().toString();
 			//System.out.println("canonicalFile: "+canonicalFile);
 			canonicalFile = canonicalFile.substring(canonicalFile.indexOf(File.separator));//如果是windows系统，需要去除磁盘符号
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		
 		File fullName = new File(rootPath,canonicalFile);
 		//System.out.println("fullName: "+fullName);
-
+		
 		if (fullName.exists()){
 			SimpleDateFormat simpleDateFormat = 
 					new SimpleDateFormat("YYMMdd-HHmmss");
