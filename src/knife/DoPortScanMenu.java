@@ -66,17 +66,19 @@ class DoPortScan_Action implements ActionListener{
 			}
 
 			String nmapPath = burp.tableModel.getConfigValueByKey("Nmap-File-Path");
-			if (nmapPath ==null || nmapPath.trim().equals("")) {
-				nmapPath = "nmap.exe";
+			if (nmapPath == null || nmapPath.trim().equals("")) {
+				nmapPath = "nmap";
 			}
 			RobotInput ri = new RobotInput();
 			for(String host:hosts) {
+				String para = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
+						+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 "+host.trim();
 				if (useRobot) {
 					//RobotInput.startCmdConsole();
-					String command = RobotInput.genCmd(null,nmapPath,"-v -A -p 1-65535 "+host.trim());
+					String command = RobotInput.genCmd(null,nmapPath,para);
 					ri.inputString(command);
 				}else {
-					TerminalExec exec = new TerminalExec(null,"nmap-knife.bat",null,nmapPath,"-v -A -p 1-65535 "+host.trim());
+					TerminalExec exec = new TerminalExec(null,"nmap-knife.bat",null,nmapPath,para);
 					exec.run();
 				}
 			}

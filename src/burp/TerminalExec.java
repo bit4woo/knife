@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
-/*
+/**
  * 在系统terminal中执行命令，实现思路：
  * 1、将命令写入bat文件
  * 2、通过执行bat文件执行命令
@@ -47,7 +47,7 @@ public class TerminalExec {
 		FullBatchFilePath = fullBatchFilePath;
 	}
 
-	/*
+	/**
 	 * workdir --the dir of batch file
 	 *  
 	 */
@@ -64,7 +64,7 @@ public class TerminalExec {
 		executeBatchFile(FullBatchFilePath);
 	}
 	
-	/*
+	/**
 	 * 通知执行bat文件来执行命令
 	 */
 	public static Process executeBatchFile(String batfilepath) {
