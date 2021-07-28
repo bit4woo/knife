@@ -85,6 +85,10 @@ class RunSQLMap_Action implements ActionListener{
 						}
 
 						String paras = " -r "+requestFilePath;
+						if (message.getHttpService().getProtocol().equalsIgnoreCase("https")) {
+							paras = paras+" --force-ssl";
+						}
+						
 						if (sqlmapOptions != null) {
 							paras = paras+" "+sqlmapOptions;
 						}
