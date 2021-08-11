@@ -2,6 +2,7 @@ package config;
 
 import javax.swing.table.AbstractTableModel;
 import burp.BurpExtender;
+import burp.Utils;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -36,8 +37,12 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("SQLMap-Options","--risk=3 --level=3",ConfigEntry.Config_Basic_Variable,true,false));
 		
 		configEntries.add(new ConfigEntry("Nmap-File-Path","D:\\Program Files (x86)\\Nmap\\nmap.exe",ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","enable",ConfigEntry.Config_Basic_Variable,true,false,"this config effect sqlmap and nmap"));
-
+		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
+			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,"this config effect sqlmap and nmap"));
+		}else {
+			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,true,false,"this config effect sqlmap and nmap"));
+		}
+		
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
 		configEntries.add(new ConfigEntry("Chunked-UseComment", "",ConfigEntry.Config_Chunked_Variable,true,false));
