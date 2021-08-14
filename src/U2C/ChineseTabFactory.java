@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -153,10 +154,21 @@ class ChineseTab implements IMessageEditorTab{
 		return encodingList.get(charSetIndex);
 	}
 
+	/**
+	 * 中文下的编辑还是有问题，暂不支持。
+	 */
 	@Override
 	public byte[] getMessage()
 	{
-		//byte[] text = txtInput.getText();
+		/*
+		try {
+			byte[] text = txtInput.getText();//这个时候应该是当前编码对应的byte[]
+			byte[] result = new String(text,currentCharSet).getBytes(originalCharSet);
+			return result;
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return originContent;
+		}*/
 		return originContent;
 	}
 
