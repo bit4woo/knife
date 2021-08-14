@@ -77,8 +77,9 @@ public class ChineseGUI extends JFrame {
 				try {
 					String encoding = encodingList.get(i);
 					lblCoding.setText("Encoding: "+encoding);
+					int localtion = textArea.getCaretPosition();
 					textArea.setText(new String(body,encoding));
-					textArea.setCaretPosition(0);
+					textArea.setCaretPosition(localtion);
 					if (i < encodingList.size()-1) {
 						i++;
 					}else {

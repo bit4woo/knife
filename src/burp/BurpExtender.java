@@ -4,7 +4,13 @@ import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,14 +19,32 @@ import javax.swing.JMenuItem;
 
 import com.google.gson.Gson;
 
+import U2C.ChineseTabFactory;
 import U2C.U2CTabFactory;
 import config.Config;
 import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
-
-import knife.*;
+import knife.AddHostToScopeMenu;
+import knife.ChunkedEncodingMenu;
+import knife.CookieUtils;
+import knife.Custom_Payload_Menu;
+import knife.DismissCancelMenu;
+import knife.DismissHostMenu;
+import knife.DismissURLMenu;
+import knife.DoActiveScanMenu;
+import knife.DoPortScanMenu;
+import knife.DownloadResponseMenu;
+import knife.HeaderEntry;
+import knife.InsertXSSMenu;
+import knife.OpenWithBrowserMenu;
+import knife.RunSQLMapMenu;
+import knife.SetCookieMenu;
+import knife.SetCookieWithHistoryMenu;
+import knife.UpdateCookieMenu;
+import knife.UpdateCookieWithHistoryMenu;
+import knife.UpdateHeaderMenu;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -40,7 +64,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public static String Version = bsh.This.class.getPackage().getImplementationVersion();
 	public static String Author = "by bit4woo";
 	public static String github = "https://github.com/bit4woo/knife";
-	
+
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
 		BurpExtender.callbacks = callbacks;
@@ -63,11 +87,13 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		U2CTabFactory u2ctabFactory = new U2CTabFactory(null, false, helpers, callbacks);
+		ChineseTabFactory chntabFactory = new ChineseTabFactory(null, false, helpers, callbacks);
 
 		//各项数据初始化完成后在进行这些注册操作，避免插件加载时的空指针异常
 		callbacks.setExtensionName(getFullExtensionName());
 		callbacks.registerContextMenuFactory(this);// for menus
 		callbacks.registerMessageEditorTabFactory(u2ctabFactory);// for U2C
+		callbacks.registerMessageEditorTabFactory(chntabFactory);// for Chinese
 		callbacks.addSuiteTab(BurpExtender.this);
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);
@@ -99,7 +125,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public static String getFullExtensionName(){
 		return ExtensionName+" "+Version+" "+Author;
 	}
-	
+
 	//JMenu 是可以有下级菜单的，而JMenuItem是不能有下级菜单的
 	@Override
 	public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
@@ -138,10 +164,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		menu_item_list.add(new ChunkedEncodingMenu(this));
 		menu_item_list.add(new DownloadResponseMenu(this));
 		//menu_item_list.add(new DownloadResponseMenu2(this));
-		menu_item_list.add(new ViewChineseMenu(this));
+		//menu_item_list.add(new ViewChineseMenu(this));
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
-		
+
 		Iterator<JMenuItem> it = menu_item_list.iterator();
 		while (it.hasNext()) {
 			JMenuItem item = it.next();
@@ -200,7 +226,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (messageIsRequest) {
 			byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"aaa=111111111");
 			message.getMessageInfo().setRequest(newRequest);
-			
+
 			stderr.println("request called "+cookieToSetMap);
 		}else{
 		stderr.println("response called "+cookieToSetMap);
@@ -215,7 +241,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			messageInfo.setResponse(response);
 		}
 		cookieToSetMap.clear();
-		*/
+		 */
 		Getter getter = new Getter(helpers);
 		if (messageIsRequest) {//丢弃干扰请求
 			String url = getter.getFullURL(message.getMessageInfo()).toString();
@@ -240,7 +266,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		 * 情况一：当当前是CONTEXT_MESSAGE_EDITOR_REQUEST的情况下（比如proxy和repeater中），
 		 * 更新请求的操作和updateCookie的操作一样，在手动操作时进行更新，而响应包由processProxyMessage来更新。
 		 * 情况二：除了上面的情况，请求包和响应包的更新都由processProxyMessage来实现，非proxy的情况下也不需要再rehook。
-		 * 
+		 *
 		 */
 		HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
 		//stdout.println("processProxyMessage called when messageIsRequest="+messageIsRequest+" "+cookieToSetMap);

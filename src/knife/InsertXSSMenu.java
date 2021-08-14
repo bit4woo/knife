@@ -19,6 +19,7 @@ import com.ibm.icu.text.CharsetMatch;
 
 import burp.BurpExtender;
 import burp.Getter;
+import burp.HttpMessageCharSet;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -63,7 +64,7 @@ class InsertXSSAction implements ActionListener {
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
 		String xsspayload = burp.tableModel.getConfigValueByKey("XSS-Payload");
-		String charset = getCharset(true,newRequest);
+		String charset = HttpMessageCharSet.getCharset(newRequest);
 
 		if (xsspayload == null) return;
 
@@ -210,38 +211,6 @@ class InsertXSSAction implements ActionListener {
 			}
 		}
 		return true;
-	}
-
-	public static String getCharset(boolean isRequest,byte[] requestOrResponse){
-		IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
-		Getter getter = new Getter(helpers);
-		String contentType = getter.getHeaderValueOf(isRequest,requestOrResponse,"Content-Type");
-		String tmpcharSet = "ISO-8859-1";//http post的默认编码
-		
-		if (contentType != null){//1、尝试从contentTpye中获取
-			if (contentType.toLowerCase().contains("charset=")) {
-				tmpcharSet = contentType.toLowerCase().split("charset=")[1];
-			}
-		}
-
-		if (tmpcharSet == null){//2、尝试使用ICU4J进行编码的检测
-			CharsetDetector detector = new CharsetDetector();
-			detector.setText(requestOrResponse);
-			CharsetMatch cm = detector.detect();
-			tmpcharSet = cm.getName();
-		}
-
-		tmpcharSet = tmpcharSet.toLowerCase().trim();
-		//常见的编码格式有ASCII、ANSI、GBK、GB2312、UTF-8、GB18030和UNICODE等。
-		List<String> commonCharSet = Arrays.asList("ASCII,ANSI,GBK,GB2312,UTF-8,GB18030,UNICODE,utf8".toLowerCase().split(","));
-		for (String item:commonCharSet) {
-			if (tmpcharSet.contains(item)) {
-				tmpcharSet = item;
-			}
-		}
-		
-		if (tmpcharSet.equals("utf8")) tmpcharSet = "utf-8";
-		return tmpcharSet;
 	}
 
 	public static void test() {
