@@ -96,8 +96,6 @@ class ChineseTab implements IMessageEditorTab{
 			}
 		});
 
-		btnNewButton.doClick();//首次启动需要显示内容
-
 		return contentPane;
 	}
 
