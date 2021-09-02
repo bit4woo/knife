@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,7 +11,6 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import burp.BurpExtender;
 import burp.HttpMessageCharSet;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
@@ -25,27 +23,6 @@ public class ChineseTabFactory implements IMessageEditorTabFactory
 {
 	private static IExtensionHelpers helpers;
 	private static IBurpExtenderCallbacks callbacks;
-
-	public static final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1].replaceAll("[a-zA-Z]","");
-	public static final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2].replaceAll("[a-zA-Z]","");//18beta
-
-	//stdout.println(majorVersion+"   "+minorVersion);
-	//2020.2.1 ==>2020   2.1
-	//2.1.06 ==> 2.1   06
-
-	public static boolean needJSON() {
-		try {
-			float majorV = Float.parseFloat(majorVersion);
-			float minorV = Float.parseFloat(minorVersion);
-			if (majorV>=2020 && minorV >= 4.0f) { //2020.4及之后已经有了JSON美化的功能，不再需要
-				return false;
-			}
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace(BurpExtender.getStderr());
-			return true;
-		}
-	}
 
 
 	public ChineseTabFactory(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
@@ -175,7 +152,8 @@ class ChineseTab implements IMessageEditorTab{
 	@Override
 	public boolean isModified()
 	{
-		return txtInput.isTextModified();
+		return false;
+		//return txtInput.isTextModified();
 	}
 
 	@Override
