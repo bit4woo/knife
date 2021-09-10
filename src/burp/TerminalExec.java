@@ -5,6 +5,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -81,6 +83,7 @@ public class TerminalExec {
 		}
 		try {
 			Process process = Runtime.getRuntime().exec(command);
+			//本质也是调用ProcessBuilder
 			process.waitFor();//等待执行完成
 			return process;
 		} catch (Exception e) {
@@ -169,9 +172,10 @@ public class TerminalExec {
 		return command.toString();
 	}
 	
-	/*
+	/**
 	 * 判断某个文件是否在环境变量中
 	 */
+	@Deprecated
 	public static boolean isInEnvironmentPath(String filename) {
 		if (filename == null) {
 			return false;
@@ -200,6 +204,8 @@ public class TerminalExec {
 		}
 		return false;
 	}
+	
+	
 	
 	public static void main(String[] args) {
 		System.out.println(isInEnvironmentPath("nmap.exe"));

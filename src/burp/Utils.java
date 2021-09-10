@@ -1,8 +1,12 @@
 package burp;
 
 import java.awt.Desktop;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 
 public class Utils {
 	public static boolean isWindows() {
@@ -82,4 +86,55 @@ public class Utils {
 
 		return result;
 	}
+	/**
+	 * 获取系统默认编码
+	 * //https://javarevisited.blogspot.com/2012/01/get-set-default-character-encoding.html
+	 * @return
+	 */
+	private static String getSystemCharSet() {
+		return Charset.defaultCharset().toString();
+	}
+	
+	/**
+	 * 检测某个命令是否存在，根据which where命令来的，如果不在环境变量中应该读取不到！
+	 */
+	public static String isCommandExists(String cmd) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (isWindows()) {
+        	processBuilder.command("where "+cmd);
+        }else {
+        	processBuilder.command("which "+cmd);
+        }
+        
+        //将标准输入流和错误输入流合并，通过标准输入流读取信息
+        processBuilder.redirectErrorStream(true);
+        try {
+            //启动进程
+            Process start = processBuilder.start();
+            //获取输入流
+            InputStream inputStream = start.getInputStream();
+            //转成字符输入流
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, getSystemCharSet());
+            int len = -1;
+            char[] c = new char[1024];
+            StringBuffer outputString = new StringBuffer();
+            //读取进程输入流中的内容
+            while ((len = inputStreamReader.read(c)) != -1) {
+                String s = new String(c, 0, len);
+                outputString.append(s);
+                System.out.print(s);
+            }
+            inputStream.close();
+            return outputString.toString();
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+	
+	public static void main(String[] args) {
+		System.out.println(isCommandExists("nmap"));
+	}
+	
 }
