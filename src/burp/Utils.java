@@ -99,20 +99,16 @@ public class Utils {
 	 * 检测某个命令是否存在，根据which where命令来的，如果不在环境变量中应该读取不到！
 	 */
 	public static String isCommandExists(String cmd) {
-        ProcessBuilder processBuilder = new ProcessBuilder();
         if (isWindows()) {
-        	processBuilder.command("where "+cmd);
+			cmd = "where "+cmd;
         }else {
-        	processBuilder.command("which "+cmd);
+			cmd = "which "+cmd;
         }
-        
-        //将标准输入流和错误输入流合并，通过标准输入流读取信息
-        processBuilder.redirectErrorStream(true);
         try {
             //启动进程
-            Process start = processBuilder.start();
+			Process process = Runtime.getRuntime().exec(cmd);
             //获取输入流
-            InputStream inputStream = start.getInputStream();
+            InputStream inputStream = process.getInputStream();
             //转成字符输入流
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, getSystemCharSet());
             int len = -1;
@@ -122,7 +118,7 @@ public class Utils {
             while ((len = inputStreamReader.read(c)) != -1) {
                 String s = new String(c, 0, len);
                 outputString.append(s);
-                System.out.print(s);
+                //System.out.print(s);
             }
             inputStream.close();
             return outputString.toString();
@@ -134,7 +130,7 @@ public class Utils {
     }
 	
 	public static void main(String[] args) {
-		System.out.println(isCommandExists("nmap"));
+		System.out.println(isCommandExists("nmap1"));
 	}
 	
 }

@@ -145,7 +145,7 @@ public class TerminalExec {
 		StringBuilder command = new StringBuilder();
 
 		if ((parserPath != null && new File(parserPath).exists() && new File(parserPath).isFile())
-				|| isInEnvironmentPath(parserPath)){
+				|| !Utils.isCommandExists(parserPath).equals("")){
 			
 			if (parserPath.contains(" ")) {
 				parserPath = "\""+parserPath+"\"";//如果路径中包含空格，需要引号
@@ -155,7 +155,7 @@ public class TerminalExec {
 		}
 
 		if ((executerPath != null && new File(executerPath).exists() && new File(executerPath).isFile())
-			|| isInEnvironmentPath(executerPath)){
+			|| !Utils.isCommandExists(executerPath).equals("")){
 			
 			if (executerPath.contains(" ")) {
 				executerPath = "\""+executerPath+"\"";//如果路径中包含空格，需要引号
@@ -208,7 +208,7 @@ public class TerminalExec {
 	
 	
 	public static void main(String[] args) {
-		System.out.println(isInEnvironmentPath("nmap.exe"));
+		System.out.println(Utils.isCommandExists("nmap.exe"));
 		TerminalExec xxx = new TerminalExec(null,"nmap-test.bat",null,"nmap.exe","-v -A www.baidu.com");
 		xxx.run();
 	}
