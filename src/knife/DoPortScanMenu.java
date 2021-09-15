@@ -15,6 +15,7 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
 import burp.TerminalExec;
+import config.GUI;
 
 
 public class DoPortScanMenu extends JMenuItem {
@@ -65,7 +66,7 @@ class DoPortScan_Action implements ActionListener{
 				hosts.add(host);
 			}
 
-			String nmapPath = burp.tableModel.getConfigValueByKey("Nmap-File-Path");
+			String nmapPath = GUI.tableModel.getConfigValueByKey("Nmap-File-Path");
 			if (nmapPath == null || nmapPath.trim().equals("")) {
 				nmapPath = "nmap";
 			}
@@ -73,13 +74,13 @@ class DoPortScan_Action implements ActionListener{
 			for(String host:hosts) {
 				String para = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
 						+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 "+host.trim();
+				String command = RobotInput.genCmd(null,nmapPath,para);
 				if (useRobot) {
 					//RobotInput.startCmdConsole();
-					String command = RobotInput.genCmd(null,nmapPath,para);
 					ri.inputString(command);
 				}else {
-					TerminalExec exec = new TerminalExec(null,"nmap-knife.bat",null,nmapPath,para);
-					exec.run();
+					String file = TerminalExec.genBatchFile(command, "sqlmap-knife.bat");
+					TerminalExec.runBatchFile(file);
 				}
 			}
 		}

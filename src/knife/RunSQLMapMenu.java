@@ -21,6 +21,7 @@ import burp.IHttpRequestResponse;
 import burp.RobotInput;
 import burp.TerminalExec;
 import burp.Utils;
+import config.GUI;
 
 
 public class RunSQLMapMenu extends JMenuItem {
@@ -72,12 +73,12 @@ class RunSQLMap_Action implements ActionListener{
 
 						IHttpRequestResponse message = messages[0];
 						String requestFilePath = RequestToFile(message);
-						String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
-						String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
-						String sqlmapOptions = burp.tableModel.getConfigValueByKey("SQLMap-Options");
+						String pythonPath = GUI.tableModel.getConfigValueByKey("SQLMap-Python-Path");
+						String sqlmapPath = GUI.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
+						String sqlmapOptions = GUI.tableModel.getConfigValueByKey("SQLMap-Options");
 
 						if (pythonPath ==null || pythonPath.trim().equals("")) {
-							pythonPath = "python.exe";
+							pythonPath = "python";
 						}
 
 						if (sqlmapPath ==null || sqlmapPath.trim().equals("")) {
@@ -93,15 +94,15 @@ class RunSQLMap_Action implements ActionListener{
 							paras = paras+" "+sqlmapOptions;
 						}
 
+						String sqlmapCmd = TerminalExec.genCmd(pythonPath, sqlmapPath, paras);
 						if (useRobot) {
 							//方案1：使用模拟输入实现
 							//RobotInput.startCmdConsole();//尽早启动减少出错概率
-							String sqlmapCmd = RobotInput.genCmd(pythonPath, sqlmapPath, paras);
 							ri.inputString(sqlmapCmd);
 						}else {
 							//方案2：使用bat文件实现
-							TerminalExec xxx = new TerminalExec(workdir,"sqlmap-knife.bat",pythonPath, sqlmapPath, paras);
-							xxx.run();
+							String file = TerminalExec.genBatchFile(sqlmapCmd, "sqlmap-knife.bat");
+							TerminalExec.runBatchFile(file);
 						}
 					}
 				}
@@ -126,7 +127,7 @@ class RunSQLMap_Action implements ActionListener{
 			String timeString = simpleDateFormat.format(new Date());
 			String filename = host+"."+timeString+".req";
 
-			String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
+			String configBasedir = GUI.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
 			if (configBasedir != null && new File(configBasedir).exists()) {
 				workdir = configBasedir;
 			}
@@ -138,63 +139,6 @@ class RunSQLMap_Action implements ActionListener{
 			e.printStackTrace(stderr);
 			return null;
 		}
-	}
-
-
-
-	/*
-	 * 切换工作目录
-	 */
-	public String changeDirCommand(){
-		//运行命令的工作目录，work path
-		String basedir = (String) System.getProperties().get("java.io.tmpdir");
-		String configBasedir = burp.tableModel.getConfigValueByKey("SQLMap-Request-File-Path");
-		if (configBasedir != null && new File(configBasedir).exists()) {
-			basedir = configBasedir;
-		}
-		String command = "cd "+basedir+System.lineSeparator();
-
-		if (Utils.isWindows()) {//如果是windows，还要注意不同磁盘的切换
-			String diskString = basedir.split(":")[0];
-			command =command+ diskString+":"+System.lineSeparator();
-		}
-		return command;
-	}
-
-	public String genSqlmapCmd(String requestFilePath) {
-
-		String pythonPath = burp.tableModel.getConfigValueByKey("SQLMap-Python-Path");
-		String sqlmapPath = burp.tableModel.getConfigValueByKey("SQLMap-SQLMap.py-Path");
-		StringBuilder command = new StringBuilder();
-
-		command.append(changeDirCommand());
-
-		if (pythonPath != null && new File(pythonPath).exists()) {
-			if (new File(pythonPath).isFile()) {
-				command.append(pythonPath);
-			}else {
-				command.append(new File(pythonPath,"python").toString());
-			}
-			command.append(" ");
-		}
-
-		if (sqlmapPath != null && new File(sqlmapPath).exists()) {
-			if (new File(sqlmapPath).isFile()) {
-				command.append(sqlmapPath);
-			}else {
-				command.append(new File(sqlmapPath,"sqlmap.py").toString());
-			}
-		}else {
-			command.append("sqlmap.py");
-		}
-
-		command.append(" -r "+requestFilePath);
-		String sqlmapOptions = burp.tableModel.getConfigValueByKey("SQLMap-Options");
-		if (sqlmapOptions != null && !sqlmapOptions.equals("")) {
-			command.append(" "+sqlmapOptions);
-		}
-		command.append(System.lineSeparator());
-		return command.toString();
 	}
 
 	public static void main(String[] args) {

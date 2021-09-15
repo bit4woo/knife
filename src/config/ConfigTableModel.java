@@ -28,6 +28,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	public static final String Firefox_Mac = "/Applications/Firefox.app/Contents/MacOS/firefox";
 	public static final String Firefox_Windows = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
 	
+	// /usr/local/bin 本地默认可执行文件路径
 	public static final String SQLMap_Mac = "/usr/local/bin/sqlmap-dev/sqlmap.py";
 	public static final String SQLMap_Windows = "D:\\Program Files (x86)\\sqlmap-dev\\sqlmap.py";
 	
@@ -51,10 +52,10 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		configEntries.add(new ConfigEntry("SQLMap-Python-Path",Utils.isCommandExists("python"),ConfigEntry.Config_Basic_Variable,false,false));
 		if (Utils.isMac()) {
-			configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path",SQLMap_Mac,ConfigEntry.Config_Basic_Variable,false,false));
+			configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path",SQLMap_Mac,ConfigEntry.Config_Basic_Variable,true,false));
 			configEntries.add(new ConfigEntry("SQLMap-Request-File-Path",TempDir_Mac,ConfigEntry.Config_Basic_Variable,true,false));
 		}else {
-			configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path",SQLMap_Windows,ConfigEntry.Config_Basic_Variable,false,false));
+			configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path",SQLMap_Windows,ConfigEntry.Config_Basic_Variable,true,false));
 			configEntries.add(new ConfigEntry("SQLMap-Request-File-Path",TempDir_Windows,ConfigEntry.Config_Basic_Variable,true,false));
 		}
 		

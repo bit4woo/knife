@@ -5,8 +5,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -14,62 +12,17 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
-/**
+/*
  * 在系统terminal中执行命令，实现思路：
  * 1、将命令写入bat文件
  * 2、通过执行bat文件执行命令
  */
 public class TerminalExec {
-	
-	String workdir;
-	String cmdContent;
-	String FullBatchFilePath;
 
-	public String getWorkdir() {
-		return workdir;
-	}
-
-	public void setWorkdir(String workdir) {
-		this.workdir = workdir;
-	}
-
-	public String getCmdContent() {
-		return cmdContent;
-	}
-
-	public void setCmdContent(String cmdContent) {
-		this.cmdContent = cmdContent;
-	}
-
-	public String getFullBatchFilePath() {
-		return FullBatchFilePath;
-	}
-
-	public void setFullBatchFilePath(String fullBatchFilePath) {
-		FullBatchFilePath = fullBatchFilePath;
-	}
-
-	/**
-	 * workdir --the dir of batch file
-	 *  
-	 */
-	public TerminalExec(String workdir, String batchFileName,String parserPath,String executerPath, String parameter){
-		if (workdir == null) {
-			workdir = (String) System.getProperties().get("java.io.tmpdir");
-		}
-		cmdContent = changeDirCommand(workdir);
-		cmdContent = cmdContent +genCmd(parserPath,executerPath,parameter);
-		FullBatchFilePath = genBatchFile(cmdContent,batchFileName);
-	}
-	
-	public void run() {
-		executeBatchFile(FullBatchFilePath);
-	}
-	
-	/**
+	/*
 	 * 通知执行bat文件来执行命令
 	 */
-	public static Process executeBatchFile(String batfilepath) {
+	public static Process runBatchFile(String batfilepath) {
 		String command = "";
 		if (Utils.isWindows()) {
 			command="cmd /c start " + batfilepath;
@@ -83,7 +36,6 @@ public class TerminalExec {
 		}
 		try {
 			Process process = Runtime.getRuntime().exec(command);
-			//本质也是调用ProcessBuilder
 			process.waitFor();//等待执行完成
 			return process;
 		} catch (Exception e) {
@@ -92,13 +44,13 @@ public class TerminalExec {
 		}
 	}
 
-	public String genBatchFile(String cmdContent, String batchFileName) {
+	public static String genBatchFile(String cmdContent, String batchFileName) {
 		try {
 			//将命令写入剪切板
 			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			StringSelection selection = new StringSelection(cmdContent);
 			clipboard.setContents(selection, null);
-			
+
 			if (batchFileName == null || batchFileName.trim().equals("")) {
 				SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMdd-HHmmss");
 				String timeString = simpleDateFormat.format(new Date());
@@ -107,6 +59,7 @@ public class TerminalExec {
 				batchFileName = batchFileName+".bat";
 			}
 
+			String workdir = System.getProperty("user.home");
 			File batFile = new File(workdir,batchFileName);
 			if (!batFile.exists()) {
 				batFile.createNewFile();
@@ -144,9 +97,7 @@ public class TerminalExec {
 	public static String genCmd(String parserPath,String executerPath, String parameter) {
 		StringBuilder command = new StringBuilder();
 
-		if ((parserPath != null && new File(parserPath).exists() && new File(parserPath).isFile())
-				|| !Utils.isCommandExists(parserPath).equals("")){
-			
+		if (parserPath != null){
 			if (parserPath.contains(" ")) {
 				parserPath = "\""+parserPath+"\"";//如果路径中包含空格，需要引号
 			}
@@ -154,13 +105,12 @@ public class TerminalExec {
 			command.append(" ");
 		}
 
-		if ((executerPath != null && new File(executerPath).exists() && new File(executerPath).isFile())
-			|| !Utils.isCommandExists(executerPath).equals("")){
-			
+		if (executerPath != null){
+
 			if (executerPath.contains(" ")) {
 				executerPath = "\""+executerPath+"\"";//如果路径中包含空格，需要引号
 			}
-			
+
 			command.append(executerPath);
 			command.append(" ");
 		}
@@ -171,11 +121,10 @@ public class TerminalExec {
 		command.append(System.lineSeparator());
 		return command.toString();
 	}
-	
-	/**
+
+	/*
 	 * 判断某个文件是否在环境变量中
 	 */
-	@Deprecated
 	public static boolean isInEnvironmentPath(String filename) {
 		if (filename == null) {
 			return false;
@@ -188,12 +137,12 @@ public class TerminalExec {
 		if (pathvalue == null) {
 			pathvalue = values.get("Path");
 		}
-//		System.out.println(pathvalue);
+		//		System.out.println(pathvalue);
 		String[] items = pathvalue.split(";");
 		for (String item:items) {
 			File tmpPath = new File(item);
 			if (tmpPath.isDirectory()) {
-//				System.out.println(Arrays.asList(tmpPath.listFiles()));
+				//				System.out.println(Arrays.asList(tmpPath.listFiles()));
 				File fullpath = new File(item,filename);
 				if (Arrays.asList(tmpPath.listFiles()).contains(fullpath)) {
 					return true;
@@ -204,12 +153,8 @@ public class TerminalExec {
 		}
 		return false;
 	}
-	
-	
-	
+
 	public static void main(String[] args) {
-		System.out.println(Utils.isCommandExists("nmap.exe"));
-		TerminalExec xxx = new TerminalExec(null,"nmap-test.bat",null,"nmap.exe","-v -A www.baidu.com");
-		xxx.run();
+		System.out.println(isInEnvironmentPath("nmap.exe"));
 	}
 }
