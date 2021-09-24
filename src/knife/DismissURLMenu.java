@@ -1,15 +1,18 @@
 package knife;
 
-import burp.*;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
+
+import javax.swing.JMenuItem;
+
+import burp.BurpExtender;
+import burp.Getter;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
 
 public class DismissURLMenu extends JMenuItem {//JMenuItem vs. JMenu
 

@@ -470,9 +470,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					disurl = disurl.substring(0,disurl.indexOf("?"));
 				}
 
-				URL currentUrl = new URL(url);
-				URL disURL = new URL(disurl);
-				if (currentUrl.equals(disURL)) {
+				String currentUrl = new URL(url).toString().toLowerCase();
+				String disURL = new URL(disurl).toString().toLowerCase();
+				if (currentUrl.startsWith(disURL)) {
 					return true;
 				}
 			}catch(Exception e) {
