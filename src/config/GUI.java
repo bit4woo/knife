@@ -286,7 +286,7 @@ public class GUI extends JFrame {
 						}
 						
 						config.setStringConfigEntries(oldEntries);
-						stdout.println("Combined knife config from"+ file.getName() +"with current config" );
+						stdout.println("Combined knife config from "+ file.getName() +" with current config" );
 						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
 						showToUI(config);
 
