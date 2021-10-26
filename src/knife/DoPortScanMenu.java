@@ -66,15 +66,10 @@ class DoPortScan_Action implements ActionListener{
 				hosts.add(host);
 			}
 
-			String nmapPath = GUI.tableModel.getConfigValueByKey("Nmap-File-Path");
-			if (nmapPath == null || nmapPath.trim().equals("")) {
-				nmapPath = "nmap";
-			}
+			String nmapCmd = GUI.tableModel.getConfigValueByKey("Nmap-Command");
 			RobotInput ri = new RobotInput();
 			for(String host:hosts) {
-				String para = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
-						+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 "+host.trim();
-				String command = RobotInput.genCmd(null,nmapPath,para);
+				String command = nmapCmd.replace("{host}", host.trim());
 				if (useRobot) {
 					//RobotInput.startCmdConsole();
 					ri.inputString(command);
