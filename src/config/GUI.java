@@ -270,20 +270,22 @@ public class GUI extends JFrame {
 						String contents = Files.toString(file, Charsets.UTF_8);
 						config = new Gson().fromJson(contents, Config.class);
 						List<String> newEntries = config.getStringConfigEntries();
-						List<String> newEntryNames = new ArrayList<String>(); 
+						
+						List<String> oldEntries = tableModel.getConfigJsons();//以此为修改基础，已存在的key不修改。
+						List<String> oldKeys = new ArrayList<String>();
+						for (String config:oldEntries) {
+							ConfigEntry entry  = new ConfigEntry().FromJson(config);
+							oldKeys.add(entry.getKey());
+						}
+						
 						for (String config:newEntries) {
 							ConfigEntry entry  = new ConfigEntry().FromJson(config);
-							newEntryNames.add(entry.getKey());
-						}
-						
-						List<ConfigEntry> currentEntries = tableModel.getConfigEntries();
-						
-						for (ConfigEntry config:currentEntries) {
-							if (!newEntryNames.contains(config.getKey())){
-								newEntries.add(config.ToJson());
+							if (!oldKeys.contains(entry.getKey())) {
+								oldEntries.add(config);
 							}
 						}
-						//config.setStringConfigEntries(newEntries);
+						
+						config.setStringConfigEntries(oldEntries);
 						stdout.println("Combined knife config from"+ file.getName() +"with current config" );
 						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
 						showToUI(config);
