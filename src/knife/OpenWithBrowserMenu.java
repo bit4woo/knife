@@ -25,7 +25,7 @@ public class OpenWithBrowserMenu extends JMenuItem {
 
 	//JMenuItem vs. JMenu
 	public OpenWithBrowserMenu(BurpExtender burp){
-		this.setText("^_^ Open with browser");
+		this.setText("^_^ Open With Browser");
 		this.addActionListener(new OpenWithBrowser_Action(burp,burp.invocation));
 	}
 }

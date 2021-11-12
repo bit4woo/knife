@@ -17,7 +17,7 @@ import burp.IHttpRequestResponse;
 public class AddHostToScopeMenu extends JMenuItem {//JMenuItem vs. JMenu
 
     public AddHostToScopeMenu(BurpExtender burp){
-        this.setText("^_^ Add host to scope");
+        this.setText("^_^ Add Host To Scope");
         this.addActionListener(new AddHostToScope_Action(burp,burp.invocation));
     }
 }

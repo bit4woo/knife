@@ -19,7 +19,7 @@ public class DismissURLMenu extends JMenuItem {//JMenuItem vs. JMenu
 	public DismissURLMenu(BurpExtender burp){
 		String dismissed  = burp.tableModel.getConfigValueByKey("DismissedURL");
 		if (dismissed != null) {
-			this.setText("^_^ Dismissed this url");
+			this.setText("^_^ Dismissed This Url");
 			this.addActionListener(new Dismiss_URL_Action(burp,burp.invocation));
 		}
 	}

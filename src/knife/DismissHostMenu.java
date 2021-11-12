@@ -16,7 +16,7 @@ public class DismissHostMenu extends JMenuItem {//JMenuItem vs. JMenu
 	public DismissHostMenu(BurpExtender burp){
 		String dismissed  = burp.tableModel.getConfigValueByKey("DismissedHost");
 		if (dismissed != null) {
-			this.setText("^_^ Dismissed this host");
+			this.setText("^_^ Dismissed This Host");
 			this.addActionListener(new Dismiss_Host_Action(burp,burp.invocation));
 		}
 	}
