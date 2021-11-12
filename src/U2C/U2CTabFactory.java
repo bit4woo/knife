@@ -34,7 +34,7 @@ public class U2CTabFactory implements IMessageEditorTabFactory
 	//stdout.println(majorVersion+"   "+minorVersion);
 	//2020.2.1 ==>2020   2.1
 	//2.1.06 ==> 2.1   06
-	
+	@Deprecated
 	public static boolean needJSON() {
 		try {
 			float majorV = Float.parseFloat(majorVersion);
@@ -90,6 +90,7 @@ class U2CTab implements IMessageEditorTab{
 	public boolean isEnabled(byte[] content, boolean isRequest)
 	{
 		//System.out.println("isEnabled called");
+		/*
 		if (U2CTabFactory.needJSON() && isJSON(content, isRequest)) {
 			return true;
 		}
@@ -99,6 +100,8 @@ class U2CTab implements IMessageEditorTab{
 			return true;
 		}
 		return false;
+		*/
+		return true;
 	}
 
 	@Override
