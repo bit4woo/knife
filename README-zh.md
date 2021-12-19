@@ -74,7 +74,11 @@ https://www.bilibili.com/video/bv1BC4y1s7nS
 
 7. Dismiss
 
-   让一些无用的、不想看到的请求包从眼前消失！它自动drop而不会拦截，需配合proxy history中的过滤器。
+   让一些无用的、不想看到的请求包从眼前消失！
+
+   1、自动丢弃请求（drop），可以配合proxy history中的过滤器“hide items without responses”来隐藏着部分请求。这种适用于像Firefox浏览器自己产生的请求。
+
+   2、自动放过、不拦截（forward），这种情况适用于像网站自动上报，对挖洞无用，但是不能drop的请求。
 
    ![dismiss](/img/dismiss.gif)
 

