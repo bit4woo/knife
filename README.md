@@ -4,6 +4,10 @@
 
 A extension that add some small function[ one key to update cookie, one key add host to scope] to right click context menu.
 
+### Caution
+
+**Please change configurations to yourself payload first before use this tool !!!  especially configurations that type starts with "Action"!!!**
+
 ### Video
 
 https://www.bilibili.com/video/bv1BC4y1s7nS
@@ -11,6 +15,14 @@ https://www.bilibili.com/video/bv1BC4y1s7nS
 ### Authors
 
 [bit4woo](https://github.com/bit4woo)
+
+### Package
+
+```bash
+git clone https://github.com/bit4woo/knife
+cd knife
+mvn package
+```
 
 ### Functions
 
@@ -78,9 +90,9 @@ open with browser:
 
 ![openwithbrowser](img/openwithbrowser.gif)
 
-payload(Hackbar++):
+custom payload:
 
-![insertpayload](img/insertpayload.gif)
+![insertpayload](img/custom-payload.gif)
 
 Dismiss:
 
@@ -88,8 +100,14 @@ Dismiss:
 
 Run SQLMap:
 
-![runsqlmap](img/runsqlmap.gif)
+![runsqlmap](img/runsqlmap-new.gif)
 
 
 
 any issue, advice, suggestion are welcome, Thanks！
+
+### Thanks
+
+Thanks [Jetbrain](https://www.jetbrains.com/) for Open Source license
+
+<img src="README.assets/jetbrains.png" alt="jetbrains" style="zoom:25%;" />
