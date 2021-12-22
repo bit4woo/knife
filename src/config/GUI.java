@@ -254,7 +254,7 @@ public class GUI extends JFrame {
 				saveConfigToBurp();
 			}
 		});
-		btnOpen.setToolTipText("Load Config File");
+		btnOpen.setToolTipText("This action will clear current config and use your config file");
 		panel_1.add(btnOpen);
 		
 		/**
@@ -303,7 +303,7 @@ public class GUI extends JFrame {
 				
 				saveConfigToBurp();
 			}});
-		btnImport.setToolTipText("Combine your configration with current");
+		btnImport.setToolTipText("This action will add new config and keep old ones");
 		panel_1.add(btnImport);
 
 		JButton btnExport = new JButton("Export Config");
