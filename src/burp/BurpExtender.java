@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,14 +24,14 @@ import config.Config;
 import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
+import config.DismissedTargets;
 import config.GUI;
 import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
 import knife.Custom_Payload_Menu;
 import knife.DismissCancelMenu;
-import knife.DismissHostMenu;
-import knife.DismissURLMenu;
+import knife.DismissMenu;
 import knife.DoActiveScanMenu;
 import knife.DoPortScanMenu;
 import knife.DownloadResponseMenu;
@@ -157,8 +156,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
 		//不太常用的
-		menu_item_list.add(new DismissHostMenu(this));
-		menu_item_list.add(new DismissURLMenu(this));
+		menu_item_list.add(new DismissMenu(this));
 		menu_item_list.add(new DismissCancelMenu(this));
 
 		menu_item_list.add(new ChunkedEncodingMenu(this));
@@ -242,21 +240,22 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		cookieToSetMap.clear();
 		 */
-		Getter getter = new Getter(helpers);
+		
+		HelperPlus getter = new HelperPlus(helpers);
 		if (messageIsRequest) {//丢弃干扰请求
 			String url = getter.getFullURL(message.getMessageInfo()).toString();
-			if (isDismissed(url)){
-				//enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT
-				if (tableModel.getConfigValueByKey("DismissAction") == null) {
-					message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
-					message.getMessageInfo().setComment("Dismissed-ACTION_DONT_INTERCEPT");
-				}else {//default action
-					message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
-					message.getMessageInfo().setComment("Dismissed-ACTION_DROP");
-				}
+			String action = DismissedTargets.whichAction(url);
+			if (action.equalsIgnoreCase(DismissedTargets.ACTION_DONT_INTERCEPT)){
+				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
+				message.getMessageInfo().setComment("Auto Forwarded By Knife");
 				message.getMessageInfo().setHighlight("gray");
-				return;
 			}
+			if (action.equalsIgnoreCase(DismissedTargets.ACTION_DROP)){
+				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
+				message.getMessageInfo().setComment("Auto Dropped by Knife");
+				message.getMessageInfo().setHighlight("gray");
+			}
+			return;
 		}
 
 		/*setCookie的实现方案1。请求和响应数据包的修改都由processProxyMessage函数来实现。这种情况下：
@@ -456,63 +455,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			setHeaderList.add(String.format("Set-Cookie: %s; Path=/",cookie));
 		}
 		return setHeaderList;
-	}
-
-	public boolean isDismissedURL(String url) {
-		Set<String> dissmissed  = tableModel.getConfigValueSetByKey("DismissedURL");
-		for (String disurl:dissmissed) {
-			try {
-				if (url.contains("?")){
-					url = url.substring(0,url.indexOf("?"));
-				}
-
-				if (disurl.contains("?")){
-					disurl = disurl.substring(0,disurl.indexOf("?"));
-				}
-
-				String currentUrl = new URL(url).toString().toLowerCase();
-				String disURL = new URL(disurl).toString().toLowerCase();
-				if (currentUrl.startsWith(disURL)) {
-					return true;
-				}
-			}catch(Exception e) {
-				e.printStackTrace();
-				stderr.print(e.getStackTrace());
-			}
-		}
-		return false;
-	}
-
-	public boolean isDismissedHost(String host){
-		Set<String> dissmissed  = tableModel.getConfigValueSetByKey("DismissedHost");
-		if (dissmissed.contains(host)) return true;
-		Iterator<String> it = dissmissed.iterator();
-		while (it.hasNext()){
-			String dissmissedHost = it.next().trim();
-			if (dissmissedHost.startsWith("*.")){
-				dissmissedHost = dissmissedHost.replaceFirst("\\*","");
-				if (host.trim().toLowerCase().endsWith(dissmissedHost.toLowerCase())){
-					return true;
-				}
-			}else if (dissmissedHost.equalsIgnoreCase(host.trim())){
-				return true;
-			}
-		}
-		return false;
-	}
-
-
-	public boolean isDismissed(String url) {
-		try {
-			String host = new URL(url).getHost();
-			if (isDismissedHost(host)) {
-				return true;
-			}else {
-				return isDismissedURL(url);
-			}
-		}catch(Exception e) {
-			return false;
-		}
 	}
 
 	public static IBurpExtenderCallbacks getCallbacks() {

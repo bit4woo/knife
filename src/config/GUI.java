@@ -226,11 +226,14 @@ public class GUI extends JFrame {
 		
 		panel_1.add(new Label(" |"));
 		
+		/**
+		 * 旧配置全删除，使用选中文件中的配置。
+		 */
 		JButton btnOpen = new JButton("Import Config(Override)");
 		btnOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc=new JFileChooser();
-				JsonFileFilter jsonFilter = new JsonFileFilter(); //excel过滤器  
+				JsonFileFilter jsonFilter = new JsonFileFilter(); //文件后缀过滤器  
 				fc.addChoosableFileFilter(jsonFilter);
 				fc.setFileFilter(jsonFilter);
 				fc.setDialogTitle("Chose knife config File");
@@ -254,6 +257,9 @@ public class GUI extends JFrame {
 		btnOpen.setToolTipText("Load Config File");
 		panel_1.add(btnOpen);
 		
+		/**
+		 * 已存在的值不修改，只添加新增的记录。
+		 */
 		JButton btnImport = new JButton("Import Config(Combine)");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

@@ -39,7 +39,6 @@ public class Utils {
 		return (os.indexOf( "nix") >=0 || os.indexOf( "nux") >=0);
 	}
 
-
 	public static void browserOpen(Object url,String browser) throws Exception{
 		String urlString = null;
 		URI uri = null;
@@ -57,10 +56,10 @@ public class Utils {
 				desktop.browse(uri);
 			}
 		}else {
-			Runtime runtime = Runtime.getRuntime();
-			runtime.exec(browser+" "+urlString);
-			//C:\Program Files\Mozilla Firefox\firefox.exe
-			//C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe
+			String[] cmdArray = new String[] {browser,urlString};
+
+			//runtime.exec(browser+" "+urlString);//当命令中有空格时会有问题
+			Runtime.getRuntime().exec(cmdArray);
 		}
 	}
 

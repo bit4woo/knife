@@ -1,19 +1,25 @@
 package knife;
 
-import burp.*;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+
+import burp.BurpExtender;
+import burp.HelperPlus;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.Utils;
+import config.DismissedTargets;
 
 public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DismissMenu(BurpExtender burp){
-		String dismissed  = burp.tableModel.getConfigValueByKey("DismissedHost");
+		String dismissed  = burp.tableModel.getConfigValueByKey("DismissedTargets");
 		if (dismissed != null) {
 			this.setText("^_^ Dismiss");
 			this.addActionListener(new Dismiss_Action(burp,burp.invocation));
@@ -44,26 +50,48 @@ class Dismiss_Action implements ActionListener{
 	public void actionPerformed(ActionEvent e)
 	{
 		try{
-			String dissmissed  = myburp.tableModel.getConfigValueByKey("DismissedHost");
-			String[] dissmissedHosts = dissmissed.split(",");
-			List<String> dissmissedHostList = Arrays.asList(dissmissedHosts);
-			dissmissedHostList = new ArrayList<>(dissmissedHostList);
+			DismissedTargets.FromGUI();
+			
+			int action = fetchChangeType();
 
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 			for(IHttpRequestResponse message:messages) {
 				String host = message.getHttpService().getHost();
-				if (!myburp.isDismissedHost(host)){
-					dissmissedHostList.add(host);
-					//https://stackoverflow.com/questions/5755477/java-list-add-unsupportedoperationexception/5755510
+				String url = new HelperPlus(helpers).getFullURL(message).toString();
+				if (url.contains("?")){
+					url = url.substring(0,url.indexOf("?"));
+				}
+				
+				if (action == 1) {
+					DismissedTargets.targets.put(host, DismissedTargets.ACTION_DROP);
+				}else if(action == 2) {
+					DismissedTargets.targets.put(url, DismissedTargets.ACTION_DROP);
+				}else if(action == 3) {
+					DismissedTargets.targets.put(host, DismissedTargets.ACTION_DONT_INTERCEPT);
+				}else if(action == 4) {
+					DismissedTargets.targets.put(url, DismissedTargets.ACTION_DONT_INTERCEPT);
 				}
 			}
-			String newDissMissedHostString = Arrays.toString(dissmissedHostList.toArray());
-			newDissMissedHostString = newDissMissedHostString.replace("[","").replace("]","");
-			newDissMissedHostString = newDissMissedHostString.replaceAll(" ","");
-			myburp.tableModel.setConfigByKey("DismissedHost",newDissMissedHostString);
+			DismissedTargets.ShowToGUI();
 		}catch (Exception e1)
 		{
 			e1.printStackTrace(stderr);
 		}
+	}
+	
+	public static int fetchChangeType() {
+		Object[] options = { "Help","Drop Host","Drop URL","Forward Host","Forward URL"};
+		int user_input = JOptionPane.showOptionDialog(null, "Which Action Do You Want To Take?", "Chose Your Action And Scope",
+		JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+		null, options, options[0]);
+		if (user_input ==0) {
+			try {
+				Utils.browserOpen("https://github.com/bit4woo/knife/blob/master/Help.md", null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			user_input = fetchChangeType();
+		}
+		return user_input;
 	}
 }

@@ -1,15 +1,18 @@
 package knife;
 
-import burp.*;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+
+import javax.swing.JMenuItem;
+
+import burp.BurpExtender;
+import burp.HelperPlus;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import config.DismissedTargets;
 
 public class DismissCancelMenu extends JMenuItem {//JMenuItem vs. JMenu
 
@@ -44,23 +47,14 @@ class Dismiss_Cancel_Action implements ActionListener{
 		try{
 			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 			for(IHttpRequestResponse message:messages) {
-				Getter getter = new Getter(helpers);
-				String url = getter.getFullURL(message).toString();
-				String host = getter.getHost(message);
+				String url = new HelperPlus(helpers).getFullURL(message).toString();
+				String host = message.getHttpService().getHost();
 				if (url.contains("?")){
 					url = url.substring(0,url.indexOf("?"));
 				}
-				if (myburp.isDismissedURL(url)){
-					//stderr.println("is dismissed url");
-					Set<String> dismissed  = myburp.tableModel.getConfigValueSetByKey("DismissedURL");
-					dismissed.remove(url);
-					myburp.tableModel.setConfigValueSetByKey("DismissedURL",dismissed);
-				}
-				if (myburp.isDismissedHost(host)){
-					Set<String> dismissed  = myburp.tableModel.getConfigValueSetByKey("DismissedHost");
-					dismissed.remove(host);
-					myburp.tableModel.setConfigValueSetByKey("DismissedHost",dismissed);
-				}
+				DismissedTargets.targets.remove(url);
+				DismissedTargets.targets.remove(host);
+				DismissedTargets.ShowToGUI();
 			}
 		}catch (Exception e1)
 		{
