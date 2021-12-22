@@ -191,7 +191,8 @@ public class GUI extends JFrame {
 		panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
 		
-		AddButton = new JButton("Add New Line");
+		AddButton = new JButton("Add");
+		AddButton.setToolTipText("Add A New Config Line");
 		AddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//tableModel = table.getModel();
@@ -205,7 +206,8 @@ public class GUI extends JFrame {
 		panel_1.add(AddButton);
 
 
-		RemoveButton = new JButton("Remove Selected Line");
+		RemoveButton = new JButton("Delete");
+		RemoveButton.setToolTipText("Delete Selected Config Lines");
 		panel_1.add(RemoveButton);
 		RemoveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -216,12 +218,12 @@ public class GUI extends JFrame {
 		});
 		
 		
-		JButton btnSave = new JButton("Save Config");
+		JButton btnSave = new JButton("SaveToBurp");
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				saveConfigToBurp();
 			}});
-		btnSave.setToolTipText("Save Config To Extension Setting");
+		btnSave.setToolTipText("Save Config To Burp Extension Setting");
 		panel_1.add(btnSave);
 		
 		panel_1.add(new Label(" |"));
@@ -229,7 +231,7 @@ public class GUI extends JFrame {
 		/**
 		 * 旧配置全删除，使用选中文件中的配置。
 		 */
-		JButton btnOpen = new JButton("Import Config(Override)");
+		JButton btnOpen = new JButton("Import Config");
 		btnOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc=new JFileChooser();
@@ -257,10 +259,20 @@ public class GUI extends JFrame {
 		btnOpen.setToolTipText("This action will clear current config and use your config file");
 		panel_1.add(btnOpen);
 		
+		JButton btnExport = new JButton("Export Config");
+		btnExport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveConfigToBurp();
+				saveDialog();
+			}});
+		btnExport.setToolTipText("Export config to a file");
+		panel_1.add(btnExport);
+		
+		
 		/**
 		 * 已存在的值不修改，只添加新增的记录。
 		 */
-		JButton btnImport = new JButton("Import Config(Combine)");
+		JButton btnImport = new JButton("Merge Config");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
@@ -278,6 +290,8 @@ public class GUI extends JFrame {
 						List<String> newEntries = config.getStringConfigEntries();
 						
 						List<String> oldEntries = tableModel.getConfigJsons();//以此为修改基础，已存在的key不修改。
+						
+						
 						List<String> oldKeys = new ArrayList<String>();
 						for (String config:oldEntries) {
 							ConfigEntry entry  = new ConfigEntry().FromJson(config);
@@ -285,14 +299,21 @@ public class GUI extends JFrame {
 						}
 						
 						for (String config:newEntries) {
+							if (oldEntries.contains(config)) {
+								continue;//存在完全相同的配置，Do Nothing
+							}
 							ConfigEntry entry  = new ConfigEntry().FromJson(config);
-							if (!oldKeys.contains(entry.getKey())) {
+							String configKey = entry.getKey();
+							if (oldKeys.contains(configKey)) {//存在相同Key,但是vaule或其他字段不同的配置，标记为冲突
+								entry.setKey(configKey+"[Conflict]");
+								oldEntries.add(entry.ToJson());
+							}else {//不存在相同配置，直接添加
 								oldEntries.add(config);
 							}
 						}
 						
 						config.setStringConfigEntries(oldEntries);
-						stdout.println("Combined knife config from "+ file.getName() +" with current config" );
+						stdout.println("Merge config from "+ file.getName() +" with current config" );
 						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
 						showToUI(config);
 
@@ -306,14 +327,7 @@ public class GUI extends JFrame {
 		btnImport.setToolTipText("This action will add new config and keep old ones");
 		panel_1.add(btnImport);
 
-		JButton btnExport = new JButton("Export Config");
-		btnExport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				saveConfigToBurp();
-				saveDialog();
-			}});
-		btnExport.setToolTipText("Export Config To A File");
-		panel_1.add(btnExport);
+
 
 		RestoreButton = new JButton("Restore Defaults");
 		RestoreButton.setToolTipText("Restore all config to default!");
