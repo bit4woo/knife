@@ -17,7 +17,7 @@ import config.DismissedTargets;
 public class DismissCancelMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DismissCancelMenu(BurpExtender burp){
-		this.setText("^_^ Cancle Dismissed");
+		this.setText("^_^ Dismissed Cancle");
 		this.addActionListener(new Dismiss_Cancel_Action(burp,burp.invocation));
 	}
 }

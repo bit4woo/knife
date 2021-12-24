@@ -3,19 +3,18 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JMenuItem;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JMenu;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.ibm.icu.text.CharsetDetector;
-import com.ibm.icu.text.CharsetMatch;
 
 import burp.BurpExtender;
 import burp.Getter;
@@ -25,20 +24,47 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IParameter;
+import burp.Methods;
+import config.ConfigEntry;
 
-public class InsertXSSMenu extends JMenuItem {
-	//JMenuItem vs. JMenu
-	public InsertXSSMenu(BurpExtender burp){
-		if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-			if (burp.tableModel.getConfigValueByKey("XSS-Payload")!=null){
-				this.setText("^_^ Insert XSS");
-				this.addActionListener(new InsertXSSAction(burp,burp.invocation));
+/**
+ * 将某个payload插入所有的插入点，比如XSS
+ * @author bit4woo 
+ */
+
+//reference XXE_Menu.java
+public class CustomPayloadForAllInsertpointMenu extends JMenu {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public BurpExtender burp;
+	public String[] Custom_Payload_Menu;
+
+	public CustomPayloadForAllInsertpointMenu(BurpExtender burp){
+		try {
+			this.setText("^_^ Insert Payload For All");
+			this.burp = burp;
+
+			List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
+			List<ConfigEntry> configs1 = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
+			configs.addAll(configs1);
+			Iterator<ConfigEntry> it = configs.iterator();
+			List<String> tmp = new ArrayList<String>();
+			while (it.hasNext()) {
+				ConfigEntry item = it.next();
+				tmp.add(item.getKey());//custom payload name
 			}
+
+			Custom_Payload_Menu = tmp.toArray(new String[0]);
+			Methods.add_MenuItem_and_listener(this, Custom_Payload_Menu, new ForAllInserpointListener(burp));
+		} catch (Exception e) {
+			e.printStackTrace(BurpExtender.getStderr());
 		}
 	}
 }
 
-class InsertXSSAction implements ActionListener {
+class ForAllInserpointListener implements ActionListener {
 	private IContextMenuInvocation invocation;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -46,9 +72,9 @@ class InsertXSSAction implements ActionListener {
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
 
-	public InsertXSSAction(BurpExtender burp, IContextMenuInvocation invocation) {
+	public ForAllInserpointListener(BurpExtender burp) {
 		this.burp = burp;
-		this.invocation = invocation;
+		this.invocation = burp.invocation;
 		this.helpers = burp.helpers;
 		this.callbacks = burp.callbacks;
 		this.stderr = burp.stderr;
@@ -63,8 +89,14 @@ class InsertXSSAction implements ActionListener {
 
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
-		String xsspayload = burp.tableModel.getConfigValueByKey("XSS-Payload");
+		
 		String charset = HttpMessageCharSet.getCharset(newRequest);
+		String xsspayload;
+		try {
+			xsspayload = new String(getPayload(event.getActionCommand()),charset);
+		} catch (UnsupportedEncodingException e1) {
+			xsspayload = new String(getPayload(event.getActionCommand()));
+		}
 
 		if (xsspayload == null) return;
 
@@ -111,6 +143,50 @@ class InsertXSSAction implements ActionListener {
 			}
 		}
 		messageInfo.setRequest(newRequest);
+	}
+	
+
+	public byte[] getPayload(String action){//action is the payload name
+
+		//debug
+		//PrintWriter stderr = new PrintWriter(myburp.callbacks.getStderr(), true);
+		
+		byte[] payloadBytes = null;
+		String payload =burp.tableModel.getConfigValueByKey(action);
+
+		if (burp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload)) {
+			
+			String host = burp.invocation.getSelectedMessages()[0].getHttpService().getHost();
+
+
+			if (payload.contains("%host")) {
+				payload = payload.replaceAll("%host", host);
+			}
+			//debug
+			//stderr.println(payload);
+
+			if(payload.toLowerCase().contains("%dnslogserver")) {
+				String dnslog = burp.tableModel.getConfigValueByKey("DNSlogServer");
+				Pattern p = Pattern.compile("(?i)%dnslogserver");
+				Matcher m  = p.matcher(payload);
+
+				while ( m.find() ) {
+					String found = m.group(0);
+					payload = payload.replaceAll(found, dnslog);
+				}
+			}
+			//debug
+			//stderr.println(payload);
+			payloadBytes = payload.getBytes();
+		}
+		
+
+		if (burp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload_Base64)) {
+			payloadBytes = Base64.getDecoder().decode(payload);
+			//用IExtensionHelpers的stringToBytes bytesToString方法来转换的话？能保证准确性吗？
+		}
+		
+		return payloadBytes;
 	}
 
 	public static boolean isInt(String input) {
@@ -211,54 +287,5 @@ class InsertXSSAction implements ActionListener {
 			}
 		}
 		return true;
-	}
-
-	public static void test() {
-		//System.out.println(isInt("13175192849"));
-		String aaa = "{\r\n" + 
-				" \"person\":{\"name\":\"Sam\", \"surname\":\"ngonma\"},\r\n" + 
-				" \"car\":{\"make\":\"toyota\", \"model\":\"yaris\"}\r\n" + 
-				" }";
-		String bbb = "[\r\n" + 
-				"  {\r\n" + 
-				"    \"amount\": \" 12185\",\r\n" + 
-				"    \"job\": \"GAPA\",\r\n" + 
-				"    \"month\": \"JANUARY\",\r\n" + 
-				"    \"year\": \"2010\"\r\n" + 
-				"  },\r\n" + 
-				"  {\r\n" + 
-				"    \"amount\": \"147421\",\r\n" + 
-				"    \"job\": \"GAPA\",\r\n" + 
-				"    \"month\": \"MAY\",\r\n" + 
-				"    \"year\": \"2010\"\r\n" + 
-				"  },\r\n" + 
-				"  {\r\n" + 
-				"    \"amount\": \"2347\",\r\n" + 
-				"    \"job\": \"GAPA\",\r\n" + 
-				"    \"month\": \"AUGUST\",\r\n" + 
-				"    \"year\": \"2010\"\r\n" + 
-				"  }\r\n" + 
-				"]";
-		try {
-			System.out.println(updateJSONValue(bbb,"11111"));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public static void main(String args[]) throws Exception {
-		String aaa = "[1,2]";
-		String bbb = "['a','b']";
-		String ccc = "{\r\n" + 
-				" \"person\":{\"name\":\"Sam\", \"surname\":\"ngonma\"},\r\n" + 
-				" \"car\":{\"make\":\"toyota\", \"model\":\"yaris\"}\r\n" + 
-				" }";
-		String ddd = "['a':'b',xxxx,1111]";
-		System.out.println(isJSONArray(bbb));
-		System.out.println(updateJSONValue(bbb,"xxx"));
 	}
 }

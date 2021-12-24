@@ -21,7 +21,7 @@ import config.ConfigEntry;
  */
 
 //reference XXE_Menu.java
-public class Custom_Payload_Menu extends JMenu {
+public class CustomPayloadMenu extends JMenu {
 	/**
 	 * 
 	 */
@@ -31,9 +31,9 @@ public class Custom_Payload_Menu extends JMenu {
 	//sub level menu of hackbar++, the name of payload;
 
 
-	public Custom_Payload_Menu(BurpExtender burp){
+	public CustomPayloadMenu(BurpExtender burp){
 		try {
-			this.setText("^_^ Custom Payload");
+			this.setText("^_^ Insert Payload");
 			this.myburp = burp;
 
 			List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);

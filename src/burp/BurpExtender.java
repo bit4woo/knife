@@ -18,6 +18,7 @@ import javax.swing.JMenuItem;
 
 import com.google.gson.Gson;
 
+import Deprecated.InsertXSSMenu;
 import U2C.ChineseTabFactory;
 import U2C.U2CTabFactory;
 import config.Config;
@@ -29,14 +30,14 @@ import config.GUI;
 import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
 import knife.CookieUtils;
-import knife.Custom_Payload_Menu;
+import knife.CustomPayloadForAllInsertpointMenu;
+import knife.CustomPayloadMenu;
 import knife.DismissCancelMenu;
 import knife.DismissMenu;
 import knife.DoActiveScanMenu;
 import knife.DoPortScanMenu;
 import knife.DownloadResponseMenu;
 import knife.HeaderEntry;
-import knife.InsertXSSMenu;
 import knife.OpenWithBrowserMenu;
 import knife.RunSQLMapMenu;
 import knife.SetCookieMenu;
@@ -133,8 +134,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		this.invocation = invocation;
 		//常用
 		menu_item_list.add(new OpenWithBrowserMenu(this));
-		menu_item_list.add(new Custom_Payload_Menu(this));
-		menu_item_list.add(new InsertXSSMenu(this));
+		menu_item_list.add(new CustomPayloadMenu(this));
+		menu_item_list.add(new CustomPayloadForAllInsertpointMenu(this));
 
 		//cookie身份凭证相关
 		menu_item_list.add(new UpdateCookieMenu(this));

@@ -15,6 +15,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 
+@Deprecated
 public class DismissAutoForwardMenu extends JMenu {//JMenuItem vs. JMenu
 
 	public DismissAutoForwardMenu(BurpExtender burp){
