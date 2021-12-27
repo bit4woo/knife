@@ -23,7 +23,7 @@ import burp.IHttpRequestResponse;
 import burp.IParameter;
 import burp.Utils;
 
-
+@Deprecated
 public class DownloadResponseMenu2 extends JMenuItem {
 	/**
 	 * 
