@@ -294,14 +294,27 @@ public class ConfigTableModel extends AbstractTableModel{
 			//list length and index changed after every remove.the origin index not point to right item any more.
 			Arrays.sort(rows); //升序
 			for (int i=rows.length-1;i>=0 ;i-- ) {//降序删除才能正确删除每个元素
-				String key = configEntries.get(rows[i]).getKey();
-				this.fireTableRowsDeleted(rows[i], rows[i]);
+				ConfigEntry config = configEntries.get(rows[i]);
+				String key = config.getKey();
+				updateConflictItem(key);//如果存在冲突值，更新
+				
 				configEntries.remove(rows[i]);
 				stdout1.println("!!! "+key+" deleted");
 				this.fireTableRowsDeleted(rows[i], rows[i]);
 			}
 		}
 
+	}
+	
+	public void updateConflictItem(String key) {
+		for (ConfigEntry item:configEntries){
+			String keytmp = item.getKey();
+			if (keytmp.equalsIgnoreCase(key+"[Conflict]")) {
+				int index = configEntries.indexOf(item);
+				item.setKey(key);
+				this.fireTableRowsUpdated(index, index);
+			}
+		}
 	}
 
 
