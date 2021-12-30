@@ -416,7 +416,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 							isRequestChanged = true;
 							//success or failed,need to check?
 						}
-
 					}
 				}
 				if (isRequestChanged){
@@ -425,7 +424,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
 				}
 
-
+				/*
 				if (isRequestChanged) {
 					//debug
 					List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
@@ -434,7 +433,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					for (String entry : finalheaders) {
 						stdout.println(entry);
 					}
-				}
+				}*/
 			}else {//response
 
 			}
