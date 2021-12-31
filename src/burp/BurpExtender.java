@@ -366,7 +366,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 								isRequestChanged = true;
 
 							} else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
-								value = headers.get(key) + value;
+								String oldValue = headers.get(key);
+								if (oldValue == null) {
+									oldValue = "";
+								}
+								value = oldValue + value;
 								headers.put(key, value);
 								isRequestChanged = true;
 								//stdout.println("2222"+value);
