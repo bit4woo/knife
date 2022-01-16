@@ -112,6 +112,8 @@ Config_Custom_Payload_Base64：base64格式的payload，当payload包含换行�
 
 #### 7、Insert Payload For All
 
+原先的菜单名称是【Insert XSS】，现在对其做了加强。原先是只能批量插入XSS Payload到多个参数值，现在是任意Payload都可以。
+
 一键对当前数据包中【非数字型和非cookie的所有参数】插入自定义的Payload。与Insert Payload的功能类似，只是这个功能尝试对多个参数执行相同的动作而已。
 
 #### 8、Dismissed
