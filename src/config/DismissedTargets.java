@@ -41,8 +41,8 @@ public class DismissedTargets {
 			}*/
 			
 			if (key.startsWith("*.")){
-				key = key.replaceFirst("\\*","");
-				if (host.endsWith(key)){
+				String tmpDomain = key.replaceFirst("\\*","");
+				if (host.endsWith(tmpDomain)){
 					return targets.get(key);
 				}
 			}
