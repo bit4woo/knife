@@ -192,6 +192,12 @@ RunTerminalWithRobotInput		Config_Basic_Variable	false
 
 ![image-20211230174237094](README.assets/image-20211230174237094.png)
 
+Unicode测试URL
+
+https://passport.baidu.com/v2/api/getqrcode
+
+https://aiqicha.baidu.com/index/getCPlaceAjax
+
 ### 三、请求包自动修改
 
 #### 1、自动删除
