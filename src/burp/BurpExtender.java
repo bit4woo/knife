@@ -63,6 +63,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public static String Version = bsh.This.class.getPackage().getImplementationVersion();
 	public static String Author = "by bit4woo";
 	public static String github = "https://github.com/bit4woo/knife";
+	
+	public static String CurrentProxy = "";
 
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
@@ -240,6 +242,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 		cookieToSetMap.clear();
 		 */
+		if (CurrentProxy == null || CurrentProxy.equals("")) {
+			//为了知道burp当前监听的接口。供“find url and request”菜单使用
+			CurrentProxy = message.getListenerInterface();
+		}
 		
 		HelperPlus getter = new HelperPlus(helpers);
 		if (messageIsRequest) {//丢弃干扰请求
@@ -443,6 +449,29 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		} catch (Exception e) {
 			e.printStackTrace();
 			stderr.print(e.getStackTrace());
+		}
+	}
+	
+	
+	public static String getProxyHost() {
+		try {
+			String proxyHost = CurrentProxy.split(":")[0];
+			return proxyHost;
+		} catch (Exception e) {
+			e.printStackTrace();
+			CurrentProxy="";//设置为空，以便重新获取。
+			return null;
+		}
+	}
+	
+	public static int getProxyPort() {
+		try {
+			String proxyPort = CurrentProxy.split(":")[1];
+			return Integer.parseInt(proxyPort);
+		} catch (Exception e) {
+			e.printStackTrace();
+			CurrentProxy="";//设置为空，以便重新获取。
+			return -1;
 		}
 	}
 

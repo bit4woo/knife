@@ -86,10 +86,17 @@ class FindUrl_Action implements ActionListener{
 								return;
 							}
 							
+							String proxyHost = BurpExtender.getProxyHost();
+							int proxyPort = BurpExtender.getProxyPort();
+							
+							if (proxyHost == null || proxyPort == -1) {
+								return;
+							}
+							
 							for (String url:urls) {
 								if (!url.startsWith("http://") && !url.startsWith("https://")) {
 									url = baseurl+url;
-									sendRequest(url);
+									sendRequest(url,proxyHost,proxyPort);
 								}
 							}
 						} catch (Exception e) {
@@ -138,10 +145,10 @@ class FindUrl_Action implements ActionListener{
 		return selectedValue;
 	}
 
-	public static void sendRequest(String url) {
+	public static void sendRequest(String url,String proxyHost,int proxyPort) {
 		HttpRequest request = HttpRequest.get(url);
 		//Configure proxy
-		request.useProxy("127.0.0.1", 8080);
+		request.useProxy(proxyHost, proxyPort);
 
 		//Accept all certificates
 		request.trustAllCerts();
@@ -153,7 +160,7 @@ class FindUrl_Action implements ActionListener{
 
 		HttpRequest postRequest = HttpRequest.post(url);
 		//Configure proxy
-		postRequest.useProxy("127.0.0.1", 8080);
+		postRequest.useProxy(proxyHost, proxyPort);
 		//Accept all certificates
 		postRequest.trustAllCerts();
 		//Accept all hostnames
