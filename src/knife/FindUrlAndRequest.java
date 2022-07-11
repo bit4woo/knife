@@ -76,7 +76,10 @@ class FindUrl_Action implements ActionListener{
 							Set<String> baseUrls = getBaseURL(urls);
 							
 							String referUrl = getter.getHeaderValueOf(true,message,"Referer");
-							baseUrls.add(referUrl);
+							if (referUrl != null) {
+								baseUrls.add(referUrl);
+							}
+							
 							String fullUrl = getter.getFullURL(message).toString();
 							baseUrls.add(fullUrl);
 							
@@ -132,7 +135,7 @@ class FindUrl_Action implements ActionListener{
 
 		// Copying contents of domains to arr[]
 		System.arraycopy(domains.toArray(), 0, possibleValues, 0, n-1);
-		possibleValues[n-1] = "";
+		possibleValues[n-1] = "let me input";
 
 		String selectedValue = (String) JOptionPane.showInputDialog(null,
 				"Choose One", "Chose And Edit Base URL",
