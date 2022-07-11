@@ -6,7 +6,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.text.StringEscapeUtils;
+
 
 public class Utils {
 	public static boolean isWindows() {
@@ -127,6 +138,187 @@ public class Utils {
         }
         return "";
     }
+	
+	/**
+	 * 换行符的可能性有三种，都必须考虑到
+	 * @param input
+	 * @return
+	 */
+	public static List<String> textToLines(String input){
+		String[] lines = input.split("(\r\n|\r|\n)", -1);
+		List<String> result = new ArrayList<String>();
+		for(String line: lines) {
+			line = line.trim();
+			if (!line.equalsIgnoreCase("")) {
+				result.add(line.trim());
+			}
+		}
+		return result;
+	}
+	
+	
+	public static List<String> grepURL(String httpResponse) {
+		httpResponse = httpResponse.toLowerCase();
+		Set<String> URLs = new HashSet<>();
+		Set<String> baseURLs = new HashSet<>();
+
+		List<String> lines = textToLines(httpResponse);
+
+		//https://github.com/GerbenJavado/LinkFinder/blob/master/linkfinder.py
+		String regex_str = "(?:\"|')"
+				+ "("
+				+ "((?:[a-zA-Z]{1,10}://|//)[^\"'/]{1,}\\.[a-zA-Z]{2,}[^\"']{0,})"
+				+ "|"
+				+ "((?:/|\\.\\./|\\./)[^\"'><,;| *()(%%$^/\\\\\\[\\]][^\"'><,;|()]{1,})"
+				+ "|"
+				+ "([a-zA-Z0-9_\\-/]{1,}/[a-zA-Z0-9_\\-/]{1,}\\.(?:[a-zA-Z]{1,4}|action)(?:[\\?|/][^\"|']{0,}|))"
+				+ "|"
+				+ "([a-zA-Z0-9_\\-]{1,}\\.(?:php|asp|aspx|jsp|json|action|html|js|txt|xml)(?:\\?[^\"|']{0,}|))"
+				+ ")"
+				+ "(?:\"|')";
+
+		//regex_str = Pattern.quote(regex_str);
+		Pattern pt = Pattern.compile(regex_str);
+		for (String line:lines) {//分行进行提取，似乎可以提高成功率？PATH_AND_QUERY
+			line = decodeAll(line);
+			Matcher matcher = pt.matcher(line);
+			while (matcher.find()) {//多次查找
+				String url = matcher.group();
+				URLs.add(url);
+			}
+		}
+
+		List<String> tmplist= new ArrayList<>(URLs);
+		Collections.sort(tmplist);
+		tmplist = removePrefixAndSuffix(tmplist,"\"","\"");
+		return tmplist;
+	}
+	
+	public static List<String> removePrefixAndSuffix(List<String> input,String Prefix,String Suffix) {
+		ArrayList<String> result = new ArrayList<String>();
+		if (Prefix == null && Suffix == null) {
+			return result;
+		} else {
+			if (Prefix == null) {
+				Prefix = "";
+			}
+
+			if (Suffix == null) {
+				Suffix = "";
+			}
+
+			List<String> content = input;
+			for (String item:content) {
+				if (item.startsWith(Prefix)) {
+					//https://stackoverflow.com/questions/17225107/convert-java-string-to-string-compatible-with-a-regex-in-replaceall
+					String tmp = Pattern.quote(Prefix);//自动实现正则转义
+					item = item.replaceFirst(tmp, "");
+				}
+				if (item.endsWith(Suffix)) {
+					String tmp = Pattern.quote(reverse(Suffix));//自动实现正则转义
+					item = reverse(item).replaceFirst(tmp, "");
+					item = reverse(item);
+				}
+				result.add(item); 
+			}
+			return result;
+		}
+	}
+
+	public static String reverse(String str) {
+		if (str == null) {
+			return null;
+		}
+		return new StringBuffer(str).reverse().toString();
+	}
+	
+	/**
+	 * 先解Unicode，再解url，应该才是正确操作吧
+	 * @param line
+	 * @return
+	 */
+	public static String decodeAll(String line) {
+		line = line.trim();
+
+		if (needUnicodeConvert(line)) {
+			while (true) {//unicode解码
+				try {
+					int oldlen = line.length();
+					line = StringEscapeUtils.unescapeJava(line);
+					int currentlen = line.length();
+					if (oldlen > currentlen) {
+						continue;
+					}else {
+						break;
+					}
+				}catch(Exception e) {
+					//e.printStackTrace(BurpExtender.getStderr());
+					break;//即使出错，也要进行后续的查找
+				}
+			}
+		}
+
+		if (needURLConvert(line)) {
+			while (true) {
+				try {
+					int oldlen = line.length();
+					line = URLDecoder.decode(line);
+					int currentlen = line.length();
+					if (oldlen > currentlen) {
+						continue;
+					}else {
+						break;
+					}
+				}catch(Exception e) {
+					//e.printStackTrace(BurpExtender.getStderr());
+					break;//即使出错，也要进行后续的查找
+				}
+			}
+		}
+
+		return line;
+	}
+	
+	public static boolean needUnicodeConvert(String str) {
+		Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
+		//Pattern pattern = Pattern.compile("(\\\\u([A-Fa-f0-9]{4}))");//和上面的效果一样
+		Matcher matcher = pattern.matcher(str.toLowerCase());
+		if (matcher.find() ){
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	public static boolean needURLConvert(String str) {
+		Pattern pattern = Pattern.compile("(%(\\p{XDigit}{2}))");
+
+		Matcher matcher = pattern.matcher(str.toLowerCase());
+		if (matcher.find() ){
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	public static List<String> grepIPAndPort(String httpResponse) {
+		Set<String> IPSet = new HashSet<>();
+		String[] lines = httpResponse.split("(\r\n|\r|\n)");
+
+		for (String line:lines) {
+			String pattern = "\\d{1,3}(?:\\.\\d{1,3}){3}(?::\\d{1,5})?";
+			Pattern pt = Pattern.compile(pattern);
+			Matcher matcher = pt.matcher(line);
+			while (matcher.find()) {//多次查找
+				String tmpIP = matcher.group();
+				IPSet.add(tmpIP);
+			}
+		}
+
+		List<String> tmplist= new ArrayList<>(IPSet);
+		Collections.sort(tmplist);
+		return tmplist;
+	}
 	
 	public static void main(String[] args) {
 		System.out.println(isCommandExists("nmap1"));

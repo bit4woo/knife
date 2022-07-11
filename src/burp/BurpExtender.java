@@ -18,7 +18,6 @@ import javax.swing.JMenuItem;
 
 import com.google.gson.Gson;
 
-import Deprecated.U2CTabFactory;
 import U2C.ChineseTabFactory;
 import config.Config;
 import config.ConfigEntry;
@@ -36,6 +35,7 @@ import knife.DismissMenu;
 import knife.DoActiveScanMenu;
 import knife.DoPortScanMenu;
 import knife.DownloadResponseMenu;
+import knife.FindUrlAndRequest;
 import knife.HeaderEntry;
 import knife.OpenWithBrowserMenu;
 import knife.RunSQLMapMenu;
@@ -163,6 +163,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//menu_item_list.add(new ViewChineseMenu(this));
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
+		
+		menu_item_list.add(new FindUrlAndRequest(this));
 
 		Iterator<JMenuItem> it = menu_item_list.iterator();
 		while (it.hasNext()) {
