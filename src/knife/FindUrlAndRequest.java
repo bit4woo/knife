@@ -34,6 +34,10 @@ public class FindUrlAndRequest extends JMenuItem {
 		this.setText("^_^ Find URL And Request");
 		this.addActionListener(new FindUrl_Action(burp,burp.invocation));
 	}
+	
+	public static void main(String[] args) {
+		FindUrl_Action.sendRequest("http://baidu.com/xxx","127.0.0.1",8080);
+	}
 }
 
 class FindUrl_Action implements ActionListener{
@@ -92,8 +96,15 @@ class FindUrl_Action implements ActionListener{
 							String proxyHost = BurpExtender.getProxyHost();
 							int proxyPort = BurpExtender.getProxyPort();
 							
-							if (proxyHost == null || proxyPort == -1) {
-								return;
+							int times =0;
+							while (proxyHost == null || proxyPort == -1) {
+								if (times < 1) {//只提示一次
+									confirmProxy();
+									times++;
+									continue;
+								}else {
+									return;
+								}
 							}
 							
 							for (String url:urls) {
@@ -142,10 +153,20 @@ class FindUrl_Action implements ActionListener{
 				JOptionPane.INFORMATION_MESSAGE, null,
 				possibleValues, possibleValues[0]);
 		if (null != selectedValue) {
-			String baseUrl = JOptionPane.showInputDialog("Confirm The Base URL", selectedValue).trim();
-			return baseUrl;
+			String baseUrl = JOptionPane.showInputDialog("Confirm The Base URL", selectedValue);
+			if (baseUrl == null) {
+				return null;
+			}
+			return baseUrl.trim();
 		}
 		return selectedValue;
+	}
+	
+	public static void confirmProxy() {
+		String proxy = JOptionPane.showInputDialog("Confirm Proxy", BurpExtender.CurrentProxy);
+		if (proxy != null) {
+			BurpExtender.CurrentProxy = proxy.trim();
+		}
 	}
 
 	public static void sendRequest(String url,String proxyHost,int proxyPort) {
@@ -176,6 +197,6 @@ class FindUrl_Action implements ActionListener{
 
 
 	public static void main(String[] args) {
-
+		sendRequest("http://127.0.0.1:8080","127.0.0.1",8080);
 	}
 }
