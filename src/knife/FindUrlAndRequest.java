@@ -3,16 +3,14 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-
-import com.github.kevinsawicki.http.HttpRequest;
 
 import burp.BurpExtender;
 import burp.HelperPlus;
@@ -21,6 +19,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
+import burp.threadRequester;
 
 
 public class FindUrlAndRequest extends JMenuItem {
@@ -33,10 +32,6 @@ public class FindUrlAndRequest extends JMenuItem {
 	public FindUrlAndRequest(BurpExtender burp){
 		this.setText("^_^ Find URL And Request");
 		this.addActionListener(new FindUrl_Action(burp,burp.invocation));
-	}
-	
-	public static void main(String[] args) {
-		FindUrl_Action.sendRequest("http://baidu.com/xxx","127.0.0.1",8080);
 	}
 }
 
@@ -69,6 +64,8 @@ class FindUrl_Action implements ActionListener{
 						return;
 					}
 
+					BlockingQueue<String> inputQueue = new LinkedBlockingQueue<String>();
+
 					for (IHttpRequestResponse message:messages) {
 						try {
 							byte[] respBody = getter.getBody(false, message);
@@ -78,45 +75,34 @@ class FindUrl_Action implements ActionListener{
 							String body = new String(respBody);
 							List<String> urls = Utils.grepURL(body);
 							Set<String> baseUrls = getBaseURL(urls);
-							
+
 							String referUrl = getter.getHeaderValueOf(true,message,"Referer");
 							if (referUrl != null) {
 								baseUrls.add(referUrl);
 							}
-							
+
 							String fullUrl = getter.getFullURL(message).toString();
 							baseUrls.add(fullUrl);
-							
+
 							String baseurl = choseAndEditBaseURL(baseUrls);
-							
+
 							if (null==baseurl) {
 								return;
 							}
-							
-							String proxyHost = BurpExtender.getProxyHost();
-							int proxyPort = BurpExtender.getProxyPort();
-							
-							int times =0;
-							while (proxyHost == null || proxyPort == -1) {
-								if (times < 1) {//只提示一次
-									confirmProxy();
-									times++;
-									continue;
-								}else {
-									return;
-								}
-							}
-							
+
 							for (String url:urls) {
 								if (!url.startsWith("http://") && !url.startsWith("https://")) {
 									url = baseurl+url;
-									sendRequest(url,proxyHost,proxyPort);
+									inputQueue.put(url);
 								}
 							}
 						} catch (Exception e) {
 							e.printStackTrace(BurpExtender.getStderr());
 						}
 					}
+
+					doRequest(inputQueue);
+
 				}
 				catch (Exception e1)
 				{
@@ -126,7 +112,52 @@ class FindUrl_Action implements ActionListener{
 		};
 		new Thread(requestRunner).start();
 	}
+
+	/**
+	 * 多线程执行请求
+	 * @param inputQueue
+	 */
+	public void doRequest(BlockingQueue<String> inputQueue) {
+		String proxyHost = BurpExtender.getProxyHost();
+		int proxyPort = BurpExtender.getProxyPort();
+
+		int times =0;
+		while (proxyHost == null || proxyPort == -1) {
+			if (times < 1) {//只提示一次
+				confirmProxy();
+				times++;
+				continue;
+			}else {
+				return;
+			}
+		}
+		
+		int max = threadNumberShouldUse(inputQueue.size());
+
+		for (int i=0;i<=max;i++) {
+			threadRequester requester = new threadRequester(inputQueue,proxyHost,proxyPort,i);
+			requester.start();
+		}
+	}
 	
+	/**
+	 * 根据已有的域名梳理，预估应该使用的线程数
+	 * 假设1个任务需要1秒钟。线程数在1-100之间，如何选择线程数使用最小的时间？
+	 * @param domains
+	 * @return
+	 */
+	public static int threadNumberShouldUse(int domainNum) {
+
+		int tmp = (int) Math.sqrt(domainNum);
+		if (tmp <=1) {
+			return 1;
+		}else if(tmp>=10) {
+			return 10;
+		}else {
+			return tmp;
+		}
+	}
+
 	public static Set<String> getBaseURL(List<String> urls) {
 		Set<String> baseURLs = new HashSet<String>();
 		for (String tmpurl:urls) {
@@ -161,42 +192,11 @@ class FindUrl_Action implements ActionListener{
 		}
 		return selectedValue;
 	}
-	
+
 	public static void confirmProxy() {
 		String proxy = JOptionPane.showInputDialog("Confirm Proxy", BurpExtender.CurrentProxy);
 		if (proxy != null) {
 			BurpExtender.CurrentProxy = proxy.trim();
 		}
-	}
-
-	public static void sendRequest(String url,String proxyHost,int proxyPort) {
-		HttpRequest request = HttpRequest.get(url);
-		//Configure proxy
-		request.useProxy(proxyHost, proxyPort);
-
-		//Accept all certificates
-		request.trustAllCerts();
-		//Accept all hostnames
-		request.trustAllHosts();
-
-		request.code();
-
-
-		HttpRequest postRequest = HttpRequest.post(url);
-		//Configure proxy
-		postRequest.useProxy(proxyHost, proxyPort);
-		//Accept all certificates
-		postRequest.trustAllCerts();
-		//Accept all hostnames
-		postRequest.trustAllHosts();
-
-		postRequest.send("test=test");
-		postRequest.code();
-
-	}
-
-
-	public static void main(String[] args) {
-		sendRequest("http://127.0.0.1:8080","127.0.0.1",8080);
 	}
 }
