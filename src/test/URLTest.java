@@ -12,8 +12,9 @@ public class URLTest
    {
       try
       {
-         URL url = new URL("http://www.runoob.com/index.html?language=cn#j2se");
-         url = new URL("http://127.0.0.1:5084/..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\etc/passwd");
+//         URL url = new URL("http://www.runoob.com/index.html?language=cn#j2se");
+         URL url = new URL("www.runoob.com/index.html?language=cn#j2se");
+//         url = new URL("http://127.0.0.1:5084/..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\..\\\\\\etc/passwd");
          System.out.println("URL 为：" + url.toString());
          System.out.println("协议为：" + url.getProtocol());
          System.out.println("验证信息：" + url.getAuthority());

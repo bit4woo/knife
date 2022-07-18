@@ -191,6 +191,7 @@ public class Utils {
 		List<String> tmplist= new ArrayList<>(URLs);
 		Collections.sort(tmplist);
 		tmplist = removePrefixAndSuffix(tmplist,"\"","\"");
+		tmplist = removePrefixAndSuffix(tmplist,"\'","\'");
 		return tmplist;
 	}
 	
