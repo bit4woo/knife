@@ -1,5 +1,7 @@
 package burp;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.BlockingQueue;
 
 import com.github.kevinsawicki.http.HttpRequest;
@@ -28,8 +30,12 @@ public class threadRequester extends Thread {
 				}
 
 				String url = inputQueue.take();
-				sendRequest(url,proxyHost,proxyPort);
-
+				try {
+					sendRequest(url,proxyHost,proxyPort);
+				} catch (Exception e) {
+					e.printStackTrace(BurpExtender.getStderr());
+					sendRequestWithBurpMethod(url);
+				}
 			} catch (Exception error) {
 				error.printStackTrace(BurpExtender.getStderr());
 			}
@@ -60,6 +66,32 @@ public class threadRequester extends Thread {
 		postRequest.send("test=test");
 		postRequest.code();
 
+	}
+	
+	public static void sendRequestWithBurpMethod(String url) {
+		URL tmpUrl;
+		try {
+			tmpUrl = new URL(url);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		IBurpExtenderCallbacks callbacks = BurpExtender.getCallbacks();
+		
+		byte[] req = callbacks.getHelpers().buildHttpRequest(tmpUrl);
+		HelperPlus hp = new HelperPlus(callbacks.getHelpers());
+		req = hp.addOrUpdateHeader(true, req, "X-sent-by-knife", "X-sent-by-knife");
+		
+		int port = tmpUrl.getPort() == -1? tmpUrl.getDefaultPort():tmpUrl.getPort();
+		IHttpService service = callbacks.getHelpers().buildHttpService(tmpUrl.getHost(), port, tmpUrl.getProtocol());
+		
+		IHttpRequestResponse message = BurpExtender.getCallbacks().makeHttpRequest(service, req);
+		message.setComment("Sent by Knife");
+		
+		byte[] postReq = callbacks.getHelpers().toggleRequestMethod(req);
+		IHttpRequestResponse message1 = BurpExtender.getCallbacks().makeHttpRequest(service, postReq);
+		message.setComment("Sent by Knife");
 	}
 	
 	public static void main(String[] args) {
