@@ -3,6 +3,8 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,54 +57,55 @@ class FindUrl_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		Runnable requestRunner = new Runnable() {
+			private String referUrl;
+
 			@Override
 			public void run() {
 				try{
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 					HelperPlus getter = new HelperPlus(helpers);
-					if (messages == null) {
+					if (messages == null || messages.length <=0) {
 						return;
 					}
 
 					BlockingQueue<String> inputQueue = new LinkedBlockingQueue<String>();
 
-					for (IHttpRequestResponse message:messages) {
-						try {
-							byte[] respBody = getter.getBody(false, message);
-							if (null == respBody) {
-								continue;
-							}
-							String body = new String(respBody);
-							List<String> urls = Utils.grepURL(body);
-							Set<String> baseUrls = getBaseURL(urls);
-
-							String referUrl = getter.getHeaderValueOf(true,message,"Referer");
-							if (referUrl != null) {
-								baseUrls.add(referUrl);
-							}
-
-							String fullUrl = getter.getFullURL(message).toString();
-							baseUrls.add(fullUrl);
-
-							String baseurl = choseAndEditBaseURL(baseUrls);
-
-							if (null==baseurl) {
-								return;
-							}
-
-							for (String url:urls) {
-								if (!url.startsWith("http://") && !url.startsWith("https://")) {
-									url = baseurl+url;
-									inputQueue.put(url);
-								}
-							}
-						} catch (Exception e) {
-							e.printStackTrace(BurpExtender.getStderr());
+					try {
+						//一般都是对一个JS文件进行路径提取，不需要循环
+						IHttpRequestResponse message = messages[0];
+						byte[] respBody = HelperPlus.getBody(false, message);
+						if (null == respBody) {
+							return;
 						}
+						String body = new String(respBody);
+						List<String> urls = Utils.grepURL(body);
+						Set<String> baseUrls = getBaseURL(urls);
+
+						referUrl = getter.getHeaderValueOf(true,message,"Referer");
+						if (referUrl != null) {
+							baseUrls.add(referUrl);
+						}
+
+						String fullUrl = getter.getFullURL(message).toString();
+						baseUrls.add(fullUrl);
+
+						String baseurl = choseAndEditBaseURL(baseUrls);
+
+						if (null==baseurl) {
+							return;
+						}
+
+						for (String url:urls) {
+							if (!url.startsWith("http://") && !url.startsWith("https://")) {
+								url = baseurl+url;
+								inputQueue.put(url);
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace(BurpExtender.getStderr());
 					}
 
-					doRequest(inputQueue);
-
+					doRequest(inputQueue,referUrl);
 				}
 				catch (Exception e1)
 				{
@@ -117,7 +120,7 @@ class FindUrl_Action implements ActionListener{
 	 * 多线程执行请求
 	 * @param inputQueue
 	 */
-	public void doRequest(BlockingQueue<String> inputQueue) {
+	public void doRequest(BlockingQueue<String> inputQueue,String referUrl) {
 		String proxyHost = BurpExtender.getProxyHost();
 		int proxyPort = BurpExtender.getProxyPort();
 
@@ -131,15 +134,15 @@ class FindUrl_Action implements ActionListener{
 				return;
 			}
 		}
-		
+
 		int max = threadNumberShouldUse(inputQueue.size());
 
 		for (int i=0;i<=max;i++) {
-			threadRequester requester = new threadRequester(inputQueue,proxyHost,proxyPort,i);
+			threadRequester requester = new threadRequester(inputQueue,proxyHost,proxyPort,referUrl,i);
 			requester.start();
 		}
 	}
-	
+
 	/**
 	 * 根据已有的域名梳理，预估应该使用的线程数
 	 * 假设1个任务需要1秒钟。线程数在1-100之间，如何选择线程数使用最小的时间？
@@ -170,13 +173,15 @@ class FindUrl_Action implements ActionListener{
 		return baseURLs;
 	}
 
-	public static String choseAndEditBaseURL(Set<String> domains) {
+	public static String choseAndEditBaseURL(Set<String> inputs) {
 
-		int n = domains.size()+1;
+		ArrayList<String> tmpList = new ArrayList<String>(inputs);
+		Collections.sort(tmpList);
+		int n = inputs.size()+1;
 		String[] possibleValues = new String[n];
 
 		// Copying contents of domains to arr[]
-		System.arraycopy(domains.toArray(), 0, possibleValues, 0, n-1);
+		System.arraycopy(tmpList.toArray(), 0, possibleValues, 0, n-1);
 		possibleValues[n-1] = "let me input";
 
 		String selectedValue = (String) JOptionPane.showInputDialog(null,

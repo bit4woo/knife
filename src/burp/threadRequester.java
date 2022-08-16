@@ -10,11 +10,13 @@ public class threadRequester extends Thread {
 	private final BlockingQueue<String> inputQueue;
 	private String proxyHost;
 	private int proxyPort;
+	private String referUrl;
 
-	public threadRequester(BlockingQueue<String> inputQueue,String proxyHost,int proxyPort,int threadNo) {
+	public threadRequester(BlockingQueue<String> inputQueue,String proxyHost,int proxyPort,String referUrl,int threadNo) {
 		this.inputQueue = inputQueue;
 		this.proxyHost = proxyHost;
 		this.proxyPort = proxyPort;
+		this.referUrl = referUrl;
 		this.setName(this.getClass().getName()+threadNo);
 	}
 
@@ -31,7 +33,7 @@ public class threadRequester extends Thread {
 
 				String url = inputQueue.take();
 				try {
-					sendRequest(url,proxyHost,proxyPort);
+					sendRequest(url,proxyHost,proxyPort,referUrl);
 				} catch (Exception e) {
 					e.printStackTrace(BurpExtender.getStderr());
 					sendRequestWithBurpMethod(url);
@@ -41,11 +43,18 @@ public class threadRequester extends Thread {
 			}
 		}
 	}
-	
-	public static void sendRequest(String url,String proxyHost,int proxyPort) {
+
+	public static void sendRequest(String url,String proxyHost,int proxyPort,String referUrl) {
+
+		if (referUrl ==null || referUrl.equals("")) {
+			referUrl = url;
+		}
+		System.out.println("send request:"+url+" "+proxyHost+":"+proxyPort);
+
 		HttpRequest request = HttpRequest.get(url);
 		//Configure proxy
 		request.useProxy(proxyHost, proxyPort);
+		request.header("Referer", referUrl);
 
 		//Accept all certificates
 		request.trustAllCerts();
@@ -53,21 +62,25 @@ public class threadRequester extends Thread {
 		request.trustAllHosts();
 
 		request.code();
+		//		request.disconnect();
 
 
 		HttpRequest postRequest = HttpRequest.post(url);
 		//Configure proxy
 		postRequest.useProxy(proxyHost, proxyPort);
+		postRequest.header("Referer", referUrl);
 		//Accept all certificates
 		postRequest.trustAllCerts();
 		//Accept all hostnames
 		postRequest.trustAllHosts();
 
+
 		postRequest.send("test=test");
 		postRequest.code();
+		//		postRequest.disconnect();
 
 	}
-	
+
 	public static void sendRequestWithBurpMethod(String url) {
 		URL tmpUrl;
 		try {
@@ -76,26 +89,26 @@ public class threadRequester extends Thread {
 			e.printStackTrace();
 			return;
 		}
-		
+
 		IBurpExtenderCallbacks callbacks = BurpExtender.getCallbacks();
-		
+
 		byte[] req = callbacks.getHelpers().buildHttpRequest(tmpUrl);
 		HelperPlus hp = new HelperPlus(callbacks.getHelpers());
 		req = hp.addOrUpdateHeader(true, req, "X-sent-by-knife", "X-sent-by-knife");
-		
+
 		int port = tmpUrl.getPort() == -1? tmpUrl.getDefaultPort():tmpUrl.getPort();
 		IHttpService service = callbacks.getHelpers().buildHttpService(tmpUrl.getHost(), port, tmpUrl.getProtocol());
-		
+
 		IHttpRequestResponse message = BurpExtender.getCallbacks().makeHttpRequest(service, req);
-		message.setComment("Sent by Knife");
-		
+		message.setComment("Sent by Knife");//在logger中没有显示comment
+
 		byte[] postReq = callbacks.getHelpers().toggleRequestMethod(req);
 		IHttpRequestResponse message1 = BurpExtender.getCallbacks().makeHttpRequest(service, postReq);
-		message.setComment("Sent by Knife");
+		message.setComment("Sent by Knife");//在logger中没有显示comment
 	}
-	
+
 	public static void main(String[] args) {
-		sendRequest("http://127.0.0.1:8080","127.0.0.1",8080);
+		sendRequest("https://www.baidu.com","127.0.0.1",8080,"");
 	}
 
 }
