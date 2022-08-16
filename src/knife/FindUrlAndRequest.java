@@ -35,6 +35,14 @@ public class FindUrlAndRequest extends JMenuItem {
 		this.setText("^_^ Find URL And Request");
 		this.addActionListener(new FindUrl_Action(burp,burp.invocation));
 	}
+	
+	public static void main(String[] args) {
+		String url = "./abac/aaa.jpg";
+		if (url.startsWith("./")) {
+			url = url.replaceFirst("\\./", "");
+		}
+		System.out.println(url);
+	}
 }
 
 class FindUrl_Action implements ActionListener{
@@ -97,7 +105,13 @@ class FindUrl_Action implements ActionListener{
 
 						for (String url:urls) {
 							if (!url.startsWith("http://") && !url.startsWith("https://")) {
-								url = baseurl+url;
+								if (url.startsWith("/")) {
+									url = url.replaceFirst("/", "");
+								}
+								if (url.startsWith("./")) {
+									url = url.replaceFirst("\\./", "");
+								}
+								url = baseurl+url; //baseurl统一以“/”结尾；url统一删除“/”的开头
 								inputQueue.put(url);
 							}
 						}
@@ -124,15 +138,8 @@ class FindUrl_Action implements ActionListener{
 		String proxyHost = BurpExtender.getProxyHost();
 		int proxyPort = BurpExtender.getProxyPort();
 
-		int times =0;
-		while (proxyHost == null || proxyPort == -1) {
-			if (times < 1) {//只提示一次
-				confirmProxy();
-				times++;
-				continue;
-			}else {
-				return;
-			}
+		if (proxyHost == null || proxyPort == -1) {
+			return;
 		}
 
 		int max = threadNumberShouldUse(inputQueue.size());
@@ -193,15 +200,11 @@ class FindUrl_Action implements ActionListener{
 			if (baseUrl == null) {
 				return null;
 			}
+			if (!baseUrl.endsWith("/")) {
+				baseUrl = baseUrl.trim()+"/";
+			}
 			return baseUrl.trim();
 		}
 		return selectedValue;
-	}
-
-	public static void confirmProxy() {
-		String proxy = JOptionPane.showInputDialog("Confirm Proxy", BurpExtender.CurrentProxy);
-		if (proxy != null) {
-			BurpExtender.CurrentProxy = proxy.trim();
-		}
 	}
 }

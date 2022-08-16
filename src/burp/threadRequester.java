@@ -49,7 +49,7 @@ public class threadRequester extends Thread {
 		if (referUrl ==null || referUrl.equals("")) {
 			referUrl = url;
 		}
-		System.out.println("send request:"+url+" "+proxyHost+":"+proxyPort);
+		System.out.println("send request:"+url+"  using proxy:"+proxyHost+":"+proxyPort);
 
 		HttpRequest request = HttpRequest.get(url);
 		//Configure proxy

@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
 import com.google.gson.Gson;
 
@@ -280,7 +281,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			IHttpRequestResponse messageInfo = message.getMessageInfo();
 			//String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
 
-			String CurrentUrl = getter.getShortURL(messageInfo).toString();
+			String CurrentUrl = HelperPlus.getShortURL(messageInfo).toString();
 			//stderr.println(CurrentUrl+" "+targetUrl);
 			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
 			if (cookieToSet != null){
@@ -295,7 +296,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					}
 				}else {
 					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
-					byte[] responseBody = getter.getBody(false,messageInfo);
+					byte[] responseBody = HelperPlus.getBody(false,messageInfo);
 					List<String> setHeaders = GetSetCookieHeaders(cookieValue);
 					responseHeaders.addAll(setHeaders);
 
@@ -452,9 +453,18 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		}
 	}
 	
+	public static void confirmProxy() {
+		String proxy = JOptionPane.showInputDialog("Confirm Proxy Of Burp", "127.0.0.1:8080");
+		if (proxy != null) {
+			BurpExtender.CurrentProxy = proxy.trim();
+		}
+	}
 	
 	public static String getProxyHost() {
 		try {
+			if (CurrentProxy == null ||CurrentProxy.equals("") || CurrentProxy.split(":").length!=2) {
+				confirmProxy();
+			}
 			String proxyHost = CurrentProxy.split(":")[0];
 			return proxyHost;
 		} catch (Exception e) {
@@ -466,6 +476,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	
 	public static int getProxyPort() {
 		try {
+			if (CurrentProxy == null ||CurrentProxy.equals("") || CurrentProxy.split(":").length!=2) {
+				confirmProxy();
+			}
 			String proxyPort = CurrentProxy.split(":")[1];
 			return Integer.parseInt(proxyPort);
 		} catch (Exception e) {
