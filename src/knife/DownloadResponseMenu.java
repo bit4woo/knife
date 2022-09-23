@@ -160,6 +160,7 @@ class Download_Action implements ActionListener{
 			//1、从参数名中获取文件名称，任意文件读取多是这种情况
 			List<IParameter> paras = getter.getParas(message);
 			for (IParameter para:paras) {
+				if (para.getType() == IParameter.PARAM_COOKIE) continue;
 				String value = para.getValue();
 				int num = value.length()-value.replaceAll("/", "").length();
 				if (num >=2) {
@@ -169,6 +170,7 @@ class Download_Action implements ActionListener{
 			}
 
 			for (IParameter para:paras) {
+				if (para.getType() == IParameter.PARAM_COOKIE) continue;
 				String value = para.getValue();
 				int num = value.length()-value.replaceAll("\\\\", "").length();//是正则表达式
 				if (num >=2) {
