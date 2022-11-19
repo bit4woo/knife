@@ -321,6 +321,25 @@ public class Utils {
 		return tmplist;
 	}
 	
+	/**
+	 * 对于信息收集来说，没有用的文件
+	 * js是有用的
+	 * pdf\doc\excel等也是有用的，可以收集到其中的域名
+	 * rar\zip文件即使其中包含了有用信息，是无法直接读取的
+	 * @param urlpath
+	 * @return
+	 */
+	public static boolean uselessExtension(String urlpath) {
+		String extensions = "css|jpeg|gif|jpg|png|rar|zip|svg|jpeg|ico|woff|woff2|ttf|otf";
+		String[] extList = extensions.split("\\|");
+		for ( String item:extList) {
+			if(urlpath.endsWith("."+item)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public static void main(String[] args) {
 		System.out.println(isCommandExists("nmap1"));
 	}

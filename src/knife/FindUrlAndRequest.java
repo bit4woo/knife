@@ -104,6 +104,9 @@ class FindUrl_Action implements ActionListener{
 						}
 
 						for (String url:urls) {
+							if (Utils.uselessExtension(url)) {
+								continue;
+							}
 							if (!url.startsWith("http://") && !url.startsWith("https://")) {
 								if (url.startsWith("/")) {
 									url = url.replaceFirst("/", "");
