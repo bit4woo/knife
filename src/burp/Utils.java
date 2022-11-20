@@ -330,7 +330,7 @@ public class Utils {
 	 * @return
 	 */
 	public static boolean uselessExtension(String urlpath) {
-		String extensions = "css|jpeg|gif|jpg|png|rar|zip|svg|jpeg|ico|woff|woff2|ttf|otf";
+		String extensions = "css|jpeg|gif|jpg|png|rar|zip|svg|jpeg|ico|woff|woff2|ttf|otf|vue";
 		String[] extList = extensions.split("\\|");
 		for ( String item:extList) {
 			if(urlpath.endsWith("."+item)) {
