@@ -44,13 +44,7 @@ public class threadRequester extends Thread {
 		}
 	}
 
-	public static void sendRequest(String url,String proxyHost,int proxyPort,String referUrl) {
-
-		if (referUrl ==null || referUrl.equals("")) {
-			referUrl = url;
-		}
-		System.out.println("send request:"+url+"  using proxy:"+proxyHost+":"+proxyPort);
-
+	public static void doGetReq(String url,String proxyHost,int proxyPort,String referUrl) {
 		HttpRequest request = HttpRequest.get(url);
 		//Configure proxy
 		request.useProxy(proxyHost, proxyPort);
@@ -62,9 +56,10 @@ public class threadRequester extends Thread {
 		request.trustAllHosts();
 
 		request.code();
-		//		request.disconnect();
+	}
 
-
+	public static void doPostReq(String url,String proxyHost,int proxyPort,String referUrl) 
+	{
 		HttpRequest postRequest = HttpRequest.post(url);
 		//Configure proxy
 		postRequest.useProxy(proxyHost, proxyPort);
@@ -74,11 +69,36 @@ public class threadRequester extends Thread {
 		//Accept all hostnames
 		postRequest.trustAllHosts();
 
-
 		postRequest.send("test=test");
 		postRequest.code();
-		//		postRequest.disconnect();
+	}
 
+	public static void doPostJsonReq(String url,String proxyHost,int proxyPort,String referUrl) 
+	{
+		HttpRequest postRequest = HttpRequest.post(url);
+		//Configure proxy
+		postRequest.useProxy(proxyHost, proxyPort);
+		postRequest.header("Referer", referUrl);
+		postRequest.header("Content-Type", "application/json");
+		//Accept all certificates
+		postRequest.trustAllCerts();
+		//Accept all hostnames
+		postRequest.trustAllHosts();
+
+
+		postRequest.send("{}");
+		postRequest.code();
+	}
+
+	public static void sendRequest(String url,String proxyHost,int proxyPort,String referUrl) {
+
+		if (referUrl ==null || referUrl.equals("")) {
+			referUrl = url;
+		}
+		System.out.println("send request:"+url+"  using proxy:"+proxyHost+":"+proxyPort);
+		doPostJsonReq(url,proxyHost,proxyPort,referUrl);
+		doPostReq(url,proxyHost,proxyPort,referUrl);
+		doGetReq(url,proxyHost,proxyPort,referUrl);
 	}
 
 	public static void sendRequestWithBurpMethod(String url) {
@@ -108,7 +128,7 @@ public class threadRequester extends Thread {
 	}
 
 	public static void main(String[] args) {
-		sendRequest("https://www.baidu.com","127.0.0.1",8080,"");
+		doPostJsonReq("https://www.baidu.com","127.0.0.1",8080,"");
 	}
 
 }
