@@ -13,21 +13,13 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import burp.*;
 import org.apache.commons.text.StringEscapeUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-
-import burp.Getter;
-import burp.IBurpExtenderCallbacks;
-import burp.IExtensionHelpers;
-import burp.IMessageEditorController;
-import burp.IMessageEditorTab;
-import burp.IRequestInfo;
-import burp.IResponseInfo;
-import burp.ITextEditor;
 
 /**
  * @author bit4woo
@@ -59,6 +51,7 @@ public class ChineseTab implements IMessageEditorTab{
 	private String systemCharSet = CharSetHelper.getSystemCharSet(); ;
 
 	private static IExtensionHelpers helpers;
+	public BurpExtender burp;
 
 	public ChineseTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
@@ -136,6 +129,11 @@ public class ChineseTab implements IMessageEditorTab{
 	@Override
 	public void setMessage(byte[] content, boolean isRequest)
 	{
+		//根据用户输入的编码变量来获取系统显示编码
+		String DisplayEncode = burp.tableModel.getConfigValueByKey("Display_Coding");
+		if(null != DisplayEncode){	systemCharSet = DisplayEncode;}
+		//System.out.println(String.format("User Input Display Encode -> %s", DisplayEncode ));
+
 		String coding1 = "GBK,UTF-8,Big5";
 		allPossibleCharset1 = Arrays.asList(coding1.split(","));
 
