@@ -35,7 +35,9 @@ public class ConfigTableModel extends AbstractTableModel{
 	
 	public ConfigTableModel(){
 		//用于指示当前burp显示编码的环境变量,一般是GBK,UTF-8,关闭时使用burp启动时指定的编码.
-		configEntries.add(new ConfigEntry("Display_Coding", "UTF-8",ConfigEntry.Config_Basic_Variable,false,false,"Code In: GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1"));
+		configEntries.add(new ConfigEntry("Display_Coding", "UTF-8",ConfigEntry.Config_Basic_Variable,false,false,"One Code In: GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1"));
+		configEntries.add(new ConfigEntry("Coding_Set_From", "GBK,UTF-8",ConfigEntry.Config_Basic_Variable,false,false,"More Code In: GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1"));
+		configEntries.add(new ConfigEntry("Coding_Set_Using", "GBK,UTF-8",ConfigEntry.Config_Basic_Variable,false,false,"More Code In: GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1"));
 
 		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
 		configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true,false));
