@@ -136,12 +136,12 @@ public class ChineseTab implements IMessageEditorTab{
 
 		String coding1 = "GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1";
 		String codingSetFrom = burp.tableModel.getConfigValueByKey("Coding_Set_From");
-		if(null != codingSetFrom){ coding1 = codingSetFrom;}
+		if(null != codingSetFrom){ coding1 = codingSetFrom.replace(" ","");}
 		allPossibleCharset1 = Arrays.asList(coding1.split(","));
 
 		String coding2 = "GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1";
 		String codingSetUsing = burp.tableModel.getConfigValueByKey("Coding_Set_Using");
-		if(null != codingSetUsing){ coding2 = codingSetUsing;}
+		if(null != codingSetUsing){ coding2 = codingSetUsing.replace(" ","");}
 		detectCharset = CharSetHelper.detectCharset(content).toUpperCase();
 
 		//如果detectCharset为ISO-8859-1,说明没有检测到编码,就用系统编码来解码数据,否则使用发现的编码来解码数据
