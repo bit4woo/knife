@@ -131,8 +131,7 @@ public class ChineseTab implements IMessageEditorTab{
 	{
 		//根据用户输入的编码变量来获取系统显示编码
 		String DisplayEncode = burp.tableModel.getConfigValueByKey("Display_Coding");
-		if(null != DisplayEncode){	systemCharSet = DisplayEncode;}
-		//System.out.println(String.format("User Input Display Encode -> %s", DisplayEncode ));
+		if(null != DisplayEncode){	systemCharSet = DisplayEncode;}else{systemCharSet = CharSetHelper.getSystemCharSet();}
 
 		String coding1 = "GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1";
 		String codingSetFrom = burp.tableModel.getConfigValueByKey("Coding_Set_From");
