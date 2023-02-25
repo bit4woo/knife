@@ -1,6 +1,7 @@
 package burp;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,6 +17,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import U2C.CharSetHelper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 
@@ -343,5 +346,49 @@ public class Utils {
 	public static void main(String[] args) {
 		System.out.println(isCommandExists("nmap1"));
 	}
-	
+
+	/**
+	 * 从Json文件中自动加载项目配置,可能会生成新文件
+	 * @param callbacks
+	 * @param configPath
+	 */
+	public static void autoLoadProjectConfig(IBurpExtenderCallbacks callbacks, String configPath) {
+		if (configPath != null){
+			//自动加载burp项目Json的配置 // Project.Config.json 支持相对(BurpSuitePro)和绝对路径
+			String systemCharSet = CharSetHelper.getSystemCharSet();
+			// 判断功能是否打开|功能打开后进行加载操作
+			File file = new File(configPath);
+			try{
+				if (!file.exists() && !file.isDirectory()){
+					//配置文件不存在时,自动根据当前的配置生成
+					String configAsJson = callbacks.saveConfigAsJson();
+					FileUtils.write(file,configAsJson,systemCharSet);
+				}else {
+					// 配置文件存在时,加载启动时加载项目配置文件
+					callbacks.loadConfigFromJson(FileUtils.readFileToString(file, systemCharSet));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 保存当前的项目配置Json文件中,会覆盖旧文件
+	 * @param callbacks
+	 * @param configPath
+	 */
+	public static void autoSaveProjectConfig(IBurpExtenderCallbacks callbacks, String configPath) {
+		if(configPath!=null){
+			String systemCharSet = CharSetHelper.getSystemCharSet();
+			File file = new File(configPath);
+			try{
+				//自动根据当前的配置存储配置文件
+				String configAsJson = callbacks.saveConfigAsJson();
+				FileUtils.write(file,configAsJson,systemCharSet);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }
