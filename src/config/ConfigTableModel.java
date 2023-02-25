@@ -38,6 +38,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		//用于指示是否自动加载burp suite的项目配置文件,需要指示Json文件路径,需要支持相对路径,直接在knife下去寻找
 		configEntries.add(new ConfigEntry("Auto_Load_Project_Config", "Project.Config.json",ConfigEntry.Config_Basic_Variable,false,false,"Open Program Auto Load Burp Project Config Json File"));
+		configEntries.add(new ConfigEntry("Add_Hosts_Exclude_Scope", ".*.baidu.com,.*.google.com",ConfigEntry.Config_Basic_Variable,false,false,"Auto Added to Exclusion Scope When Plugin Init"));
 
 		//用于指示当前burp显示编码的环境变量,一般是GBK,UTF-8,关闭时使用burp启动时指定的编码.
 		configEntries.add(new ConfigEntry("Display_Coding", "UTF-8",ConfigEntry.Config_Basic_Variable,false,false,"One Code In: GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE,ISO-8859-1"));

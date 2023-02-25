@@ -38,7 +38,6 @@ class SaveProjectConfigMenu_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e)
     {
-	   String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config");
-	   Utils.autoSaveProjectConfig(callbacks,configPath);
+	   Utils.autoSaveProjectConfig(callbacks);
     }
 }

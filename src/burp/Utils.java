@@ -9,15 +9,13 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import U2C.CharSetHelper;
+import com.google.gson.*;
+import config.GUI;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -348,12 +346,12 @@ public class Utils {
 	}
 
 	/**
-	 * 从Json文件中自动加载项目配置,可能会生成新文件
+	 * 从Json文件中自动加载项目配置,可能会生成新文件,追加表单配置
 	 * @param callbacks
-	 * @param configPath
 	 */
-	public static void autoLoadProjectConfig(IBurpExtenderCallbacks callbacks, String configPath) {
-		if (configPath != null){
+	public static void initLoadProjectConfig(IBurpExtenderCallbacks callbacks, boolean addDefaultExcludeHosts) {
+		String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config");
+		if (configPath!=null){
 			//自动加载burp项目Json的配置 // Project.Config.json 支持相对(BurpSuitePro)和绝对路径
 			String systemCharSet = CharSetHelper.getSystemCharSet();
 			// 判断功能是否打开|功能打开后进行加载操作
@@ -370,15 +368,27 @@ public class Utils {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			if(addDefaultExcludeHosts){
+				//添加用户输入的配置文件
+				addDefaultExcludeHosts(callbacks);
+			}
 		}
+	}
+
+	/**
+	 * 从Json文件中自动加载项目配置,可能会生成新文件,不追加表单配置
+	 * @param callbacks
+	 */
+	public static void autoLoadProjectConfig(IBurpExtenderCallbacks callbacks){
+		initLoadProjectConfig(callbacks, false);
 	}
 
 	/**
 	 * 保存当前的项目配置Json文件中,会覆盖旧文件
 	 * @param callbacks
-	 * @param configPath
 	 */
-	public static void autoSaveProjectConfig(IBurpExtenderCallbacks callbacks, String configPath) {
+	public static void autoSaveProjectConfig(IBurpExtenderCallbacks callbacks) {
+		String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config");
 		if(configPath!=null){
 			String systemCharSet = CharSetHelper.getSystemCharSet();
 			File file = new File(configPath);
@@ -389,6 +399,227 @@ public class Utils {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	/**
+	 * 去重JsonArray,输入的Array里面时Json对象
+	 * @param jsonObjectJsonArray
+	 * @param jsonObjectKey
+	 * @return
+	 */
+	public static JsonArray DeDuplicateJsonObjectJsonArray(JsonArray jsonObjectJsonArray , String jsonObjectKey){
+		HashSet<String> hashSet = new HashSet<>();
+		JsonArray resultJsonArray = new JsonArray();
+		List<JsonObject> list = new ArrayList<>();
+		for (int i = 0; i < jsonObjectJsonArray.size(); i++){
+			JsonObject jsonObject = jsonObjectJsonArray.get(i).getAsJsonObject();
+			String jsonElement = jsonObject.get(jsonObjectKey).getAsString();
+			if (!hashSet.contains(jsonElement)){
+				list.add(jsonObject);
+				hashSet.add(jsonElement);
+			}
+		}
+		for ( JsonObject jsonObject : list){
+			resultJsonArray.add(jsonObject);
+		}
+		return resultJsonArray;
+	}
+
+	/**
+	 * 去除JsonArray里面指定键 并且 值的元素
+	 * @param jsonObjectJsonArray
+	 * @param jsonObjectKey
+	 * @param jsonObjectValue
+	 * @return
+	 */
+	public static JsonArray RemoveJsonObjectJsonArray(JsonArray jsonObjectJsonArray , String jsonObjectKey, String jsonObjectValue){
+		JsonArray resultJsonArray = new JsonArray();
+		List<JsonObject> list = new ArrayList<>();
+		for (int i = 0; i < jsonObjectJsonArray.size(); i++){
+			JsonObject jsonObject = jsonObjectJsonArray.get(i).getAsJsonObject();
+			String jsonElement = jsonObject.get(jsonObjectKey).getAsString();
+			if (!jsonObjectValue.equals(jsonElement)){
+				list.add(jsonObject);
+			}
+		}
+		for (JsonObject jsonObject : list){
+			resultJsonArray.add(jsonObject);
+		}
+		return resultJsonArray;
+	}
+
+	/**
+	 * 去除JsonArray里面指定键 并且 值包含在hastset中的元素
+	 * @param jsonObjectJsonArray
+	 * @param jsonObjectKey
+	 * @param hashSet
+	 * @return
+	 */
+	public static JsonArray RemoveJsonObjectJsonArray(JsonArray jsonObjectJsonArray , String jsonObjectKey, HashSet<String> hashSet){
+		JsonArray resultJsonArray = new JsonArray();
+		List<JsonObject> list = new ArrayList<>();
+		for (int i = 0; i < jsonObjectJsonArray.size(); i++){
+			JsonObject jsonObject = jsonObjectJsonArray.get(i).getAsJsonObject();
+			String jsonElement = jsonObject.get(jsonObjectKey).getAsString();
+			if (!hashSet.contains(jsonElement)){
+				list.add(jsonObject);
+			}
+		}
+		for (JsonObject jsonObject : list){
+			resultJsonArray.add(jsonObject);
+		}
+		return resultJsonArray;
+	}
+
+	/**
+	 * 添加主机名到排除列表
+	 * @param callbacks
+	 * @param hostHashSet
+	 */
+	public static void AddHostToExScopeAdvByProjectConfig(IBurpExtenderCallbacks callbacks, HashSet<String> hostHashSet) {
+		//不处理没有获取到host的情况
+		if(hostHashSet.size()>0){
+			// 1、读取当前的配置文件
+			String configContent = callbacks.saveConfigAsJson();
+			JsonObject jsonObject = JsonParser.parseString(configContent).getAsJsonObject();
+			//开起前置条件
+
+			//高级模式开关 //设置高级模式
+			jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().addProperty("advanced_mode",true);
+
+			//生成ExcludeJson元素 并循环添加到json对象中
+			JsonArray excludeJsonArray = jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().get("exclude").getAsJsonArray();
+			for(String host:hostHashSet){
+				HashMap<String,Object> aExcludeHashMap = new HashMap();
+				aExcludeHashMap.put("enabled",true);
+				aExcludeHashMap.put("host",host);
+				aExcludeHashMap.put("protocol","any");
+				String excludeJsonString =new Gson().toJson(aExcludeHashMap);
+				JsonObject excludeJsonObject = JsonParser.parseString(excludeJsonString).getAsJsonObject();
+				excludeJsonArray.add(excludeJsonObject);
+			}
+
+			//去重Json对象的排除列表
+			JsonArray removeDuplicateJsonArray = DeDuplicateJsonObjectJsonArray(excludeJsonArray,"host");
+			jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().add("exclude",removeDuplicateJsonArray);
+
+			//判断包含列表是否存在和排除列表相同的数据
+			JsonArray includeJsonArray = jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().get("include").getAsJsonArray();
+			if(includeJsonArray.size()>0){
+				//去除包含列表中和排除列表相同的数据
+				JsonArray removeJsonObjectJsonArray = RemoveJsonObjectJsonArray(includeJsonArray,"host",hostHashSet);
+				jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().add("include",removeJsonObjectJsonArray);
+			}
+
+			//判断包含列表是否为空  //如果include Scope为空需要修改为.* //不然全部删除
+			//includeJsonArray 内存地址改变，需要重新获取,
+			includeJsonArray = jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().get("include").getAsJsonArray();
+			if(includeJsonArray.size()<1){
+				//设置include Scope为.*
+				HashMap<String,Object> aIncludeHashMap = new HashMap();
+				aIncludeHashMap.put("enabled",true);
+				aIncludeHashMap.put("host",".*");
+				aIncludeHashMap.put("protocol","any");
+				String includeJsonString = new Gson().toJson(aIncludeHashMap);
+				JsonObject includeJsonObject = JsonParser.parseString(includeJsonString).getAsJsonObject();
+				includeJsonArray.add(includeJsonObject);
+			}
+			//加载Json文件
+			String jsonObjectString = new Gson().toJson(jsonObject);
+			callbacks.loadConfigFromJson(jsonObjectString);
+
+			//保存Json配置到文件
+			autoSaveProjectConfig(callbacks);
+		}
+	}
+
+	/**
+	 * 添加主机名到包含列表
+	 * @param callbacks
+	 * @param hostHashSet
+	 */
+	public static void AddHostToScopeAdvByProjectConfig(IBurpExtenderCallbacks callbacks, HashSet<String> hostHashSet) {
+		//不处理没有获取到host的情况
+		if(hostHashSet.size()>0){
+			// 1、读取当前的配置文件
+			String configContent = callbacks.saveConfigAsJson();
+			JsonObject jsonObject = JsonParser.parseString(configContent).getAsJsonObject();
+			//开起前置条件
+
+			//高级模式开关 //设置高级模式
+			jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().addProperty("advanced_mode",true);
+
+			//生成IncludeJson元素 并循环添加到json对象中
+			JsonArray includeJsonArray = jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().get("include").getAsJsonArray();
+			for(String host:hostHashSet){
+				HashMap<String,Object> aIncludeHashMap = new HashMap();
+				aIncludeHashMap.put("enabled",true);
+				aIncludeHashMap.put("host",host);
+				aIncludeHashMap.put("protocol","any");
+				String includeJsonString =new Gson().toJson(aIncludeHashMap);
+				JsonObject includeJsonObject = JsonParser.parseString(includeJsonString).getAsJsonObject();
+				includeJsonArray.add(includeJsonObject);
+			}
+			//去重Json对象的包含列表
+			JsonArray removeDuplicateJsonArray = DeDuplicateJsonObjectJsonArray(includeJsonArray,"host");
+			//删除包含列表里面.*的对象不然没有意义
+			removeDuplicateJsonArray = RemoveJsonObjectJsonArray(removeDuplicateJsonArray,"host",".*");
+			//将修改后的数据保存到json里面
+			jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().add("include",removeDuplicateJsonArray);
+
+			//去除排除列表中和包含列表相同的数据
+			JsonArray excludeJsonArray = jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().get("exclude").getAsJsonArray();
+			if(excludeJsonArray.size()>0){
+				JsonArray removeJsonObjectJsonArray = RemoveJsonObjectJsonArray(excludeJsonArray,"host",hostHashSet);
+				jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().add("exclude",removeJsonObjectJsonArray);
+			}
+
+			//加载生成的Json配置到应用
+			String jsonObjectString = new Gson().toJson(jsonObject);
+			callbacks.loadConfigFromJson(jsonObjectString);
+			//保存Json配置到文件
+			autoSaveProjectConfig(callbacks);
+		}
+	}
+
+	/**
+	 * 清空所有Scope内容
+	 * @param callbacks
+	 */
+	public static void ClearAllScopeAdvByProjectConfig(IBurpExtenderCallbacks callbacks) {
+		// 1、读取当前的配置文件
+		String configContent = callbacks.saveConfigAsJson();
+		JsonObject jsonObject = JsonParser.parseString(configContent).getAsJsonObject();
+
+		//生成IncludeJson元素 清空元素
+		jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().add("include",new JsonArray());
+		jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().add("exclude",new JsonArray());
+
+		//加载生成的Json配置到应用
+		String jsonObjectString = new Gson().toJson(jsonObject);
+		callbacks.loadConfigFromJson(jsonObjectString);
+
+		//保存Json配置到文件
+		autoSaveProjectConfig(callbacks);
+	}
+
+
+	/**
+	 * 追加表单设置到配置文件中
+	 * @param callbacks
+	 */
+	public static void addDefaultExcludeHosts(IBurpExtenderCallbacks callbacks) {
+		String defaultExcludeHosts  = GUI.tableModel.getConfigValueByKey("Add_Hosts_Exclude_Scope");
+		if (defaultExcludeHosts!=null && defaultExcludeHosts.trim().length()>0){
+			HashSet<String> hashSet = new HashSet<>();
+			//切割并整理输入
+			List<String> defaultExcludeHostList = Arrays.asList(defaultExcludeHosts.split(","));
+			for(String host:defaultExcludeHostList){
+				hashSet.add(host.trim());
+			}
+			//添加主机名到排除列表
+			AddHostToExScopeAdvByProjectConfig(callbacks, hashSet);
 		}
 	}
 }
