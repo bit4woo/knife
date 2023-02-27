@@ -349,8 +349,8 @@ public class Utils {
 	 * 从Json文件中自动加载项目配置,可能会生成新文件,追加表单配置
 	 * @param callbacks
 	 */
-	public static void initLoadProjectConfig(IBurpExtenderCallbacks callbacks, boolean addDefaultExcludeHosts) {
-		String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config");
+	public static void autoLoadProjectConfig(IBurpExtenderCallbacks callbacks, boolean addDefaultExcludeHosts) {
+		String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config_On_Startup");
 		if (configPath!=null){
 			//自动加载burp项目Json的配置 // Project.Config.json 支持相对(BurpSuitePro)和绝对路径
 			String systemCharSet = CharSetHelper.getSystemCharSet();
@@ -368,19 +368,12 @@ public class Utils {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+
+			//是否添加用户输入的配置文件
 			if(addDefaultExcludeHosts){
-				//添加用户输入的配置文件
 				addDefaultExcludeHosts(callbacks);
 			}
 		}
-	}
-
-	/**
-	 * 从Json文件中自动加载项目配置,可能会生成新文件,不追加表单配置
-	 * @param callbacks
-	 */
-	public static void autoLoadProjectConfig(IBurpExtenderCallbacks callbacks){
-		initLoadProjectConfig(callbacks, false);
 	}
 
 	/**
@@ -388,7 +381,7 @@ public class Utils {
 	 * @param callbacks
 	 */
 	public static void autoSaveProjectConfig(IBurpExtenderCallbacks callbacks) {
-		String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config");
+		String configPath  = GUI.tableModel.getConfigValueByKey("Auto_Load_Project_Config_On_Startup");
 		if(configPath!=null){
 			String systemCharSet = CharSetHelper.getSystemCharSet();
 			File file = new File(configPath);
@@ -399,6 +392,17 @@ public class Utils {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	/**
+	 * 根据变量判断是否保存当前的项目配置修改到Json文件中
+	 * @param callbacks
+	 */
+	public static void autoSaveProjectConfigWithFlag(IBurpExtenderCallbacks callbacks){
+		String autoSaveFlag  = GUI.tableModel.getConfigValueByKey("Auto_Save_Config_After_Update_Scope");
+		if(autoSaveFlag!=null){
+			autoSaveProjectConfig(callbacks);
 		}
 	}
 
@@ -529,8 +533,8 @@ public class Utils {
 			String jsonObjectString = new Gson().toJson(jsonObject);
 			callbacks.loadConfigFromJson(jsonObjectString);
 
-			//保存Json配置到文件
-			autoSaveProjectConfig(callbacks);
+			//根据用户设置,保存当前内存的配置到Json配置到文件
+			autoSaveProjectConfigWithFlag(callbacks);
 		}
 	}
 
@@ -578,8 +582,9 @@ public class Utils {
 			//加载生成的Json配置到应用
 			String jsonObjectString = new Gson().toJson(jsonObject);
 			callbacks.loadConfigFromJson(jsonObjectString);
-			//保存Json配置到文件
-			autoSaveProjectConfig(callbacks);
+
+			//根据用户设置,保存当前内存的配置到Json配置到文件
+			autoSaveProjectConfigWithFlag(callbacks);
 		}
 	}
 
@@ -600,17 +605,16 @@ public class Utils {
 		String jsonObjectString = new Gson().toJson(jsonObject);
 		callbacks.loadConfigFromJson(jsonObjectString);
 
-		//保存Json配置到文件
-		autoSaveProjectConfig(callbacks);
+		//根据用户设置,保存当前内存的配置到Json配置到文件
+		autoSaveProjectConfigWithFlag(callbacks);
 	}
 
-
 	/**
-	 * 追加表单设置到配置文件中
+	 * 追加Auto_Append_Hosts表单设置到配置文件的排除列表中
 	 * @param callbacks
 	 */
 	public static void addDefaultExcludeHosts(IBurpExtenderCallbacks callbacks) {
-		String defaultExcludeHosts  = GUI.tableModel.getConfigValueByKey("Add_Hosts_Exclude_Scope");
+		String defaultExcludeHosts  = GUI.tableModel.getConfigValueByKey("Auto_Append_Hosts_To_Exclude_Scope");
 		if (defaultExcludeHosts!=null && defaultExcludeHosts.trim().length()>0){
 			HashSet<String> hashSet = new HashSet<>();
 			//切割并整理输入
