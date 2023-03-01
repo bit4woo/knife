@@ -1,24 +1,23 @@
 package knife;
 
 import burp.*;
-import config.GUI;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 
-public class LoadProjectConfigMenu extends JMenuItem {//JMenuItem vs. JMenu
+public class ProjectConfigLoadMenu extends JMenuItem {//JMenuItem vs. JMenu
 
-    public LoadProjectConfigMenu(BurpExtender burp){
+    public ProjectConfigLoadMenu(BurpExtender burp){
         this.setText("^_^ Project Config Load");
-        this.addActionListener(new LoadProjectConfigMenu_Action(burp,burp.invocation));
+        this.addActionListener(new ProjectConfigLoadMenu_Action(burp,burp.invocation));
     }
 }
 
 
 
-class LoadProjectConfigMenu_Action implements ActionListener{
+class ProjectConfigLoadMenu_Action implements ActionListener{
 	//scope matching is actually String matching!!
 	private IContextMenuInvocation invocation;
     public BurpExtender myburp;
@@ -27,7 +26,7 @@ class LoadProjectConfigMenu_Action implements ActionListener{
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	//callbacks.printOutput(Integer.toString(invocation.getToolFlag()));//issue tab of target map is 16
-	public LoadProjectConfigMenu_Action(BurpExtender burp, IContextMenuInvocation invocation) {
+	public ProjectConfigLoadMenu_Action(BurpExtender burp, IContextMenuInvocation invocation) {
 		this.invocation  = invocation;
         this.helpers = burp.helpers;
         this.callbacks = burp.callbacks;

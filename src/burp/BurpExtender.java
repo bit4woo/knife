@@ -134,15 +134,15 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			menu_item_list.add(updateHeader);
 		}
 		//配置文件相关 //手动更新用户指定的 Project Json 文件
-		menu_item_list.add(new LoadProjectConfigMenu(this));
-		menu_item_list.add(new SaveProjectConfigMenu(this));
-
-		//扫描攻击相关
-		menu_item_list.add(new AddHostToScopeMenu(this));
-		menu_item_list.add(new AddHostToScopeAdvMenu(this));
+		menu_item_list.add(new ProjectConfigLoadMenu(this));
+		menu_item_list.add(new ProjectConfigSaveMenu(this));
+		menu_item_list.add(new ProjectScopeClearMenu(this));
+		menu_item_list.add(new AddHostToInScopeMenu(this));
+		menu_item_list.add(new AddHostToInScopeAdvMenu(this));
 		menu_item_list.add(new AddHostToExScopeMenu(this));
 		menu_item_list.add(new AddHostToExScopeAdvMenu(this));
-		menu_item_list.add(new ClearAllScopeAdvMenu(this));
+
+		//扫描攻击相关
 		menu_item_list.add(new RunSQLMapMenu(this));
 		menu_item_list.add(new DoActiveScanMenu(this));
 		menu_item_list.add(new DoPortScanMenu(this));

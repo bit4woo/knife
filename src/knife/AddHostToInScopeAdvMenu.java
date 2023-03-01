@@ -8,18 +8,19 @@ import java.util.HashSet;
 import javax.swing.JMenuItem;
 
 import burp.*;
+import config.GUI;
 
-public class AddHostToScopeAdvMenu extends JMenuItem {//JMenuItem vs. JMenu
+public class AddHostToInScopeAdvMenu extends JMenuItem {//JMenuItem vs. JMenu
 
-    public AddHostToScopeAdvMenu(BurpExtender burp){
-        this.setText("^_^ Add Host To Scope Adv");
-        this.addActionListener(new AddHostToScopeAdv_Action(burp,burp.invocation));
+    public AddHostToInScopeAdvMenu(BurpExtender burp){
+        this.setText("^_^ Add Host To InScope Adv");
+        this.addActionListener(new AddHostToInScopeAdv_Action(burp,burp.invocation));
     }
 }
 
 
 
-class AddHostToScopeAdv_Action implements ActionListener{
+class AddHostToInScopeAdv_Action implements ActionListener{
     //scope matching is actually String matching!!
     private IContextMenuInvocation invocation;
     public BurpExtender myburp;
@@ -28,7 +29,7 @@ class AddHostToScopeAdv_Action implements ActionListener{
     public PrintWriter stderr;
     public IBurpExtenderCallbacks callbacks;
     //callbacks.printOutput(Integer.toString(invocation.getToolFlag()));//issue tab of target map is 16
-    public AddHostToScopeAdv_Action(BurpExtender burp,IContextMenuInvocation invocation) {
+    public AddHostToInScopeAdv_Action(BurpExtender burp, IContextMenuInvocation invocation) {
         this.invocation  = invocation;
         this.helpers = burp.helpers;
         this.callbacks = burp.callbacks;
@@ -40,13 +41,19 @@ class AddHostToScopeAdv_Action implements ActionListener{
     public void actionPerformed(ActionEvent e)
     {
         try{
+            String wildcardSet  = GUI.tableModel.getConfigValueByKey("Scope_Set_Base_On_Wildcard_SubDomain");
             HashSet<String> hostHashSet = new HashSet<>();
             IHttpRequestResponse[] messages = invocation.getSelectedMessages();
             for(IHttpRequestResponse message:messages) {
                 String host = message.getHttpService().getHost();
+                if(wildcardSet!=null){
+                    host = Utils.hostToWildcardHostWithDotEscape(host);
+                }else {
+                    host = Utils.dotToEscapeDot(host);
+                }
                 hostHashSet.add(host);
             }
-            Utils.AddHostToScopeAdvByProjectConfig(callbacks,hostHashSet);
+            Utils.AddHostToInScopeAdvByProjectConfig(callbacks,hostHashSet);
         }
         catch (Exception e1)
         {

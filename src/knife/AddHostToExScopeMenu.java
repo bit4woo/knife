@@ -11,7 +11,7 @@ import java.net.URL;
 public class AddHostToExScopeMenu extends JMenuItem {//JMenuItem vs. JMenu
 
     public AddHostToExScopeMenu(BurpExtender burp){
-        this.setText("^_^ All Host To ExScope");
+        this.setText("^_^ Add Host To ExScope");
         this.addActionListener(new AddHostToExScope_Action(burp,burp.invocation));
     }
 }

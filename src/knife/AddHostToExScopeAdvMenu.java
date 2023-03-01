@@ -1,6 +1,7 @@
 package knife;
 
 import burp.*;
+import config.GUI;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -11,7 +12,7 @@ import java.util.HashSet;
 public class AddHostToExScopeAdvMenu extends JMenuItem {//JMenuItem vs. JMenu
 
     public AddHostToExScopeAdvMenu(BurpExtender burp){
-        this.setText("^_^ All Host To ExScope Adv");
+        this.setText("^_^ Add Host To ExScope Adv");
         this.addActionListener(new AddHostToExScopeAdv_Action(burp,burp.invocation));
     }
 }
@@ -39,10 +40,16 @@ class AddHostToExScopeAdv_Action implements ActionListener{
     public void actionPerformed(ActionEvent e)
     {
         try{
+            String wildcardSet  = GUI.tableModel.getConfigValueByKey("Scope_Set_Base_On_Wildcard_SubDomain");
             HashSet<String> hostHashSet = new HashSet<>();
             IHttpRequestResponse[] messages = invocation.getSelectedMessages();
             for(IHttpRequestResponse message:messages) {
                 String host = message.getHttpService().getHost();
+                if(wildcardSet!=null){
+                    host = Utils.hostToWildcardHostWithDotEscape(host);
+                }else {
+                    host = Utils.dotToEscapeDot(host);
+                }
                 hostHashSet.add(host);
             }
             Utils.AddHostToExScopeAdvByProjectConfig(callbacks,hostHashSet);

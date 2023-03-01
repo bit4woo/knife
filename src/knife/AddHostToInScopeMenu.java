@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.net.URL;
 
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
@@ -14,17 +13,17 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 
-public class AddHostToScopeMenu extends JMenuItem {//JMenuItem vs. JMenu
+public class AddHostToInScopeMenu extends JMenuItem {//JMenuItem vs. JMenu
 
-    public AddHostToScopeMenu(BurpExtender burp){
-        this.setText("^_^ Add Host To Scope");
-        this.addActionListener(new AddHostToScope_Action(burp,burp.invocation));
+    public AddHostToInScopeMenu(BurpExtender burp){
+        this.setText("^_^ Add Host To InScope");
+        this.addActionListener(new AddHostToInScope_Action(burp,burp.invocation));
     }
 }
 
 
 
-class AddHostToScope_Action implements ActionListener{
+class AddHostToInScope_Action implements ActionListener{
 	//scope matching is actually String matching!!
 	private IContextMenuInvocation invocation;
     public BurpExtender myburp;
@@ -33,7 +32,7 @@ class AddHostToScope_Action implements ActionListener{
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	//callbacks.printOutput(Integer.toString(invocation.getToolFlag()));//issue tab of target map is 16
-	public AddHostToScope_Action(BurpExtender burp,IContextMenuInvocation invocation) {
+	public AddHostToInScope_Action(BurpExtender burp, IContextMenuInvocation invocation) {
 		this.invocation  = invocation;
         this.helpers = burp.helpers;
         this.callbacks = burp.callbacks;

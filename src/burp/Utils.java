@@ -18,6 +18,7 @@ import com.google.gson.*;
 import config.GUI;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import sun.net.util.IPAddressUtil;
 
 
 public class Utils {
@@ -543,7 +544,7 @@ public class Utils {
 	 * @param callbacks
 	 * @param hostHashSet
 	 */
-	public static void AddHostToScopeAdvByProjectConfig(IBurpExtenderCallbacks callbacks, HashSet<String> hostHashSet) {
+	public static void AddHostToInScopeAdvByProjectConfig(IBurpExtenderCallbacks callbacks, HashSet<String> hostHashSet) {
 		//不处理没有获取到host的情况
 		if(hostHashSet.size()>0){
 			// 1、读取当前的配置文件
@@ -624,6 +625,55 @@ public class Utils {
 			}
 			//添加主机名到排除列表
 			AddHostToExScopeAdvByProjectConfig(callbacks, hashSet);
+		}
+	}
+
+
+	/**
+	 * 将[.]替换为[\.],便于进行正则精确匹配
+	 * @param host
+	 * @return
+	 */
+	public static String dotToEscapeDot(String host ) {
+		return host.replace(".","\\.");
+	}
+
+	/**
+	 * 域名转为上级域名格式 www.baidu.com -> baidu.com
+	 * @param domain
+	 * @return
+	 */
+	public static String domainToSuperiorDomain(String domain){
+		// 获取上级域名 3级域名获取2级域名|2级域名获取主域名|主域名不操作
+		String[] hostParts = domain.split("\\.");
+		if (hostParts.length > 2) {
+			String[] slicedArr = Arrays.copyOfRange(hostParts, 1, hostParts.length);
+			domain = String.join(".", slicedArr);
+		}
+		return domain;
+	}
+
+	/**
+	 * 判断Host不是IPv4或者IPv6格式
+	 * @param host
+	 * @return
+	 */
+	public static boolean isIPFormat(String host) {
+		boolean isIpv4 = IPAddressUtil.isIPv4LiteralAddress(host);
+		boolean isIpv6 = IPAddressUtil.isIPv6LiteralAddress(host);
+		return isIpv4||isIpv6;
+	}
+
+	/**
+	 * 将域名变为转移的上级域名转义正则 www.xxx.com -> .*\.xxx\.com IP仅转义.号
+	 * @param host
+	 * @return
+	 */
+	public static String hostToWildcardHostWithDotEscape(String host) {
+		if(isIPFormat(host)){
+			return dotToEscapeDot(domainToSuperiorDomain(host));
+		}else {
+			return ".*" + "\\." + dotToEscapeDot(domainToSuperiorDomain(host));
 		}
 	}
 }
