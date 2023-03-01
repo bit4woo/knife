@@ -26,25 +26,7 @@ import config.ConfigTable;
 import config.ConfigTableModel;
 import config.DismissedTargets;
 import config.GUI;
-import knife.AddHostToScopeMenu;
-import knife.ChunkedEncodingMenu;
-import knife.CookieUtils;
-import knife.CustomPayloadForAllInsertpointMenu;
-import knife.CustomPayloadMenu;
-import knife.DismissCancelMenu;
-import knife.DismissMenu;
-import knife.DoActiveScanMenu;
-import knife.DoPortScanMenu;
-import knife.DownloadResponseMenu;
-import knife.FindUrlAndRequest;
-import knife.HeaderEntry;
-import knife.OpenWithBrowserMenu;
-import knife.RunSQLMapMenu;
-import knife.SetCookieMenu;
-import knife.SetCookieWithHistoryMenu;
-import knife.UpdateCookieMenu;
-import knife.UpdateCookieWithHistoryMenu;
-import knife.UpdateHeaderMenu;
+import knife.*;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -98,6 +80,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		callbacks.registerHttpListener(this);
 		callbacks.registerProxyListener(this);
 		callbacks.registerExtensionStateListener(this);
+
+		//自动加载用户指定的 Project Json文件,如果不存在会自动保存当前配置
+		Utils.autoLoadProjectConfig(callbacks,true);
 	}
 
 
@@ -148,9 +133,16 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		if (updateHeader.getItemCount()>0) {
 			menu_item_list.add(updateHeader);
 		}
+		//配置文件相关 //手动更新用户指定的 Project Json 文件
+		menu_item_list.add(new ProjectConfigLoadMenu(this));
+		menu_item_list.add(new ProjectConfigSaveMenu(this));
+		menu_item_list.add(new ProjectScopeClearMenu(this));
+		menu_item_list.add(new AddHostToInScopeMenu(this));
+		menu_item_list.add(new AddHostToInScopeAdvMenu(this));
+		menu_item_list.add(new AddHostToExScopeMenu(this));
+		menu_item_list.add(new AddHostToExScopeAdvMenu(this));
 
 		//扫描攻击相关
-		menu_item_list.add(new AddHostToScopeMenu(this));
 		menu_item_list.add(new RunSQLMapMenu(this));
 		menu_item_list.add(new DoActiveScanMenu(this));
 		menu_item_list.add(new DoPortScanMenu(this));
