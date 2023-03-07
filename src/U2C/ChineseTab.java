@@ -91,6 +91,7 @@ public class ChineseTab implements IMessageEditorTab{
 			public void actionPerformed(ActionEvent e) {
 				getNextCharSet();
 				display();
+				contentPane.repaint();
 			}
 		});
 
@@ -118,8 +119,8 @@ public class ChineseTab implements IMessageEditorTab{
 	@Override
 	public void setMessage(byte[] content, boolean isRequest)
 	{
-		String coding = "GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS,UNICODE";
-		coding = CharSetHelper.detectCharset(content)+","+coding;//检测到的编码+一些常用编码！
+		String coding = "GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS";
+		coding =coding +","+CharSetHelper.detectCharset(content);//检测到的编码+一些常用编码！
 		allPossibleCharset = Arrays.asList(coding.split(","));
 
 		if(content==null) {
