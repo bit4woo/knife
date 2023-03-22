@@ -540,6 +540,39 @@ public class Utils {
 	}
 
 	/**
+	 * 当包含列表为空时 添加.*主机名到包含列表
+	 * @param callbacks
+	 */
+	public static void AddAnyHostToInScopeAdvByProjectConfig(IBurpExtenderCallbacks callbacks) {
+		// 1、读取当前的配置文件
+		String configContent = callbacks.saveConfigAsJson();
+		JsonObject jsonObject = JsonParser.parseString(configContent).getAsJsonObject();
+		//高级模式开关 //设置高级模式
+		jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().addProperty("advanced_mode",true);
+
+		//判断包含列表是否为空  //如果include Scope为空需要修改为.* //不然全部删除
+		//includeJsonArray 内存地址改变，需要重新获取,
+		JsonArray includeJsonArray = jsonObject.get("target").getAsJsonObject().get("scope").getAsJsonObject().get("include").getAsJsonArray();
+		if(includeJsonArray.size()<1){
+			//设置include Scope为.*
+			HashMap<String,Object> aIncludeHashMap = new HashMap();
+			aIncludeHashMap.put("enabled",true);
+			aIncludeHashMap.put("host",".*");
+			aIncludeHashMap.put("protocol","any");
+			String includeJsonString = new Gson().toJson(aIncludeHashMap);
+			JsonObject includeJsonObject = JsonParser.parseString(includeJsonString).getAsJsonObject();
+			includeJsonArray.add(includeJsonObject);
+
+			//加载Json文件
+			String jsonObjectString = new Gson().toJson(jsonObject);
+			callbacks.loadConfigFromJson(jsonObjectString);
+
+			//根据用户设置,保存当前内存的配置到Json配置到文件
+			autoSaveProjectConfigWithFlag(callbacks);
+		}
+	}
+
+	/**
 	 * 添加主机名到包含列表
 	 * @param callbacks
 	 * @param hostHashSet
