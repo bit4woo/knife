@@ -14,7 +14,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
-import burp.TerminalExec;
+import burp.SystemUtils;
 import config.GUI;
 
 
@@ -66,17 +66,23 @@ class DoPortScan_Action implements ActionListener{
 				hosts.add(host);
 			}
 
+			String text = String.join(" ", hosts);
+			
 			String nmapCmd = GUI.tableModel.getConfigValueByKey("Nmap-Command");
+			if (nmapCmd.contains("nmap")) {
+				text = String.join(" ", hosts);
+			}else if (nmapCmd.contains("masscan")) {
+				text = String.join(",", hosts);
+			}
+			
 			RobotInput ri = new RobotInput();
-			for(String host:hosts) {
-				String command = nmapCmd.replace("{host}", host.trim());
-				if (useRobot) {
-					//RobotInput.startCmdConsole();
-					ri.inputString(command);
-				}else {
-					String file = TerminalExec.genBatchFile(command, "sqlmap-knife.bat");
-					TerminalExec.runBatchFile(file);
-				}
+			String command = nmapCmd.replace("{host}", text.trim());
+			if (useRobot) {
+				//RobotInput.startCmdConsole();
+				ri.inputString(command);
+			}else {
+				String file = SystemUtils.genBatchFile(command, "sqlmap-knife.bat");
+				SystemUtils.runBatchFile(file);
 			}
 		}
 		catch (Exception e1)

@@ -247,6 +247,6 @@ public class RobotInput extends Robot {
 	 * parameters ---- -v -A -r xxx.file .....
 	 */
 	public static String genCmd(String parserPath,String executerPath, String parameter) {
-		return burp.TerminalExec.genCmd(parserPath, executerPath, parameter);
+		return SystemUtils.genCmd(parserPath, executerPath, parameter);
 	}
 }

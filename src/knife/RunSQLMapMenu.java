@@ -19,7 +19,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
-import burp.TerminalExec;
+import burp.SystemUtils;
 import config.GUI;
 
 
@@ -84,8 +84,8 @@ class RunSQLMap_Action implements ActionListener{
 							ri.inputString(sqlmapCmd);
 						}else {
 							//方案2：使用bat文件实现
-							String file = TerminalExec.genBatchFile(sqlmapCmd, "sqlmap-knife.bat");
-							TerminalExec.runBatchFile(file);
+							String file = SystemUtils.genBatchFile(sqlmapCmd, "sqlmap-knife.bat");
+							SystemUtils.runBatchFile(file);
 						}
 					}
 				}
