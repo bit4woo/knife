@@ -38,7 +38,7 @@ public class DismissedTargetsManager {
 
 	/**
 	 * 修改规则前后，都应该和GUI同步
-	 * @param message
+	 * @param messages
 	 * @param action
 	 */
 	public static void putRule(IHttpRequestResponse[] messages,String action ) {
@@ -62,8 +62,7 @@ public class DismissedTargetsManager {
 
 	/**
 	 * todo
-	 * @param message
-	 * @param action
+	 * @param messages
 	 */
 	public static void removeRule(IHttpRequestResponse[] messages) {
 		fetchRulesFromGUI();
@@ -85,17 +84,22 @@ public class DismissedTargetsManager {
 	 */
 	private static String whichAction(IHttpRequestResponse message) {
 
-		String host = getHost(message);
-		String url = getUrl(message);
+		String host = getHost(message);//域名不应该大小写敏感
+		String url = getUrl(message);//URL中可能包含大写字母比如getUserInfo，URL应该是大小写敏感的。
 
 		fetchRulesFromGUI();
 
+		/**
+		 * 假如有2个规则：
+		 * https://www.baidu.com/getUserInfo drop
+		 * www.baidu.com forward
+		 * 我们应该先匹配URL规则，因为它影响的范围更小。
+		 */
 		for (String key:rules.keySet()) {
-			key = key.toLowerCase();
-			if (url.startsWith(key)) {//先匹配host规则
+			if (url.startsWith(key)) {//先匹配URL规则
 				return rules.get(key);
 			}
-			if (host.equalsIgnoreCase(key)) {//再匹配URL规则
+			if (host.equalsIgnoreCase(key)) {//再匹配host规则
 				return rules.get(key);
 			}
 
@@ -106,9 +110,9 @@ public class DismissedTargetsManager {
 				return targets.get(key);
 			}*/
 
-			if (key.startsWith("*.")){
+			if (key.startsWith("*.")){//域名的规则，比如*.firefox.com
 				String tmpDomain = key.replaceFirst("\\*","");
-				if (host.endsWith(tmpDomain)){
+				if (host.toLowerCase().endsWith(tmpDomain.toLowerCase())){
 					return rules.get(key);
 				}
 			}
