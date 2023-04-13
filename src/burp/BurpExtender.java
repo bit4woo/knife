@@ -24,7 +24,7 @@ import config.Config;
 import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
-import config.DismissedTargets;
+import config.DismissedTargetsManager;
 import config.GUI;
 import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
@@ -248,21 +248,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			CurrentProxy = message.getListenerInterface();
 		}
 		
-		HelperPlus getter = new HelperPlus(helpers);
+		
 		if (messageIsRequest) {//丢弃干扰请求
-			String url = getter.getFullURL(message.getMessageInfo()).toString();
-			String action = DismissedTargets.whichAction(url);
-			if (action.equalsIgnoreCase(DismissedTargets.ACTION_DONT_INTERCEPT)){
-				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
-				message.getMessageInfo().setComment("Auto Forwarded By Knife");
-				message.getMessageInfo().setHighlight("gray");
-			}
-			if (action.equalsIgnoreCase(DismissedTargets.ACTION_DROP)){
-				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
-				message.getMessageInfo().setComment("Auto Dropped by Knife");
-				message.getMessageInfo().setHighlight("gray");
-			}
-			return;
+			boolean handled = DismissedTargetsManager.checkAndDoAction(messageIsRequest, message);
+			if (handled) return;
 		}
 
 		/*setCookie的实现方案1。请求和响应数据包的修改都由processProxyMessage函数来实现。这种情况下：
@@ -295,6 +284,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 						messageInfo.setRequest(newRequest);
 					}
 				}else {
+					HelperPlus getter = new HelperPlus(helpers);
 					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
 					byte[] responseBody = HelperPlus.getBody(false,messageInfo);
 					List<String> setHeaders = GetSetCookieHeaders(cookieValue);

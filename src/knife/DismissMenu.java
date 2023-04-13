@@ -14,7 +14,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
-import config.DismissedTargets;
+import config.DismissedTargetsManager;
 
 public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 
@@ -45,45 +45,29 @@ class Dismiss_Action implements ActionListener{
 		this.stderr = burp.stderr;
 	}
 
-
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		try{
-			DismissedTargets.FromGUI();
-			
-			int action = fetchChangeType();
+		int action = fetchChangeType();
 
-			IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-			for(IHttpRequestResponse message:messages) {
-				String host = message.getHttpService().getHost();
-				String url = new HelperPlus(helpers).getFullURL(message).toString();
-				if (url.contains("?")){
-					url = url.substring(0,url.indexOf("?"));
-				}
-				
-				if (action == 1) {
-					DismissedTargets.targets.put(host, DismissedTargets.ACTION_DROP);
-				}else if(action == 2) {
-					DismissedTargets.targets.put(url, DismissedTargets.ACTION_DROP);
-				}else if(action == 3) {
-					DismissedTargets.targets.put(host, DismissedTargets.ACTION_DONT_INTERCEPT);
-				}else if(action == 4) {
-					DismissedTargets.targets.put(url, DismissedTargets.ACTION_DONT_INTERCEPT);
-				}
-			}
-			DismissedTargets.ShowToGUI();
-		}catch (Exception e1)
-		{
-			e1.printStackTrace(stderr);
+		IHttpRequestResponse[] messages = invocation.getSelectedMessages();
+		if (action == 1) {
+			DismissedTargetsManager.putRule(messages, DismissedTargetsManager.ACTION_DROP_HOST);
+		}else if(action == 2) {
+			DismissedTargetsManager.putRule(messages, DismissedTargetsManager.ACTION_DROP_URL);
+		}else if(action == 3) {
+			DismissedTargetsManager.putRule(messages, DismissedTargetsManager.ACTION_Forward_HOST);
+		}else if(action == 4) {
+			DismissedTargetsManager.putRule(messages, DismissedTargetsManager.ACTION_Forward_URL);
 		}
+
 	}
-	
+
 	public static int fetchChangeType() {
 		Object[] options = { "Help","Drop Host","Drop URL","Forward Host","Forward URL"};
 		int user_input = JOptionPane.showOptionDialog(null, "Which Action Do You Want To Take?", "Chose Your Action And Scope",
-		JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-		null, options, options[0]);
+				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+				null, options, options[0]);
 		if (user_input ==0) {
 			try {
 				Utils.browserOpen("https://github.com/bit4woo/knife/blob/master/Help.md", null);
