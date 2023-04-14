@@ -425,7 +425,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		byte[] newRequest = messageInfo.getRequest();
 
-		if (Arrays.equals(newRequest,oldRequest)){
+		if (!Arrays.equals(newRequest,oldRequest)){
 			//https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
 			messageInfo.setComment("auto changed by knife");
 			return true;
