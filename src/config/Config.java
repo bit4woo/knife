@@ -7,7 +7,7 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import burp.IBurpExtenderCallbacks;
-import knife.HeaderEntry;
+import manager.HeaderEntry;
 
 public class Config {
 	

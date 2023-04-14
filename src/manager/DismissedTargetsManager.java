@@ -1,4 +1,4 @@
-package config;
+package manager;
 
 import java.util.HashMap;
 
@@ -9,6 +9,7 @@ import burp.HelperPlus;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IInterceptedProxyMessage;
+import config.GUI;
 
 public class DismissedTargetsManager {
 	private static final String Forward = "Forward";

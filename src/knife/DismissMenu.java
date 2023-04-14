@@ -14,7 +14,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
-import config.DismissedTargetsManager;
+import manager.DismissedTargetsManager;
 
 public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 

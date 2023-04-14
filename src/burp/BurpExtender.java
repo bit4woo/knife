@@ -24,11 +24,9 @@ import config.Config;
 import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
-import config.DismissedTargetsManager;
 import config.GUI;
 import knife.AddHostToScopeMenu;
 import knife.ChunkedEncodingMenu;
-import knife.CookieUtils;
 import knife.CustomPayloadForAllInsertpointMenu;
 import knife.CustomPayloadMenu;
 import knife.DismissCancelMenu;
@@ -37,7 +35,6 @@ import knife.DoActiveScanMenu;
 import knife.DoPortScanMenu;
 import knife.DownloadResponseMenu;
 import knife.FindUrlAndRequest;
-import knife.HeaderEntry;
 import knife.OpenWithBrowserMenu;
 import knife.RunSQLMapMenu;
 import knife.SetCookieMenu;
@@ -45,6 +42,9 @@ import knife.SetCookieWithHistoryMenu;
 import knife.UpdateCookieMenu;
 import knife.UpdateCookieWithHistoryMenu;
 import knife.UpdateHeaderMenu;
+import manager.CookieManager;
+import manager.DismissedTargetsManager;
+import manager.HeaderEntry;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -280,7 +280,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 				if (messageIsRequest) {
 					if (!cookieToSet.isRequestUpdated()) {
-						byte[] newRequest = CookieUtils.updateCookie(messageInfo,cookieValue);
+						byte[] newRequest = CookieManager.updateCookie(messageInfo,cookieValue);
 						messageInfo.setRequest(newRequest);
 					}
 				}else {

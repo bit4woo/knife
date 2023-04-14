@@ -12,6 +12,8 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import manager.CookieManager;
+import manager.HeaderEntry;
 
 public class UpdateCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -61,7 +63,7 @@ class UpdateCookieWithHistory_Action implements ActionListener{
 
 		String cookieValue = this.cookie;
 		if (cookieValue !=null) {
-			byte[] newRequestBytes = CookieUtils.updateCookie(selectedItems[0],cookieValue);
+			byte[] newRequestBytes = CookieManager.updateCookie(selectedItems[0],cookieValue);
 
 			if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 				selectedItems[0].setRequest(newRequestBytes);

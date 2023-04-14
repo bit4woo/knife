@@ -12,6 +12,8 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import manager.CookieManager;
+import manager.HeaderEntry;
 
 public class SetCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -45,12 +47,12 @@ class SetCookie_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		try{
 			//stdout.println("SetCookie_Action called");
-			HeaderEntry cookieEntry = CookieUtils.getLatestCookieFromSpeicified();
+			HeaderEntry cookieEntry = CookieManager.getLatestCookieFromSpeicified();
 
 			if (cookieEntry != null) {//当没有找到相应的cookie时为null
 				IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 				if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-					byte[] newRequest = CookieUtils.updateCookie(messages[0], cookieEntry.getHeaderValue());
+					byte[] newRequest = CookieManager.updateCookie(messages[0], cookieEntry.getHeaderValue());
 					try{
 						messages[0].setRequest(newRequest);
 					}catch (Exception e){

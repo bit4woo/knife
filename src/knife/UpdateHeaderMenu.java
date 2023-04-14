@@ -19,6 +19,8 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import manager.CookieManager;
+import manager.HeaderEntry;
 
 
 public class UpdateHeaderMenu extends JMenu {
@@ -115,7 +117,7 @@ class UpdateHeader_Action implements ActionListener{
 		IHttpRequestResponse messageInfo = selectedItems[0];
 		Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
 		String shorturl = getter.getShortURL(messageInfo).toString();//current
-		HeaderEntry urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,headerName);
+		HeaderEntry urlAndtoken = CookieManager.getLatestHeaderFromHistory(shorturl,headerName);
 
 		if (urlAndtoken !=null) {
 			LinkedHashMap<String, String> headers = getter.getHeaderMap(true,messageInfo);

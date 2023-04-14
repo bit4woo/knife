@@ -12,6 +12,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import manager.HeaderEntry;
 
 public class SetCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu

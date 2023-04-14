@@ -10,15 +10,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.JMenu;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import U2C.CharSetHelper;
 import burp.BurpExtender;
 import burp.Getter;
-import burp.HttpMessageCharSet;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -90,7 +91,7 @@ class ForAllInserpointListener implements ActionListener {
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
 		
-		String charset = HttpMessageCharSet.getCharset(newRequest);
+		String charset = CharSetHelper.detectCharset(newRequest);
 		String xsspayload;
 		try {
 			xsspayload = new String(getPayload(event.getActionCommand()),charset);

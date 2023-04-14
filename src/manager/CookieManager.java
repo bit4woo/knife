@@ -1,4 +1,4 @@
-package knife;
+package manager;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,7 +8,7 @@ import burp.Getter;
 import burp.IHttpRequestResponse;
 import burp.Methods;
 
-public class CookieUtils {
+public class CookieManager {
 
     //////////////////////////////////////////common methods for cookie handle///////////////////////////////
 

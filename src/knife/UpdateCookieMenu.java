@@ -12,6 +12,8 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import manager.CookieManager;
+import manager.HeaderEntry;
 
 public class UpdateCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -48,12 +50,12 @@ class UpdateCookieAction implements ActionListener {
 
 			Getter getter = new Getter(helpers);
 			String sourceshorturl = getter.getShortURL(selectedItems[0]).toString();
-			HeaderEntry latestCookie = CookieUtils.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
+			HeaderEntry latestCookie = CookieManager.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
 
 			//通过弹窗交互 获取Cookie
 			int time = 0;
 			while (!isVaildCookie(latestCookie) && time <2) {
-				latestCookie = CookieUtils.getLatestCookieFromSpeicified();
+				latestCookie = CookieManager.getLatestCookieFromSpeicified();
 				time++;
 			}
 
@@ -61,7 +63,7 @@ class UpdateCookieAction implements ActionListener {
 				String latestCookieValue = latestCookie.getHeaderValue();
 				sourceshorturl = latestCookie.getHeaderSource();
 
-				byte[] newRequest = CookieUtils.updateCookie(selectedItems[0], latestCookieValue);
+				byte[] newRequest = CookieManager.updateCookie(selectedItems[0], latestCookieValue);
 				try{
 					selectedItems[0].setRequest(newRequest);
 				}catch (Exception e){
