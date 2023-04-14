@@ -66,6 +66,31 @@ public class CookieManager {
 		return null;
 	}
 
+	/**
+	 * 是否有必要从sitemap中获取，如果它是按照时间排序的话，还是有用的。后续测试一下//TODO
+	 * @param shortUrl
+	 * @param headerName
+	 * @return
+	 */
+	public static String getLatestHeaderFromSiteMap(String shortUrl,String headerName){
+		//还是草粉师傅说得对，直接从history里面拿最好
+
+		shortUrl = HelperPlus.removeDefaultPort(shortUrl);//url格式标准化，以保证后面比较的准确性。
+		IHttpRequestResponse[]  historyMessages = BurpExtender.callbacks.getSiteMap(shortUrl);
+		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+
+		for (int i=historyMessages.length-1; i>=0; i--) {
+			IHttpRequestResponse historyMessage = historyMessages[i];
+			String hisShortUrl = HelperPlus.getShortURL(historyMessage).toString();
+			HelperPlus.removeDefaultPort(hisShortUrl);
+			if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
+				String headerLine = getter.getHeaderLine(true,historyMessage,headerName);
+				return headerLine;
+			}
+		}
+		return null;
+	}
+
 	public static String getLatestCookieFromHistory(IHttpRequestResponse messageInfo){
 		return getLatestHeaderFromHistory(messageInfo,"Cookie");
 	}
