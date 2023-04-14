@@ -246,6 +246,16 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 		}
 
+		if (messageIsRequest) {
+			if (IBurpExtenderCallbacks.TOOL_PROXY == (IBurpExtenderCallbacks.TOOL_PROXY & checkEnabledFor())) {
+				IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
+				HelperPlus getter = new HelperPlus(helpers);
+				URL url = getter.getFullURL(messageInfo);
+				if (!config.isOnlyForScope()||callbacks.isInScope(url)){
+					GUI.tableModel.checkConfigAndTakeAction(messageIsRequest, messageInfo);
+				}
+			}
+		}
 
 
 		/*改用方案二，无需再rehook
@@ -263,127 +273,19 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//stdout.println("processHttpMessage called when messageIsRequest="+messageIsRequest);
 		try {
 			if (messageIsRequest) {
-				Getter getter = new Getter(helpers);
-
-				URL url = getter.getFullURL(messageInfo);
-				String host = getter.getHost(messageInfo);
-				LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
-				byte[] body = getter.getBody(messageIsRequest,messageInfo);
-
-				boolean isRequestChanged = false;
-
-				//remove header
-				List<ConfigEntry> configEntries = tableModel.getConfigByType(ConfigEntry.Action_Remove_From_Headers);
-				for (ConfigEntry entry : configEntries) {
-					String key = entry.getKey();
-					if (headers.remove(key) != null) {
-						isRequestChanged = true;
-					}
-				}
-
 				//add/update/append header
-				if (toolFlag == (toolFlag & checkEnabledFor())) {
-					//if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
+				if (toolFlag == IBurpExtenderCallbacks.TOOL_PROXY) {
+					//##############################//
+					//handle it in processProxyMessage(). so we can see the changes in the proxy view.
+					//##############################//
+				}else if (toolFlag == (toolFlag & checkEnabledFor())) {
+					IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
+					HelperPlus getter = new HelperPlus(helpers);
+					URL url = getter.getFullURL(messageInfo);
 					if (!config.isOnlyForScope()||callbacks.isInScope(url)){
-
-						List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
-						for (ConfigEntry entry : updateOrAddEntries) {
-							String key = entry.getKey();
-							String value = entry.getValue();
-
-							if (value.contains("%host")) {
-								value = value.replaceAll("%host", host);
-								//stdout.println("3333"+value);
-							}
-
-							if (value.toLowerCase().contains("%dnslogserver")) {
-								String dnslog = tableModel.getConfigValueByKey("DNSlogServer");
-								Pattern p = Pattern.compile("(?u)%dnslogserver");
-								Matcher m = p.matcher(value);
-
-								while (m.find()) {
-									String found = m.group(0);
-									value = value.replaceAll(found, dnslog);
-								}
-							}
-
-							if (entry.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && entry.isEnable()) {
-								headers.put(key, value);
-								isRequestChanged = true;
-
-							} else if (entry.getType().equals(ConfigEntry.Action_Append_To_header_value) && entry.isEnable()) {
-								String oldValue = headers.get(key);
-								if (oldValue == null) {
-									oldValue = "";
-								}
-								value = oldValue + value;
-								headers.put(key, value);
-								isRequestChanged = true;
-								//stdout.println("2222"+value);
-							} else if (entry.getKey().equalsIgnoreCase("Chunked-AutoEnable") && entry.isEnable()) {
-								headers.put("Transfer-Encoding", " chunked");
-								isRequestChanged = true;
-
-								try {
-									boolean useComment = false;
-									if (this.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
-										useComment = true;
-									}
-									String lenStr = this.tableModel.getConfigValueByKey("Chunked-Length");
-									int len = 10;
-									if (lenStr != null) {
-										len = Integer.parseInt(lenStr);
-									}
-									body = Methods.encoding(body, len, useComment);
-								} catch (UnsupportedEncodingException e) {
-									stderr.print(e.getStackTrace());
-								}
-							}
-						}
-
-
-						///proxy function should be here
-						//reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
-						String proxy = this.tableModel.getConfigValueByKey("Proxy-ServerList");
-						String mode = this.tableModel.getConfigValueByKey("Proxy-UseRandomMode");
-
-						if (proxy != null) {//if enable is false, will return null.
-							List<String> proxyList = Arrays.asList(proxy.split(";"));//如果字符串是以;结尾，会被自动丢弃
-
-							if (mode != null) {//random mode
-								proxyServerIndex = (int) (Math.random() * proxyList.size());
-								//proxyServerIndex = new Random().nextInt(proxyList.size());
-							} else {
-								proxyServerIndex = (proxyServerIndex + 1) % proxyList.size();
-							}
-							String proxyhost = proxyList.get(proxyServerIndex).split(":")[0].trim();
-							int port = Integer.parseInt(proxyList.get(proxyServerIndex).split(":")[1].trim());
-
-							messageInfo.setHttpService(helpers.buildHttpService(proxyhost, port, messageInfo.getHttpService().getProtocol()));
-
-							String method = helpers.analyzeRequest(messageInfo).getMethod();
-							headers.put(method, url.toString());
-							isRequestChanged = true;
-							//success or failed,need to check?
-						}
+						GUI.tableModel.checkConfigAndTakeAction(messageIsRequest, messageInfo);
 					}
 				}
-				if (isRequestChanged){
-					//set final request
-					List<String> headerList = getter.headerMapToHeaderList(headers);
-					messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
-				}
-
-				/*
-				if (isRequestChanged) {
-					//debug
-					List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
-					//List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
-					stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
-					for (String entry : finalheaders) {
-						stdout.println(entry);
-					}
-				}*/
 			}else {//response
 
 			}
