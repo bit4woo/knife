@@ -182,6 +182,8 @@ public class DismissedTargetsManager {
 		rules = new HashMap<String,String>();
 		rules.put("*.firefox.com", Drop);
 		rules.put("*.mozilla.com", Drop);
+		rules.put("*.mozilla.org", Drop);
+		rules.put("*.mozilla.net", Drop);
 	}
 
 	/**
