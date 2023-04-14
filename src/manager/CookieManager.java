@@ -142,16 +142,17 @@ public class CookieManager {
 				HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 				String headerName = headerLine.split(":")[0].trim();
 				String headerValue = headerLine.split(":")[1].trim();
+				messageInfo.setComment("Auto Changed by Knife");
+				BurpExtender.getStdout().println(messageInfo.getHttpService().toString()+" message changed");
 				return getter.addOrUpdateHeader(messageIsRequest,messageInfo,headerName,headerValue);
 			}
 		}
-		BurpExtender.getStderr().println("message not changed");
+		BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
 		return messageInfo;
 	}
 
 	public static IHttpRequestResponse updateCookie(boolean messageIsRequest, IHttpRequestResponse messageInfo, String cookieValue){
-		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
-		return getter.addOrUpdateHeader(messageIsRequest,messageInfo,"Cookie",cookieValue);
+		return updateHeader(messageIsRequest,messageInfo,cookieValue);
 	}
 
 
@@ -173,6 +174,7 @@ public class CookieManager {
 		for(IHttpRequestResponse message:messages) {
 			String targetShortUrl = HelperPlus.getShortURL(message).toString();
 			handleRules.put(targetShortUrl, headerLine);
+			BurpExtender.getStdout().println("new handle rule added: "+targetShortUrl+" : "+headerLine);
 		}
 	}
 

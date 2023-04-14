@@ -18,7 +18,8 @@ public class UpdateCookieWithHistoryMenu extends JMenuItem {
 	public UpdateCookieWithHistoryMenu(BurpExtender burp){
 
 		try {
-			if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
+			if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST
+					|| burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_INTRUDER_PAYLOAD_POSITIONS) {
 				String usedCookie = CookieManager.getUsedCookieOfUpdate();
 				if (usedCookie != null) {
 					this.setText("^_^ Update Cookie ("+CookieManager.fetchUsedCookieAsTips()+")");

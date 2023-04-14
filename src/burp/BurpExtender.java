@@ -6,7 +6,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -219,29 +218,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
 		//processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
 		//same action will be executed twice! if call processHttpMessage() here.
-		//请求和响应到达proxy时，都各自调用一次,如下部分是测试代码，没毛病啊！
-		/*
-		HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
-		IHttpRequestResponse messageInfo = message.getMessageInfo();
-		if (messageIsRequest) {
-			byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"aaa=111111111");
-			message.getMessageInfo().setRequest(newRequest);
-
-			stderr.println("request called "+cookieToSetMap);
-		}else{
-		stderr.println("response called "+cookieToSetMap);
-			Getter getter = new Getter(helpers);
-			List<String> setHeaders = GetSetCookieHeaders("bbb=2222;");
-			List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
-			byte[] responseBody = getter.getBody(false,messageInfo);
-			responseHeaders.addAll(setHeaders);
-
-			byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
-
-			messageInfo.setResponse(response);
-		}
-		cookieToSetMap.clear();
-		 */
 		if (CurrentProxy == null || CurrentProxy.equals("")) {
 			//为了知道burp当前监听的接口。供“find url and request”菜单使用
 			CurrentProxy = message.getListenerInterface();
