@@ -3,7 +3,6 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.util.List;
 
 import javax.swing.JMenuItem;
 
@@ -13,7 +12,6 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import manager.CookieManager;
-import manager.HeaderEntry;
 
 public class UpdateCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -21,13 +19,10 @@ public class UpdateCookieWithHistoryMenu extends JMenuItem {
 
 		try {
 			if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-
-				HeaderEntry usedCookie = burp.config.getUsedCookie();
+				String usedCookie = CookieManager.getUsedCookieOfUpdate();
 				if (usedCookie != null) {
-					String fromUrl = usedCookie.getHeaderSource();
-					String cookieValue = usedCookie.getHeaderValue();
-					this.setText("^_^ Update Cookie ("+fromUrl+")");
-					this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.invocation,cookieValue));
+					this.setText("^_^ Update Cookie ("+CookieManager.fetchUsedCookieAsTips()+")");
+					this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.invocation,usedCookie));
 				}
 			}
 		} catch (Exception e) {
@@ -63,10 +58,8 @@ class UpdateCookieWithHistory_Action implements ActionListener{
 
 		String cookieValue = this.cookie;
 		if (cookieValue !=null) {
-			byte[] newRequestBytes = CookieManager.updateCookie(selectedItems[0],cookieValue);
-
 			if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-				selectedItems[0].setRequest(newRequestBytes);
+				CookieManager.updateCookie(true,selectedItems[0],cookieValue);
 			}
 		}
 	}

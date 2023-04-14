@@ -44,7 +44,6 @@ import knife.UpdateCookieWithHistoryMenu;
 import knife.UpdateHeaderMenu;
 import manager.CookieManager;
 import manager.DismissedTargetsManager;
-import manager.HeaderEntry;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -263,41 +262,16 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		 * 情况二：除了上面的情况，请求包和响应包的更新都由processProxyMessage来实现，非proxy的情况下也不需要再rehook。
 		 *
 		 */
-		HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
-		//stdout.println("processProxyMessage called when messageIsRequest="+messageIsRequest+" "+cookieToSetMap);
-		if (cookieToSetMap != null && !cookieToSetMap.isEmpty()){//第二次调用如果cookie不为空，就走到这里
 
-			IHttpRequestResponse messageInfo = message.getMessageInfo();
-			//String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
-
-			String CurrentUrl = HelperPlus.getShortURL(messageInfo).toString();
-			//stderr.println(CurrentUrl+" "+targetUrl);
-			HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
-			if (cookieToSet != null){
-
-				String targetUrl = cookieToSet.getTargetUrl();
-				String cookieValue = cookieToSet.getHeaderValue();
-
-				if (messageIsRequest) {
-					if (!cookieToSet.isRequestUpdated()) {
-						byte[] newRequest = CookieManager.updateCookie(messageInfo,cookieValue);
-						messageInfo.setRequest(newRequest);
-					}
-				}else {
-					HelperPlus getter = new HelperPlus(helpers);
-					List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
-					byte[] responseBody = HelperPlus.getBody(false,messageInfo);
-					List<String> setHeaders = GetSetCookieHeaders(cookieValue);
-					responseHeaders.addAll(setHeaders);
-
-					byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
-
-					messageInfo.setResponse(response);
-					cookieToSetMap.remove(CurrentUrl);//only need to set once
-				}
-			}
+		IHttpRequestResponse messageInfo = message.getMessageInfo();
+		if (messageIsRequest) {
+			CookieManager.checkHandleRuleAndTakeAction(messageIsRequest,messageInfo);
+		}else {
 
 		}
+
+
+
 		/*改用方案二，无需再rehook
 		else {//第一次调用必然走到这里
 			message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES_AND_REHOOK);

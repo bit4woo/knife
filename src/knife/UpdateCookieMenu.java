@@ -6,14 +6,8 @@ import java.io.PrintWriter;
 
 import javax.swing.JMenuItem;
 
-import burp.BurpExtender;
-import burp.Getter;
-import burp.IBurpExtenderCallbacks;
-import burp.IContextMenuInvocation;
-import burp.IExtensionHelpers;
-import burp.IHttpRequestResponse;
+import burp.*;
 import manager.CookieManager;
-import manager.HeaderEntry;
 
 public class UpdateCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -48,24 +42,19 @@ class UpdateCookieAction implements ActionListener {
 			//stdout.println("UpdateCookieAction called");
 			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 
-			Getter getter = new Getter(helpers);
-			String sourceshorturl = getter.getShortURL(selectedItems[0]).toString();
-			HeaderEntry latestCookie = CookieManager.getLatestCookieFromHistory(sourceshorturl);//自行查找一次
+			String latestCookie = CookieManager.getLatestCookieFromHistory(selectedItems[0]);//自行查找一次
 
 			//通过弹窗交互 获取Cookie
 			int time = 0;
 			while (!isVaildCookie(latestCookie) && time <2) {
-				latestCookie = CookieManager.getLatestCookieFromSpeicified();
+				latestCookie = CookieManager.getLatestCookieFromUserInput();
 				time++;
 			}
 
 			if (isVaildCookie(latestCookie)) {
-				String latestCookieValue = latestCookie.getHeaderValue();
-				sourceshorturl = latestCookie.getHeaderSource();
-
-				byte[] newRequest = CookieManager.updateCookie(selectedItems[0], latestCookieValue);
 				try{
-					selectedItems[0].setRequest(newRequest);
+					selectedItems[0] = CookieManager.updateCookie(true,selectedItems[0], latestCookie);
+					CookieManager.setUsedCookieOfUpdate(latestCookie);
 				}catch (Exception e){
 					e.printStackTrace(stderr);
 					//stderr.print(e.getMessage());
@@ -73,25 +62,18 @@ class UpdateCookieAction implements ActionListener {
 					//当在proxy中拦截状态下更新请求包的时候，总是会报这个假错误！
 					//"java.lang.UnsupportedOperationException: Request has already been issued"
 				}
-
-				if (sourceshorturl.startsWith("http")) {
-					this.burp.config.setUsedCookie(latestCookie);
-				}
-			}else {
-				//do nothing
 			}
 		}catch (Exception e1){
 			e1.printStackTrace(stderr);
 		}
 	}
 
-	public boolean isVaildCookie(HeaderEntry urlAndCookieString) {
-		if (urlAndCookieString == null) {
+	public boolean isVaildCookie(String cookieLine) {
+		if (cookieLine == null) {
 			return false;
 		}
-		String currentCookie = new Getter(helpers).getHeaderValueOf(true,invocation.getSelectedMessages()[0],"Cookie");
-		String foundCookie = urlAndCookieString.getHeaderValue();
-		if (foundCookie.equalsIgnoreCase(currentCookie)) {
+		String currentCookie = new HelperPlus(helpers).getHeaderLine(true,invocation.getSelectedMessages()[0],"Cookie");
+		if (cookieLine.equalsIgnoreCase(currentCookie)) {
 			return false;
 		}
 		return true;
