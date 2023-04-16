@@ -401,6 +401,7 @@ public class GUI extends JFrame {
 			tableModel.addNewConfigEntry(entry);
 		}
 		table.setupTypeColumn();// must setup again when data cleaned
+		table.tableHeaderLengthInit();
 		
 
 		if (IBurpExtenderCallbacks.TOOL_INTRUDER ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_INTRUDER)) {

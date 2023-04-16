@@ -259,7 +259,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	 */
 	@Override
 	public void setValueAt(Object value, int row, int columnIndex) {
-		ConfigEntry entry = configEntries.get(columnIndex);
+		ConfigEntry entry = configEntries.get(row);
 
 		if (titles[columnIndex].equals("#")) {
 
