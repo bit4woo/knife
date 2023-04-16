@@ -20,12 +20,12 @@ public class ConfigEntry {
 	public static final String Action_Append_To_header_value = "Action_Append_To_header_value";// scope is controlled by gui
 	public static final String Action_Remove_From_Headers = "Action_Remove_From_Headers"; //scope is for all request
 	private static final String Action_ = "Action_";
-	
+
 	public static final String Action_If_Base_URL_Matches_Add_Or_Replace_Header = "Action_If_Base_URL_Matches_Add_Or_Replace_Header";
 	public static final String Action_If_Base_URL_Matches_Append_To_header_value = "Action_If_Base_URL_Matches_Append_To_header_value";
 	public static final String Action_If_Base_URL_Matches_Remove_From_Headers = "Action_If_Base_URL_Matches_Remove_From_Headers";
-	private static final String Action_If_Base_URL_Matches_Header_Handle = "Action_If_Host_Matches_";
-	
+	private static final String Action_If_Base_URL_Matches_Header_Handle = "Action_If_Base_URL_Matches_";
+
 
 	public static final String Action_Drop_Request_If_Host_Matches = "Action_Drop_Request_If_Host_Matches";
 	public static final String Action_Drop_Request_If_URL_Matches = "Action_Drop_Request_If_URL_Matches";
@@ -45,8 +45,8 @@ public class ConfigEntry {
 	public static final String Config_Proxy_Variable = "Config_Proxy_Variable";
 
 	private static final String Config_ = "Config_";
-	
-	
+
+
 	public ConfigEntry(){
 		//to resolve "default constructor not found" error
 	}
@@ -130,22 +130,25 @@ public class ConfigEntry {
 	public ConfigEntry FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
 		return new Gson().fromJson(json, ConfigEntry.class);
 	}
-	
+
 	public boolean isConfigType() {
 		if (type.startsWith(Config_)) {
 			return true;
 		}
 		return false;
 	}
-	
-	
+
+	/**
+	 * 所有的action
+	 * @return
+	 */
 	public boolean isActionType() {
 		if (type.startsWith(Action_)) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	public boolean isDropOrForwardActionType() {
 		if (type.startsWith(Action_Forward_Request)) {
 			return true;
@@ -155,14 +158,41 @@ public class ConfigEntry {
 		}
 		return false;
 	}
-	
+
+	public boolean isDropActionType() {
+		if (type.startsWith(Action_Drop_Request)) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isForwardActionType() {
+		if (type.startsWith(Action_Drop_Request)) {
+			return true;
+		}
+		return false;
+	}
+
 	public boolean isHeaderHandleWithIfActionType() {
 		if (type.startsWith(Action_If_Base_URL_Matches_Header_Handle)) {
 			return true;
 		}
 		return false;
 	}
-	
+
+	public boolean isScopeBasedHeaderHandleActionType() {
+		if (type.equals(Action_Add_Or_Replace_Header)) {
+			return true;
+		}
+		if (type.equals(Action_Append_To_header_value)) {
+			return true;
+		}
+		if (type.equals(Action_Remove_From_Headers)) {
+			return true;
+		}
+		return false;
+	}
+
 
 	public String[] listAllDropForwardActions() {
 		List<String> fieldList = new ArrayList<String>();

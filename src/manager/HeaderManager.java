@@ -1,7 +1,10 @@
 package manager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import burp.BurpExtender;
 import burp.HelperPlus;
@@ -10,7 +13,7 @@ import burp.Methods;
 import config.ConfigEntry;
 import config.GUI;
 
-public class CookieManager {
+public class HeaderManager {
 
 	//////////////////////////////////////////common methods for cookie handle///////////////////////////////
 
@@ -22,7 +25,7 @@ public class CookieManager {
 	}
 
 	public static void setUsedCookieOfUpdate(String usedCookieOfUpdate) {
-		CookieManager.usedCookieOfUpdate = usedCookieOfUpdate;
+		HeaderManager.usedCookieOfUpdate = usedCookieOfUpdate;
 	}
 
 
@@ -162,30 +165,171 @@ public class CookieManager {
 		return null;
 	}
 
-	public static IHttpRequestResponse checkHandleRuleAndTakeAction(boolean messageIsRequest, IHttpRequestResponse messageInfo){
-		String targetShortUrl = HelperPlus.getShortURL(messageInfo).toString();
+
+	@Deprecated //没有应用场景
+	public static IHttpRequestResponse checkURLBasedRuleAndTakeAction(List<ConfigEntry> rules,boolean messageIsRequest, IHttpRequestResponse messageInfo){
+
+		for (int index=rules.size()-1;index>=0;index--) {
+			ConfigEntry rule = rules.get(index);
+			checkURLBasedRuleAndTakeAction(rule,messageIsRequest,messageInfo);
+		}
+
+		return messageInfo;
+	}
+
+	/**
+	 * 处理 以base url作为判断依据的规则
+	 * @param rules
+	 * @param messageIsRequest
+	 * @param messageInfo
+	 * @return
+	 */
+	public static IHttpRequestResponse checkURLBasedRuleAndTakeAction(ConfigEntry rule,boolean messageIsRequest, IHttpRequestResponse messageInfo){
+
+		byte[] oldRequest = messageInfo.getRequest();
 
 		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
-		String fullUrl = getter.getFullURL(messageInfo).toString();
 
-		if (targetShortUrl != null){
-			for (ConfigEntry rule:GetRules()) {
-				if (rule.getKey().equalsIgnoreCase(targetShortUrl) ||
-						fullUrl.startsWith(rule.getKey())) {
-					String headerLine = rule.getValue();
-					if (headerLine!=null){
-						String headerName = headerLine.split(":")[0].trim();
-						String headerValue = headerLine.split(":")[1].trim();
-						messageInfo.setComment("Auto Changed by Knife");
-						BurpExtender.getStdout().println(messageInfo.getHttpService().toString()+" message changed");
-						return getter.addOrUpdateHeader(messageIsRequest,messageInfo,headerName,headerValue);
-					}
+		String fullUrl = getter.getFullURL(messageInfo).toString();
+		String targetShortUrl = HelperPlus.getShortURL(messageInfo).toString();
+		String host = HelperPlus.getHost(messageInfo);
+
+
+		String rulekey = rule.getKey();
+		String rulevalue = rule.getValue();
+
+		if (rulekey.equalsIgnoreCase(targetShortUrl) ||
+				fullUrl.startsWith(rulekey)) {
+
+			String headerName = rulevalue.split(":")[0].trim();
+			String headerValue = rulevalue.split(":")[1].trim();
+
+			if (headerValue.contains("%host")) {
+				headerValue = headerValue.replaceAll("%host", host);
+			}
+
+			if (headerValue.toLowerCase().contains("%dnslogserver")) {
+				String dnslog = GUI.tableModel.getConfigValueByKey("DNSlogServer");
+				Pattern p = Pattern.compile("(?u)%dnslogserver");
+				Matcher m = p.matcher(headerValue);
+
+				while (m.find()) {
+					String found = m.group(0);
+					headerValue = headerValue.replaceAll(found, dnslog);
 				}
 			}
+
+			if (rule.getType().equals(ConfigEntry.Action_If_Base_URL_Matches_Remove_From_Headers) && rule.isEnable()) {
+
+				getter.removeHeader(messageIsRequest, messageInfo, headerName);
+			}
+
+			if (rule.getType().equals(ConfigEntry.Action_If_Base_URL_Matches_Add_Or_Replace_Header) && rule.isEnable()) {
+				BurpExtender.getStdout().println(messageInfo.getHttpService().toString()+" message changed");
+				getter.addOrUpdateHeader(messageIsRequest,messageInfo,headerName,headerValue);
+			}
+
+			if (rule.getType().equals(ConfigEntry.Action_If_Base_URL_Matches_Append_To_header_value) && rule.isEnable()) {
+				String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, headerName);
+				if (oldValue == null) {
+					oldValue = "";
+				}
+				headerValue = oldValue + headerValue;
+				getter.addOrUpdateHeader(messageIsRequest, messageInfo, headerName, headerValue);
+			}
+		}
+
+
+		byte[] newRequest = messageInfo.getRequest();
+
+		if (!Arrays.equals(newRequest,oldRequest)){
+			//https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
+			messageInfo.setComment("auto changed by knife");
 		}
 		//BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
 		return messageInfo;
 	}
+
+
+	/**
+	 * 处理 以toolFlag 和Scope为判断依据的规则
+	 * @param rules
+	 * @param messageIsRequest
+	 * @param messageInfo
+	 * @return
+	 */
+	@Deprecated //没有应用场景
+	public static IHttpRequestResponse checkScopeBasedRuleAndTakeAction(List<ConfigEntry> rules,boolean messageIsRequest, IHttpRequestResponse messageInfo){
+		for (int index=rules.size()-1;index>=0;index--) {
+			ConfigEntry rule = rules.get(index);
+			checkScopeBasedRuleAndTakeAction(rule,messageIsRequest,messageInfo);
+		}
+		return messageInfo;
+	}
+
+	/**
+	 * 处理 以toolFlag 和Scope为判断依据的规则。scope和toolflag的判断不在这个函数中
+	 * @param rules
+	 * @param messageIsRequest
+	 * @param messageInfo
+	 * @return
+	 */
+	public static IHttpRequestResponse checkScopeBasedRuleAndTakeAction(ConfigEntry rule,boolean messageIsRequest, IHttpRequestResponse messageInfo){
+
+		byte[] oldRequest = messageInfo.getRequest();
+
+		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+		String host = HelperPlus.getHost(messageInfo);
+
+		String key = rule.getKey();
+		String value = rule.getValue();
+
+		if (value.contains("%host")) {
+			value = value.replaceAll("%host", host);
+		}
+
+		if (value.toLowerCase().contains("%dnslogserver")) {
+			String dnslog = GUI.tableModel.getConfigValueByKey("DNSlogServer");
+			Pattern p = Pattern.compile("(?u)%dnslogserver");
+			Matcher m = p.matcher(value);
+
+			while (m.find()) {
+				String found = m.group(0);
+				value = value.replaceAll(found, dnslog);
+			}
+		}
+
+
+		//remove header
+		if (rule.getType().equals(ConfigEntry.Action_Remove_From_Headers) && rule.isEnable()) {
+			getter.removeHeader(messageIsRequest, messageInfo, key);
+		}
+
+		//add/update/append header
+		if (rule.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && rule.isEnable()) {
+			getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
+
+		}
+		if (rule.getType().equals(ConfigEntry.Action_Append_To_header_value) && rule.isEnable()) {
+			String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, key);
+			if (oldValue == null) {
+				oldValue = "";
+			}
+			value = oldValue + value;
+			getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
+		} 
+
+
+		byte[] newRequest = messageInfo.getRequest();
+
+		if (!Arrays.equals(newRequest,oldRequest)){
+			//https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
+			messageInfo.setComment("auto changed by knife");
+		}
+		//BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
+		return messageInfo;
+	}
+
 
 	public static IHttpRequestResponse updateCookie(boolean messageIsRequest, IHttpRequestResponse messageInfo, String cookieValue){
 		return updateHeader(messageIsRequest,messageInfo,cookieValue);
@@ -214,13 +358,30 @@ public class CookieManager {
 	}
 
 
-	public static List<ConfigEntry> GetRules() {
+	public static List<ConfigEntry> GetHeaderHandleWithIfRules() {
 		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
 
 		List<ConfigEntry> entries = GUI.tableModel.getConfigEntries();
 		for (ConfigEntry entry:entries) {
 			if (entry.isHeaderHandleWithIfActionType()) {
 				if (entry.isEnable()) {
+					result.add(entry);
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 获取所有对数据包进行修改的规则，除了drop和forward规则。
+	 * @return
+	 */
+	public static List<ConfigEntry> getAllChangeRules() {
+		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
+		List<ConfigEntry> entries = GUI.tableModel.getConfigEntries();
+		for (ConfigEntry entry:entries) {
+			if (entry.isActionType()) {
+				if (!entry.isDropOrForwardActionType()) {
 					result.add(entry);
 				}
 			}

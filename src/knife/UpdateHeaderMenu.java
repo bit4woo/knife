@@ -19,7 +19,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import config.GUI;
-import manager.CookieManager;
+import manager.HeaderManager;
 
 
 public class UpdateHeaderMenu extends JMenu {
@@ -113,10 +113,10 @@ class UpdateHeader_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-			String headerLine = CookieManager.getLatestHeaderFromHistory(selectedItems[0], headerName);
+			String headerLine = HeaderManager.getLatestHeaderFromHistory(selectedItems[0], headerName);
 
 			if (headerLine != null) {
-				CookieManager.updateHeader(true,selectedItems[0],headerLine);
+				HeaderManager.updateHeader(true,selectedItems[0],headerLine);
 			}
 		}
 	}

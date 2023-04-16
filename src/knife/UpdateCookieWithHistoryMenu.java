@@ -11,7 +11,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import manager.CookieManager;
+import manager.HeaderManager;
 
 public class UpdateCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -20,9 +20,9 @@ public class UpdateCookieWithHistoryMenu extends JMenuItem {
 		try {
 			if (burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST
 					|| burp.invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_INTRUDER_PAYLOAD_POSITIONS) {
-				String usedCookie = CookieManager.getUsedCookieOfUpdate();
+				String usedCookie = HeaderManager.getUsedCookieOfUpdate();
 				if (usedCookie != null) {
-					this.setText("^_^ Update Cookie ("+CookieManager.fetchUsedCookieAsTips()+")");
+					this.setText("^_^ Update Cookie ("+HeaderManager.fetchUsedCookieAsTips()+")");
 					this.addActionListener(new UpdateCookieWithHistory_Action(burp,burp.invocation,usedCookie));
 				}
 			}
@@ -60,7 +60,7 @@ class UpdateCookieWithHistory_Action implements ActionListener{
 		String cookieValue = this.cookie;
 		if (cookieValue !=null) {
 			if(selectedInvocationContext == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-				CookieManager.updateCookie(true,selectedItems[0],cookieValue);
+				HeaderManager.updateCookie(true,selectedItems[0],cookieValue);
 			}
 		}
 	}

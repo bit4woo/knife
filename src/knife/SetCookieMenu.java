@@ -12,7 +12,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import manager.CookieManager;
+import manager.HeaderManager;
 
 public class SetCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -46,16 +46,16 @@ class SetCookie_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		try{
 			//stdout.println("SetCookie_Action called");
-			String cookieEntry = CookieManager.getLatestCookieFromUserInput();
+			String cookieEntry = HeaderManager.getLatestCookieFromUserInput();
 
 			if (cookieEntry != null) {//当没有找到相应的cookie时为null
 				IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 				if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-					CookieManager.updateCookie(true,messages[0], cookieEntry);
+					HeaderManager.updateCookie(true,messages[0], cookieEntry);
 				}
 
-				CookieManager.addHandleRule(messages,cookieEntry);
-				CookieManager.setUsedCookieOfUpdate(cookieEntry);
+				HeaderManager.addHandleRule(messages,cookieEntry);
+				HeaderManager.setUsedCookieOfUpdate(cookieEntry);
 			}else {
 				stderr.println("No cookie found with your input");
 			}

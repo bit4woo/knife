@@ -12,7 +12,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import manager.CookieManager;
+import manager.HeaderManager;
 
 public class SetCookieWithHistoryMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -21,9 +21,9 @@ public class SetCookieWithHistoryMenu extends JMenuItem {
 
 	public SetCookieWithHistoryMenu(BurpExtender burp){
 		try {
-			String cookieToSetHistory = CookieManager.getUsedCookieOfUpdate();
+			String cookieToSetHistory = HeaderManager.getUsedCookieOfUpdate();
 			if (cookieToSetHistory != null) {
-				this.setText(String.format("^_^ Set Cookie (%s)",CookieManager.fetchUsedCookieAsTips()));
+				this.setText(String.format("^_^ Set Cookie (%s)",HeaderManager.fetchUsedCookieAsTips()));
 				this.addActionListener(new SetCookieWithHistory_Action(burp,burp.invocation));
 			}
 		} catch (Exception e) {
@@ -53,11 +53,11 @@ class SetCookieWithHistory_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 
-		String cookieToSetHistory = CookieManager.getUsedCookieOfUpdate();
+		String cookieToSetHistory = HeaderManager.getUsedCookieOfUpdate();
 		if (cookieToSetHistory != null) {
 			try {
 				IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-				CookieManager.addHandleRule(messages,cookieToSetHistory);
+				HeaderManager.addHandleRule(messages,cookieToSetHistory);
 			} catch (Exception e1) {
 				e1.printStackTrace(stderr);
 			}

@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 
 import U2C.ChineseTabFactory;
 import config.Config;
+import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
@@ -35,8 +36,9 @@ import knife.SetCookieWithHistoryMenu;
 import knife.UpdateCookieMenu;
 import knife.UpdateCookieWithHistoryMenu;
 import knife.UpdateHeaderMenu;
-import manager.CookieManager;
+import manager.ChunkManager;
 import manager.DismissedTargetsManager;
+import manager.HeaderManager;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
 
@@ -56,7 +58,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public static String Version = bsh.This.class.getPackage().getImplementationVersion();
 	public static String Author = "by bit4woo";
 	public static String github = "https://github.com/bit4woo/knife";
-	
+
 	public static String CurrentProxy = "";
 
 	@Override
@@ -158,7 +160,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//menu_item_list.add(new ViewChineseMenu(this));
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
-		
+
 		menu_item_list.add(new FindUrlAndRequest(this));
 
 		Iterator<JMenuItem> it = menu_item_list.iterator();
@@ -216,39 +218,39 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			//为了知道burp当前监听的接口。供“find url and request”菜单使用
 			CurrentProxy = message.getListenerInterface();
 		}
-		
-		
-		if (messageIsRequest) {//丢弃干扰请求
-			boolean handled = DismissedTargetsManager.checkAndDoAction(messageIsRequest, message);
-			if (handled) return;
-		}
-
-		IHttpRequestResponse messageInfo = message.getMessageInfo();
-		if (messageIsRequest) {
-			CookieManager.checkHandleRuleAndTakeAction(messageIsRequest,messageInfo);
-		}else {
-
-		}
 
 		if (messageIsRequest) {
-			if (IBurpExtenderCallbacks.TOOL_PROXY == (IBurpExtenderCallbacks.TOOL_PROXY & checkEnabledFor())) {
-				IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
-				HelperPlus getter = new HelperPlus(helpers);
-				URL url = getter.getFullURL(messageInfo);
-				if (!config.isOnlyForScope()||callbacks.isInScope(url)){
-					GUI.tableModel.checkConfigAndTakeAction(messageIsRequest, messageInfo);
+			boolean dropped = DismissedTargetsManager.checkDropAction(messageIsRequest, message);//只在proxy中
+			if (dropped) {
+				return;
+			}
+
+			IHttpRequestResponse messageInfo =message.getMessageInfo();
+
+			List<ConfigEntry> rules = DismissedTargetsManager.getAllChangeActionExceptDropRules();
+			for (int index=rules.size()-1;index>=0;index--) {//按照时间倒叙引用规则
+
+				ConfigEntry rule = rules.get(index);
+
+				if (rule.isForwardActionType()) {
+					DismissedTargetsManager.checkForwardAction(rule, messageIsRequest, message);//只在proxy中
+				}
+
+				if (rule.isScopeBasedHeaderHandleActionType()) {
+					if (isInScope(IBurpExtenderCallbacks.TOOL_PROXY,messageInfo)) {
+						HeaderManager.checkScopeBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
+					}
+				}
+
+				if (rule.isHeaderHandleWithIfActionType()) {
+					HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
 				}
 			}
+
+			if (isInScope(IBurpExtenderCallbacks.TOOL_PROXY,messageInfo)) {
+				ChunkManager.doChunk(messageIsRequest, messageInfo);
+			}
 		}
-
-
-		/*改用方案二，无需再rehook
-		else {//第一次调用必然走到这里
-			message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES_AND_REHOOK);
-			//让burp在等待用户完成操作后再次调用，就相当于再次对request进行处理。
-			//再次调用，即使走到了这里，也不会再增加调用次数，burp自己应该有控制。
-		}*/
-
 	}
 
 	//IHttpListener中的方法，修改的内容在Proxy中不可见
@@ -262,30 +264,41 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 					//##############################//
 					//handle it in processProxyMessage(). so we can see the changes in the proxy view.
 					//##############################//
-				}else if (toolFlag == (toolFlag & checkEnabledFor())) {
-					IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
-					HelperPlus getter = new HelperPlus(helpers);
-					URL url = getter.getFullURL(messageInfo);
-					if (!config.isOnlyForScope()||callbacks.isInScope(url)){
-						GUI.tableModel.checkConfigAndTakeAction(messageIsRequest, messageInfo);
+				}else {
+					List<ConfigEntry> rules = HeaderManager.getAllChangeRules();
+					for (int index=rules.size()-1;index>=0;index--) {//按照时间倒叙引用规则
+
+						ConfigEntry rule = rules.get(index);
+
+						if (rule.isScopeBasedHeaderHandleActionType()) {
+							if (isInScope(toolFlag,messageInfo)) {
+								HeaderManager.checkScopeBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
+							}
+						}
+
+						if (rule.isHeaderHandleWithIfActionType()) {
+							HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
+						}
+					}
+
+					if (isInScope(IBurpExtenderCallbacks.TOOL_PROXY,messageInfo)) {
+						ChunkManager.doChunk(messageIsRequest, messageInfo);
 					}
 				}
-			}else {//response
-
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			stderr.print(e.getStackTrace());
 		}
 	}
-	
+
 	public static void confirmProxy() {
 		String proxy = JOptionPane.showInputDialog("Confirm Proxy Of Burp", "127.0.0.1:8080");
 		if (proxy != null) {
 			BurpExtender.CurrentProxy = proxy.trim();
 		}
 	}
-	
+
 	public static String getProxyHost() {
 		try {
 			if (CurrentProxy == null ||CurrentProxy.equals("") || CurrentProxy.split(":").length!=2) {
@@ -299,7 +312,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			return null;
 		}
 	}
-	
+
 	public static int getProxyPort() {
 		try {
 			if (CurrentProxy == null ||CurrentProxy.equals("") || CurrentProxy.split(":").length!=2) {
@@ -331,4 +344,20 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 	public static IBurpExtenderCallbacks getCallbacks() {
 		return callbacks;
 	}
+
+
+	public boolean isInScope(int toolflag,IHttpRequestResponse messageInfo) {
+		if (toolflag == (toolflag & checkEnabledFor())) {
+
+			IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
+			URL url = new HelperPlus(helpers).getFullURL(messageInfo);
+
+			if (!config.isOnlyForScope()||callbacks.isInScope(url)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 }
