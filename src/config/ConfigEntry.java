@@ -210,4 +210,21 @@ public class ConfigEntry {
 		fieldList.toArray(array); // fill the array
 		return array;
 	}
+	
+	
+	public String[] listAllConfigType() {
+		List<String> fieldList = new ArrayList<String>();
+		Field[] fields = getClass().getDeclaredFields();
+		for (Field f:fields) {
+			if (f.getName().startsWith(Action_) && Modifier.isPublic(f.getModifiers())) {
+				fieldList.add(f.getName());
+			}
+			if (f.getName().startsWith(Config_) && Modifier.isPublic(f.getModifiers())) {
+				fieldList.add(f.getName());
+			}
+		}
+		String[] array = new String[fieldList.size()];
+		fieldList.toArray(array); // fill the array
+		return array;
+	}
 }

@@ -1,6 +1,8 @@
 package config;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.PrintWriter;
@@ -13,6 +15,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -43,6 +46,7 @@ public class ConfigTable extends JTable
 		registerListeners();
 		//switchEnable();//no need 
 		//table.setupTypeColumn()//can't set here, only can after table data loaded.
+		//tableHeaderLengthInit();//can't set here, only can after table data loaded.
 	}
 
 	@Override
@@ -85,7 +89,34 @@ public class ConfigTable extends JTable
 		});
 	}
 	
+	/**
+	 * 需要在数据加载后，即setModel后才有效果!
+	 */
+	public void tableHeaderLengthInit(){
+		Font f = this.getFont();
+		FontMetrics fm = this.getFontMetrics(f);
+		int width = fm.stringWidth("A");//一个字符的宽度
+		for (int index=0;index<this.getColumnCount();index++) {
+			TableColumn column = this.getColumnModel().getColumn(index);
+			
+			if (column.getIdentifier().equals("#")) {
+				column.setMaxWidth(width*"100".length());
+			}
+			
+			if (column.getIdentifier().equals("Enable")) {
+				column.setMaxWidth(width*"Enable++".length());
+				//需要预留排序时箭头符合的位置，2个字符宽度
+			}
+
+			if (column.getIdentifier().equals("Type")) {
+				column.setPreferredWidth(width*ConfigEntry.Action_If_Base_URL_Matches_Append_To_header_value.length());
+			}
+		}
+		//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//配合横向滚动条
+	}
 	
+	
+	@Deprecated
 	private void switchEnable() {
 		this.addMouseListener(new MouseAdapter(){
 			public void mouseClicked(MouseEvent e)
@@ -97,8 +128,8 @@ public class ConfigTable extends JTable
 					row = convertRowIndexToModel(row);
 					
 					String cellVal = (String) (ConfigTableModel.getValueAt(row, col)); // 获得点击单元格数据
-
-					if(col==3) {
+					
+					if(config.ConfigTableModel.titles[col].equals("Enable")) {
 						if (cellVal.equalsIgnoreCase("true")) {
 							ConfigTableModel.setValueAt("false", row, col);
 						}else {
@@ -111,8 +142,6 @@ public class ConfigTable extends JTable
 		});
 	}
 	
-
-
 
 	private void registerListeners(){
 		final ConfigTable _this = this;
@@ -130,7 +159,6 @@ public class ConfigTable extends JTable
 			public void mousePressed(MouseEvent e) {
 				//no need
 			}
-
 		});
 	}
 
@@ -138,19 +166,19 @@ public class ConfigTable extends JTable
 	public void setupTypeColumn() {
 		//call this function must after table data loaded !!!!
 		JComboBox<String> comboBox = new JComboBox<String>();
-		comboBox.addItem(ConfigEntry.Action_Add_Or_Replace_Header);
-		comboBox.addItem(ConfigEntry.Action_Append_To_header_value);
-		comboBox.addItem(ConfigEntry.Action_Remove_From_Headers);
-		comboBox.addItem(ConfigEntry.Config_Basic_Variable);
-		comboBox.addItem(ConfigEntry.Config_Custom_Payload);
-		comboBox.addItem(ConfigEntry.Config_Custom_Payload_Base64);
-		comboBox.addItem(ConfigEntry.Config_Chunked_Variable);
-		comboBox.addItem(ConfigEntry.Config_Proxy_Variable);
+		
+		String[] items = new ConfigEntry().listAllConfigType();
+		for (String item:items) {
+			comboBox.addItem(item);
+		}
 		TableColumnModel typeColumn = this.getColumnModel();
-		typeColumn.getColumn(2).setCellEditor(new DefaultCellEditor(comboBox));
+		
+		int col = Arrays.asList(config.ConfigTableModel.titles).indexOf("Type");
+		typeColumn.getColumn(col).setCellEditor(new DefaultCellEditor(comboBox));
 
 		JCheckBox jc1 = new JCheckBox();
-		typeColumn.getColumn(3).setCellEditor(new DefaultCellEditor(jc1));
+		int col1 = Arrays.asList(config.ConfigTableModel.titles).indexOf("Enable");
+		typeColumn.getColumn(col1).setCellEditor(new DefaultCellEditor(jc1));
 //		//Set up tool tips for the sport cells.
 //		DefaultTableCellRenderer renderer =
 //				new DefaultTableCellRenderer();

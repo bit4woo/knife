@@ -80,6 +80,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			showToUI(new Gson().fromJson(initConfig(), Config.class));
 		}
 		table.setupTypeColumn();//call this function must after table data loaded !!!!
+		table.tableHeaderLengthInit();
 
 
 		ChineseTabFactory chntabFactory = new ChineseTabFactory(null, false, helpers, callbacks);

@@ -21,7 +21,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	 */
 	private static final long serialVersionUID = 1L;
 	private List<ConfigEntry> configEntries =new ArrayList<ConfigEntry>();
-	private static final String[] titles = new String[] {
+	public static final String[] titles = new String[] {
 			"#", "Key", "Value", "Type", "Enable", "Comment"
 	};
 
@@ -193,7 +193,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	public Class<?> getColumnClass(int columnIndex)
 	{	
 		if (titles[columnIndex].equals("#")) {
-			return boolean.class;//index
+			return Integer.class;//index
 		}else if (titles[columnIndex].equals("Enable")) {
 			return boolean.class;//enable
 		}else {
@@ -357,8 +357,5 @@ public class ConfigTableModel extends AbstractTableModel{
 	public void setConfigEntries(List<ConfigEntry> configEntries) {
 		this.configEntries = configEntries;
 	}
-
-
-
 
 }
