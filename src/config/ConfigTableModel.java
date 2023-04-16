@@ -18,7 +18,6 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Methods;
 import burp.Utils;
-import manager.DismissedTargetsManager;
 
 
 public class ConfigTableModel extends AbstractTableModel{
@@ -190,13 +189,12 @@ public class ConfigTableModel extends AbstractTableModel{
 
 	@Override
 	public Class<?> getColumnClass(int columnIndex)
-	{	switch(columnIndex) 
-		{
-		case 0:
+	{	
+		if (titles[columnIndex].equals("#")) {
 			return boolean.class;//index
-		case 3: 
+		}else if (titles[columnIndex].equals("Enable")) {
 			return boolean.class;//enable
-		default:
+		}else {
 			return String.class;
 		}
 	}
@@ -221,8 +219,9 @@ public class ConfigTableModel extends AbstractTableModel{
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		ConfigEntry entry = configEntries.get(rowIndex);
 		if (!entry.isEditable()) {
-			if (columnIndex ==0 ||columnIndex ==2) {
-				//name--0; type---2
+			if (titles[columnIndex].equals("Key")) {
+				return false;
+			}else if (titles[columnIndex].equals("Type")) {
 				return false;
 			}
 		}
@@ -233,21 +232,20 @@ public class ConfigTableModel extends AbstractTableModel{
 	public Object getValueAt(int rowIndex, int columnIndex)
 	{
 		ConfigEntry entry = configEntries.get(rowIndex);
-		switch (columnIndex)
-		{
-		case 0:
+		//"#", "Key", "Value", "Type", "Enable", "Comment"
+		if (titles[columnIndex].equals("#")) {
 			return rowIndex;
-		case 1:
+		}else if (titles[columnIndex].equals("Key")) {
 			return entry.getKey();
-		case 2:
+		}else if (titles[columnIndex].equals("Value")) {
 			return entry.getValue();
-		case 3:
+		}else if (titles[columnIndex].equals("Type")) {
 			return entry.getType();
-		case 4:
+		}else if (titles[columnIndex].equals("Enable")) {
 			return entry.isEnable();
-		case 5:
+		}else if (titles[columnIndex].equals("Comment")) {
 			return entry.getComment();
-		default:
+		}else{
 			return "";
 		}
 	}
@@ -258,36 +256,23 @@ public class ConfigTableModel extends AbstractTableModel{
 	 * data can change.
 	 */
 	@Override
-	public void setValueAt(Object value, int row, int col) {
-		ConfigEntry entry = configEntries.get(row);
-		switch (col)
-		{
-		case 0:
-			break;
-		case 1:
+	public void setValueAt(Object value, int row, int columnIndex) {
+		ConfigEntry entry = configEntries.get(columnIndex);
+		
+		if (titles[columnIndex].equals("#")) {
+			
+		}else if (titles[columnIndex].equals("Key")) {
 			entry.setKey((String) value);
-			break;
-		case 2:
+		}else if (titles[columnIndex].equals("Value")) {
 			entry.setValue((String) value);
-			break;
-		case 3:
+		}else if (titles[columnIndex].equals("Type")) {
 			entry.setType((String) value);
-			break;
-		case 4://当显示true/false的时候，实质是字符串，需要转换。当使用勾选框的时候就是boolen
-			//			if (((String)value).equals("true")) {
-			//				entry.setEnable(true);
-			//			}else {
-			//				entry.setEnable(false);
-			//			}
+		}else if (titles[columnIndex].equals("Enable")) {
 			entry.setEnable((boolean)value);
-			break;
-		case 5:
+		}else if (titles[columnIndex].equals("Comment")) {
 			entry.setComment((String) value);
-			break;
-		default:
-			break;
 		}
-		fireTableCellUpdated(row, col);
+		fireTableCellUpdated(row, columnIndex);
 	}
 
 	//////////////////////extend AbstractTableModel////////////////////////////////

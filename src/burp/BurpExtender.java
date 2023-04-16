@@ -2,15 +2,10 @@ package burp;
 
 import java.awt.Component;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -20,7 +15,6 @@ import com.google.gson.Gson;
 
 import U2C.ChineseTabFactory;
 import config.Config;
-import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
@@ -228,16 +222,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			boolean handled = DismissedTargetsManager.checkAndDoAction(messageIsRequest, message);
 			if (handled) return;
 		}
-
-		/*setCookie的实现方案1。请求和响应数据包的修改都由processProxyMessage函数来实现。这种情况下：
-		 * 在Proxy拦截处进行SetCookie的操作时，该函数已经被调用！这个函数的调用时在手动操作之前的。
-		 * 即是说，当这个函数第一次被调用时，还没来得及设置cookie，获取到的cookieToSetMap必然为空，所以需要rehook操作。
-		 *setCookie的实现方案2。主要目标是为了避免rehook，分两种情况分别处理。
-		 * 情况一：当当前是CONTEXT_MESSAGE_EDITOR_REQUEST的情况下（比如proxy和repeater中），
-		 * 更新请求的操作和updateCookie的操作一样，在手动操作时进行更新，而响应包由processProxyMessage来更新。
-		 * 情况二：除了上面的情况，请求包和响应包的更新都由processProxyMessage来实现，非proxy的情况下也不需要再rehook。
-		 *
-		 */
 
 		IHttpRequestResponse messageInfo = message.getMessageInfo();
 		if (messageIsRequest) {
