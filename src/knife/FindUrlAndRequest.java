@@ -192,10 +192,10 @@ class FindUrl_Action implements ActionListener{
 
 		// Copying contents of domains to arr[]
 		System.arraycopy(tmpList.toArray(), 0, possibleValues, 0, n-1);
-		possibleValues[n-1] = "let me input";
+		possibleValues[n-1] = "Let Me Input";
 
 		String selectedValue = (String) JOptionPane.showInputDialog(null,
-				"Choose One", "Chose And Edit Base URL",
+				"Chose Base URL", "Chose And Edit Base URL",
 				JOptionPane.INFORMATION_MESSAGE, null,
 				possibleValues, possibleValues[0]);
 		if (null != selectedValue) {

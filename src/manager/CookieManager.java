@@ -1,16 +1,19 @@
 package manager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import burp.*;
+import burp.BurpExtender;
+import burp.HelperPlus;
+import burp.IHttpRequestResponse;
+import burp.Methods;
+import config.ConfigEntry;
+import config.GUI;
 
 public class CookieManager {
 
 	//////////////////////////////////////////common methods for cookie handle///////////////////////////////
 
-	private static HashMap<String, String> handleRules = new HashMap<String,String>();
 	//目标httpservice 和 headerLine
 	private static String usedCookieOfUpdate = null;
 
@@ -161,18 +164,26 @@ public class CookieManager {
 
 	public static IHttpRequestResponse checkHandleRuleAndTakeAction(boolean messageIsRequest, IHttpRequestResponse messageInfo){
 		String targetShortUrl = HelperPlus.getShortURL(messageInfo).toString();
+
+		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+		String fullUrl = getter.getFullURL(messageInfo).toString();
+
 		if (targetShortUrl != null){
-			String headerLine = handleRules.get(targetShortUrl);
-			if (headerLine!=null){
-				HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
-				String headerName = headerLine.split(":")[0].trim();
-				String headerValue = headerLine.split(":")[1].trim();
-				messageInfo.setComment("Auto Changed by Knife");
-				BurpExtender.getStdout().println(messageInfo.getHttpService().toString()+" message changed");
-				return getter.addOrUpdateHeader(messageIsRequest,messageInfo,headerName,headerValue);
+			for (ConfigEntry rule:GetRules()) {
+				if (rule.getKey().equalsIgnoreCase(targetShortUrl) ||
+						fullUrl.startsWith(rule.getKey())) {
+					String headerLine = rule.getValue();
+					if (headerLine!=null){
+						String headerName = headerLine.split(":")[0].trim();
+						String headerValue = headerLine.split(":")[1].trim();
+						messageInfo.setComment("Auto Changed by Knife");
+						BurpExtender.getStdout().println(messageInfo.getHttpService().toString()+" message changed");
+						return getter.addOrUpdateHeader(messageIsRequest,messageInfo,headerName,headerValue);
+					}
+				}
 			}
 		}
-		BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
+		//BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
 		return messageInfo;
 	}
 
@@ -194,13 +205,27 @@ public class CookieManager {
 	}
 
 	public static void addHandleRule(IHttpRequestResponse[] messages,String headerLine) {
-		IExtensionHelpers helpers = BurpExtender.callbacks.getHelpers();
-		HelperPlus getter = new HelperPlus(helpers);
 		for(IHttpRequestResponse message:messages) {
 			String targetShortUrl = HelperPlus.getShortURL(message).toString();
-			handleRules.put(targetShortUrl, headerLine);
+			ConfigEntry rule = new ConfigEntry(targetShortUrl,headerLine,ConfigEntry.Action_If_Base_URL_Matches_Add_Or_Replace_Header,true);
+			GUI.tableModel.addNewConfigEntry(rule);
 			BurpExtender.getStdout().println("new handle rule added: "+targetShortUrl+" : "+headerLine);
 		}
+	}
+
+
+	public static List<ConfigEntry> GetRules() {
+		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
+
+		List<ConfigEntry> entries = GUI.tableModel.getConfigEntries();
+		for (ConfigEntry entry:entries) {
+			if (entry.isHeaderHandleWithIfActionType()) {
+				if (entry.isEnable()) {
+					result.add(entry);
+				}
+			}
+		}
+		return result;
 	}
 
 	/**

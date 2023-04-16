@@ -1,27 +1,20 @@
 package manager;
 
-import java.util.HashMap;
-
-import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.List;
 
 import burp.BurpExtender;
 import burp.HelperPlus;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IInterceptedProxyMessage;
+import config.ConfigEntry;
 import config.GUI;
 
 public class DismissedTargetsManager {
+
 	private static final String Forward = "Forward";
 	private static final String Drop = "Drop";
-
-	public static final String ACTION_Forward_URL = "Forward_URL";
-	public static final String ACTION_Forward_HOST = "Forward_HOST";
-	public static final String ACTION_DROP_URL = "Drop_URL";
-	public static final String ACTION_DROP_HOST = "Drop_HOST";
-
-	private static HashMap<String, String> rules = new HashMap<String,String>();
-
 
 	public static String getHost(IHttpRequestResponse message) {//如果存在host参数，会被用于序列化，注意
 		String host = message.getHttpService().getHost();
@@ -42,84 +35,134 @@ public class DismissedTargetsManager {
 	 * @param messages
 	 * @param action
 	 */
-	public static void putRule(IHttpRequestResponse[] messages,String action ) {
-		fetchRulesFromGUI();
-		for(IHttpRequestResponse message:messages) {
-			String host = getHost(message);
-			String url = getUrl(message);
+	public static void putRule(IHttpRequestResponse[] messages,String keyword,String action ) {
 
-			if (action.equalsIgnoreCase(ACTION_Forward_URL)) {
-				rules.put(url, Forward);
-			}else if(action.equalsIgnoreCase(ACTION_Forward_HOST)) {
-				rules.put(host, Forward);
-			}else if(action.equalsIgnoreCase(ACTION_DROP_URL)) {
-				rules.put(url, Drop);
-			}else if(action.equalsIgnoreCase(ACTION_DROP_HOST)) {
-				rules.put(host, Drop);
+		if (messages != null) {
+			for(IHttpRequestResponse message:messages) {
+				String host = getHost(message);
+				String url = getUrl(message);
+
+				if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Host_Matches)
+						|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Host_Matches)) {
+					GUI.tableModel.addNewConfigEntry(new ConfigEntry(host, "",action,true));
+				}
+
+				if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_URL_Matches)
+						|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_URL_Matches)) {
+					GUI.tableModel.addNewConfigEntry(new ConfigEntry(url, "",action,true));
+				}
 			}
 		}
-		ShowRulesToGUI();
+
+		if (keyword != null && !keyword.equals("")) {
+			if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Keyword_Matches)
+					|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Keyword_Matches)) {
+				GUI.tableModel.addNewConfigEntry(new ConfigEntry(keyword, "",action,true));
+			}
+		}
 	}
 
 	/**
-	 * todo
+	 * 
 	 * @param messages
 	 */
 	public static void removeRule(IHttpRequestResponse[] messages) {
-		fetchRulesFromGUI();
 		for(IHttpRequestResponse message:messages) {
-			String host = getHost(message);
-			String url = getUrl(message);
-
-			rules.remove(url);
-			rules.remove(host);
+			while (true) {
+				//有可能多个规则都影响某个数据包
+				MatchResult res = whichAction(message);
+				if (res.getAction() == null || res.getAction().equals("")){
+					break;//无规则命中
+				}else {
+					ConfigEntry Rule =res.getRule();
+					if (Rule != null) {
+						GUI.tableModel.removeConfigEntry(Rule);
+					}
+				}
+			}
 		}
-
-		ShowRulesToGUI();
 	}
 
 	/**
 	 * 获取当前数据包应该执行的action
+	 * 规则的匹配按照时间优先顺序进行：
+	 * 越是新的规则，优先级越高。因为越是新的设置，越是能表示操作者当前的意愿。
 	 * @param message
-	 * @return
+	 * @return drop forward "" 空字符串表示什么也不做
 	 */
-	private static String whichAction(IHttpRequestResponse message) {
+	private static MatchResult whichAction(IHttpRequestResponse message) {
 
 		String host = getHost(message);//域名不应该大小写敏感
 		String url = getUrl(message);//URL中可能包含大写字母比如getUserInfo，URL应该是大小写敏感的。
 
-		fetchRulesFromGUI();
+		List<ConfigEntry> rules = GetRules();
 
-		/**
-		 * 假如有2个规则：
-		 * https://www.baidu.com/getUserInfo drop
-		 * www.baidu.com forward
-		 * 我们应该先匹配URL规则，因为它影响的范围更小。
-		 */
-		for (String key:rules.keySet()) {
-			if (url.startsWith(key)) {//先匹配URL规则
-				return rules.get(key);
+		for (int index=rules.size()-1;index>=0;index--) {
+			ConfigEntry rule = rules.get(index);
+
+			if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Host_Matches)) {
+				if (host.equalsIgnoreCase(rule.getKey())) {
+					return new MatchResult(Drop, rule);
+				}
+
+				if (rule.getKey().startsWith("*.")) {
+					String tmpDomain = rule.getKey().replaceFirst("\\*","");
+					if (host.toLowerCase().endsWith(tmpDomain.toLowerCase())){
+						return new MatchResult(Drop, rule);
+					}
+				}
 			}
-			if (host.equalsIgnoreCase(key)) {//再匹配host规则
-				return rules.get(key);
+			if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_URL_Matches)) {
+				if (url.equalsIgnoreCase(rule.getKey())) {
+					return new MatchResult(Drop, rule);
+				}
 			}
+			if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Keyword_Matches)) {
+				if (url.contains(rule.getKey())) {
+					return new MatchResult(Drop, rule);
+				}
+			}
+			if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Host_Matches)) {
+				if (host.equalsIgnoreCase(rule.getKey())) {
+					return new MatchResult(Forward, rule);
+				}
 
-			/*
-			Pattern pt = Pattern.compile(key);
-			Matcher matcher = pt.matcher(url);
-			if (matcher.find()) {//多次查找
-				return targets.get(key);
-			}*/
-
-			if (key.startsWith("*.")){//域名的规则，比如*.firefox.com
-				String tmpDomain = key.replaceFirst("\\*","");
-				if (host.toLowerCase().endsWith(tmpDomain.toLowerCase())){
-					return rules.get(key);
+				if (rule.getKey().startsWith("*.")) {
+					String tmpDomain = rule.getKey().replaceFirst("\\*","");
+					if (host.toLowerCase().endsWith(tmpDomain.toLowerCase())){
+						return new MatchResult(Forward, rule);
+					}
+				}
+			}
+			if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_URL_Matches)) {
+				if (url.equalsIgnoreCase(rule.getKey())) {
+					return new MatchResult(Forward, rule);
+				}
+			}
+			if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Keyword_Matches)) {
+				if (url.contains(rule.getKey())) {
+					return new MatchResult(Forward, rule);
 				}
 			}
 		}
-		return "";
+
+		return new MatchResult(null,null);
 	}
+
+	public static List<ConfigEntry> GetRules() {
+		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
+
+		List<ConfigEntry> entries = GUI.tableModel.getConfigEntries();
+		for (ConfigEntry entry:entries) {
+			if (entry.isDropOrForwardActionType()) {
+				if (entry.isEnable()) {
+					result.add(entry);
+				}
+			}
+		}
+		return result;
+	}
+
 
 	/**
 	 * 返回这个数据是否被丢弃或者转发了。以便上层逻辑决定是否需要继续处理
@@ -128,15 +171,18 @@ public class DismissedTargetsManager {
 	 */
 	public static boolean checkAndDoAction(boolean messageIsRequest,IInterceptedProxyMessage message) {
 		if (messageIsRequest) {
-			String action = whichAction(message.getMessageInfo());
-
-			if (action.equalsIgnoreCase(Forward)){
+			MatchResult res = whichAction(message.getMessageInfo());
+			BurpExtender.getStdout().println(res.toString());
+			if(res.getAction()== null) {
+				return false;
+			}
+			if (res.getAction().equalsIgnoreCase(Forward)){
 				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
 				message.getMessageInfo().setComment("Auto Forwarded By Knife");
-				message.getMessageInfo().setHighlight("gray");
+				//message.getMessageInfo().setHighlight("gray");
 				return true;
 			}
-			if (action.equalsIgnoreCase(Drop)){
+			if (res.getAction().equalsIgnoreCase(Drop)){
 				message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
 				message.getMessageInfo().setComment("Auto Dropped by Knife");
 				message.getMessageInfo().setHighlight("gray");
@@ -144,54 +190,6 @@ public class DismissedTargetsManager {
 			}
 		}
 		return false;
-
-	}
-
-	/**
-	 * 将Map转换为Json格式的字符串
-	 * @return
-	 */
-	public static String ToJson(){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return new Gson().toJson(rules);
-	}
-
-	/**
-	 * 将Json字符串转换为Map
-	 * @param json
-	 * @return
-	 */
-	public static HashMap<String,String> FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return new Gson().fromJson(json, HashMap.class);
-	}
-
-	/**
-	 * 从GUI读取配置，写入当前对象
-	 */
-	public static void fetchRulesFromGUI() {
-		String dissmissed  = GUI.tableModel.getConfigValueByKey("DismissedTargets");
-		try {
-			rules = FromJson(dissmissed);
-		}catch (Exception e) {
-			targetsInit();
-		}
-		if (rules == null) {
-			targetsInit();
-		}
-	}
-
-	public static void targetsInit() {
-		rules = new HashMap<String,String>();
-		rules.put("*.firefox.com", Drop);
-		rules.put("*.mozilla.com", Drop);
-		rules.put("*.mozilla.org", Drop);
-		rules.put("*.mozilla.net", Drop);
-	}
-
-	/**
-	 * 将当前配置显示到GUI
-	 */
-	public static void ShowRulesToGUI() {
-		GUI.tableModel.setConfigByKey("DismissedTargets",ToJson());
 	}
 
 }
