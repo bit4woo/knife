@@ -200,9 +200,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 	@Override
 	public void extensionUnloaded() {
-		callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
+		saveConfigToBurp();
 	}
-
+	
 	@Override
 	public String initConfig() {
 		config = new Config("default");

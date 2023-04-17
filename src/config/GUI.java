@@ -45,8 +45,8 @@ public class GUI extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-  
-	public Config config = new Config("default");
+
+	public static Config config = new Config("default");
 
 	public PrintWriter stdout;
 	public PrintWriter stderr;
@@ -169,10 +169,10 @@ public class GUI extends JFrame {
 		configPanel = new JScrollPane();
 		configPanel.setViewportBorder(new LineBorder(new Color(0, 0, 0)));
 		//contentPane.add(TargetPanel, BorderLayout.WEST);
-		
+
 		//table and tableModel created in burpextender.java
 		//table = new ConfigTable(new ConfigTableModel());
-		
+
 
 		TargetSplitPane = new JSplitPane();
 		TargetSplitPane.setResizeWeight(0.5);
@@ -190,7 +190,7 @@ public class GUI extends JFrame {
 		TargetSplitPane.setRightComponent(panel_1);
 		panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-		
+
 		AddButton = new JButton("Add");
 		AddButton.setToolTipText("Add A New Config Line");
 		AddButton.addActionListener(new ActionListener() {
@@ -198,7 +198,7 @@ public class GUI extends JFrame {
 				//tableModel = table.getModel();
 				tableModel.addNewConfigEntry(new ConfigEntry("","","",true));
 				stdout.println("add: "+new Gson().toJson(config));
-				saveConfigToBurp();
+				//saveConfigToBurp();
 				//会触发modelListener 更新config。所以需要调用showToUI。
 				//showToUI(config);
 			}
@@ -213,21 +213,23 @@ public class GUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				int[] rowindexs = table.getSelectedModelRows();
 				tableModel.removeRows(rowindexs);
-				saveConfigToBurp();
+				//saveConfigToBurp();
 			}
 		});
-		
-		
+
+
+		/*
 		JButton btnSave = new JButton("SaveToBurp");
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				saveConfigToBurp();
+				//saveConfigToBurp();
 			}});
 		btnSave.setToolTipText("Save Config To Burp Extension Setting");
 		panel_1.add(btnSave);
-		
+		 */
+
 		panel_1.add(new Label(" |"));
-		
+
 		/**
 		 * 旧配置全删除，使用选中文件中的配置。
 		 */
@@ -253,29 +255,29 @@ public class GUI extends JFrame {
 						e1.printStackTrace(stderr);
 					}
 				}
-				saveConfigToBurp();
+				//saveConfigToBurp();
 			}
 		});
 		btnOpen.setToolTipText("This action will clear current config and use your config file");
 		panel_1.add(btnOpen);
-		
+
 		JButton btnExport = new JButton("Export Config");
 		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				saveConfigToBurp();
+				//saveConfigToBurp();
 				saveDialog();
 			}});
 		btnExport.setToolTipText("Export config to a file");
 		panel_1.add(btnExport);
-		
-		
+
+
 		/**
 		 * 已存在的值不修改，只添加新增的记录。
 		 */
 		JButton btnImport = new JButton("Merge Config");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+
 				JFileChooser fc=new JFileChooser();
 				JsonFileFilter jsonFilter = new JsonFileFilter(); //过滤器  
 				fc.addChoosableFileFilter(jsonFilter);
@@ -288,16 +290,16 @@ public class GUI extends JFrame {
 						String contents = Files.toString(file, Charsets.UTF_8);
 						config = new Gson().fromJson(contents, Config.class);
 						List<String> newEntries = config.getStringConfigEntries();
-						
+
 						List<String> oldEntries = tableModel.getConfigJsons();//以此为修改基础，已存在的key不修改。
-						
-						
+
+
 						List<String> oldKeys = new ArrayList<String>();
 						for (String config:oldEntries) {
 							ConfigEntry entry  = new ConfigEntry().FromJson(config);
 							oldKeys.add(entry.getKey());
 						}
-						
+
 						for (String config:newEntries) {
 							if (oldEntries.contains(config)) {
 								continue;//存在完全相同的配置，Do Nothing
@@ -311,7 +313,7 @@ public class GUI extends JFrame {
 								oldEntries.add(config);
 							}
 						}
-						
+
 						config.setStringConfigEntries(oldEntries);
 						stdout.println("Merge config from "+ file.getName() +" with current config" );
 						//List<String> lines = Files.readLines(file, Charsets.UTF_8);
@@ -321,8 +323,8 @@ public class GUI extends JFrame {
 						e1.printStackTrace(stderr);
 					}
 				}
-				
-				saveConfigToBurp();
+
+				//saveConfigToBurp();
 			}});
 		btnImport.setToolTipText("This action will add new config and keep old ones");
 		panel_1.add(btnImport);
@@ -336,23 +338,23 @@ public class GUI extends JFrame {
 				int user_input = JOptionPane.showConfirmDialog(null, "Are you sure to restore all config to default?","Restore Config",JOptionPane.YES_NO_OPTION);
 				if (JOptionPane.YES_OPTION == user_input) {
 					showToUI(new Config().FromJson(initConfig()));
-					saveConfigToBurp();
+					//saveConfigToBurp();
 				}else {
-					
+
 				}
 			}
 		});
 		panel_1.add(RestoreButton);
-		
+
 		JButton testButton = new JButton("test");
 		testButton.setToolTipText("test");
 		testButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+
 			}
 		});
 		//panel_1.add(testButton);
-		
+
 		///////////////////////////FooterPanel//////////////////
 
 
@@ -395,14 +397,14 @@ public class GUI extends JFrame {
 		tableModel = table.getModel();
 		tableModel.setConfigEntries(new ArrayList<ConfigEntry>());
 		//clearTable
-		
+
 		for (String stringEntry:config.getStringConfigEntries()) {
 			ConfigEntry entry  = new ConfigEntry().FromJson(stringEntry);
 			tableModel.addNewConfigEntry(entry);
 		}
 		table.setupTypeColumn();// must setup again when data cleaned
 		table.tableHeaderLengthInit();
-		
+
 
 		if (IBurpExtenderCallbacks.TOOL_INTRUDER ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_INTRUDER)) {
 			chckbx_intruder.setSelected(true);
@@ -427,12 +429,12 @@ public class GUI extends JFrame {
 		chckbx_scope.setSelected(config.isOnlyForScope());
 	}
 
-	public String getAllConfig() {
+	public static String getAllConfig() {
 		config.setStringConfigEntries(tableModel.getConfigJsons());
 		return config.ToJson();
 	}
-	
-	public void saveConfigToBurp() {
+
+	public static void saveConfigToBurp() {
 		BurpExtender.callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
 	}
 
@@ -488,7 +490,7 @@ public class GUI extends JFrame {
 			}
 		}
 	}
-	
+
 	public String initConfig() {
 		// need to override
 		return null;
