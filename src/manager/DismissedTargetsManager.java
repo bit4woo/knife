@@ -44,11 +44,15 @@ public class DismissedTargetsManager {
 
 				if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Host_Matches)
 						|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Host_Matches)) {
+					
+					delSameConditionRule(host);
 					GUI.tableModel.addNewConfigEntry(new ConfigEntry(host, "",action,true));
 				}
 
 				if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_URL_Matches)
 						|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_URL_Matches)) {
+					
+					delSameConditionRule(url);
 					GUI.tableModel.addNewConfigEntry(new ConfigEntry(url, "",action,true));
 				}
 			}
@@ -57,7 +61,26 @@ public class DismissedTargetsManager {
 		if (keyword != null && !keyword.equals("")) {
 			if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Keyword_Matches)
 					|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Keyword_Matches)) {
+				
+				delSameConditionRule(keyword);
 				GUI.tableModel.addNewConfigEntry(new ConfigEntry(keyword, "",action,true));
+			}
+		}
+	}
+
+
+
+
+	/**
+	 * 判断是否存在相同条件的规则，如果存在应当删除旧的规则
+	 * @param messages
+	 * @param action
+	 */
+	public static void delSameConditionRule(String configKey) {
+		List<ConfigEntry> rules = GetAllDropOrForwardRules();
+		for(ConfigEntry rule:rules) {
+			if (rule.getKey().equals(configKey)) {
+				GUI.tableModel.removeConfigEntry(rule);
 			}
 		}
 	}
@@ -174,7 +197,7 @@ public class DismissedTargetsManager {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 获取所有drop规则，可以先处理这些规则。
 	 * @return
@@ -209,8 +232,8 @@ public class DismissedTargetsManager {
 		}
 		return result;
 	}
-	
-	
+
+
 	/**
 	 * 返回这个数据是否被丢弃或者转发了。以便上层逻辑决定是否需要继续处理
 	 * @param message
@@ -233,7 +256,7 @@ public class DismissedTargetsManager {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 返回这个数据是否被转发了。以便上层逻辑决定是否需要继续处理
 	 * @param message
