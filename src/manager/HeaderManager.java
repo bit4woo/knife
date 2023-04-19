@@ -352,12 +352,31 @@ public class HeaderManager {
 		for(IHttpRequestResponse message:messages) {
 			String targetShortUrl = HelperPlus.getShortURL(message).toString();
 			ConfigEntry rule = new ConfigEntry(targetShortUrl,headerLine,ConfigEntry.Action_If_Base_URL_Matches_Add_Or_Replace_Header,true);
-			GUI.tableModel.delSameRule(rule);
+			delSameConditionRule(rule);
 			GUI.tableModel.addNewConfigEntry(rule);
 			BurpExtender.getStdout().println("new handle rule added: "+targetShortUrl+" : "+headerLine);
 		}
 	}
-
+	
+	/**
+	 * 删除key、type完全相同，value的header相同的rule
+	 * @param newrule
+	 */
+	public static void delSameConditionRule(ConfigEntry newRule) {
+		List<ConfigEntry> rules = GetHeaderHandleWithIfRules();
+		for (int i= rules.size()-1;i>=0;i--) {
+			ConfigEntry rule = rules.get(i);
+			if (rule.getKey().equals(newRule.getKey()) &&
+					rule.getType().equals(newRule.getType())) {
+				String header = rule.getValue().split(":")[0];
+				String newHeader = newRule.getValue().split(":")[0];
+				if (header.equals(newHeader)) {
+					GUI.tableModel.removeConfigEntry(rule);
+				}
+			}
+		}
+	}
+	
 	public static List<ConfigEntry> GetHeaderHandleWithIfRules() {
 		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
 
