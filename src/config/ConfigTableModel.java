@@ -372,4 +372,40 @@ public class ConfigTableModel extends AbstractTableModel{
 		this.configEntries = configEntries;
 	}
 
+	/**
+	 * 
+	 * @param newrule
+	 */
+	public void delSameRule(ConfigEntry newrule) {
+		for (int i= configEntries.size()-1;i>=0;i--) {
+			ConfigEntry entry = configEntries.get(i);
+			if (entry.getKey().equalsIgnoreCase(newrule.getKey()) &&
+					entry.getValue().equals(newrule.getValue()) &&
+					entry.getType().equals(newrule.getType())) {
+				GUI.tableModel.removeConfigEntry(entry);
+			}
+		}
+	}
+	
+	
+	public void delRuleWithSameKeyAndValue(ConfigEntry newrule) {
+		for (int i= configEntries.size()-1;i>=0;i--) {
+			ConfigEntry entry = configEntries.get(i);
+			if (entry.getKey().equalsIgnoreCase(newrule.getKey()) &&
+					entry.getValue().equals(newrule.getValue())) {
+				GUI.tableModel.removeConfigEntry(entry);
+			}
+		}
+	}
+	
+	
+	public void delRuleWithSameKey(ConfigEntry newrule) {
+		for (int i= configEntries.size()-1;i>=0;i--) {
+			ConfigEntry entry = configEntries.get(i);
+			if (entry.getKey().equalsIgnoreCase(newrule.getKey())) {
+				GUI.tableModel.removeConfigEntry(entry);
+			}
+		}
+	}
+
 }

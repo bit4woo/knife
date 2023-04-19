@@ -69,8 +69,6 @@ public class DismissedTargetsManager {
 	}
 
 
-
-
 	/**
 	 * 判断是否存在相同条件的规则，如果存在应当删除旧的规则
 	 * @param messages
@@ -78,7 +76,8 @@ public class DismissedTargetsManager {
 	 */
 	public static void delSameConditionRule(String configKey) {
 		List<ConfigEntry> rules = GetAllDropOrForwardRules();
-		for(ConfigEntry rule:rules) {
+		for (int i= rules.size()-1;i>=0;i--) {
+			ConfigEntry rule = rules.get(i);
 			if (rule.getKey().equals(configKey)) {
 				GUI.tableModel.removeConfigEntry(rule);
 			}

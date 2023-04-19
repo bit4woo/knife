@@ -352,11 +352,11 @@ public class HeaderManager {
 		for(IHttpRequestResponse message:messages) {
 			String targetShortUrl = HelperPlus.getShortURL(message).toString();
 			ConfigEntry rule = new ConfigEntry(targetShortUrl,headerLine,ConfigEntry.Action_If_Base_URL_Matches_Add_Or_Replace_Header,true);
+			GUI.tableModel.delSameRule(rule);
 			GUI.tableModel.addNewConfigEntry(rule);
 			BurpExtender.getStdout().println("new handle rule added: "+targetShortUrl+" : "+headerLine);
 		}
 	}
-
 
 	public static List<ConfigEntry> GetHeaderHandleWithIfRules() {
 		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
