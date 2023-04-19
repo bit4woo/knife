@@ -80,6 +80,18 @@ mvn package
 
 使用场景：当我们使用IP地址访问一个web的时候，由于cookie的作用域的限制，大多都不会带上有效cookie。但是我们知道它是某个域的站点（比如它是*.jd.com的某个网站），可以通过Set Cookie方法主动给他设置与某个站点相同的cookie（比如www.jd.com的cookie）。
 
+方法一：可以直接输出cookie值
+
+![image-20230419132437806](README.assets/image-20230419132437806.png)
+
+![image-20230419132506911](README.assets/image-20230419132506911.png)
+
+方法二：输入域名，根据域名查找历史记录中的cookie值
+
+![image-20230419132744865](README.assets/image-20230419132744865.png)
+
+![image-20230419132856797](README.assets/image-20230419132856797.png)
+
 #### 5、Open With Bsrowser
 
 使用浏览器打开当前选中的URL或者当前请求的URL。
@@ -116,29 +128,36 @@ Config_Custom_Payload_Base64：base64格式的payload，当payload包含换行�
 
 一键对当前数据包中【非数字型和非cookie的所有参数】插入自定义的Payload。与Insert Payload的功能类似，只是这个功能尝试对多个参数执行相同的动作而已。
 
-#### 8、Dismissed
+#### 8、Dismiss
 
 让一些无用的、不想看到的请求包从眼前消失！
 
-Forward URL：如果后续再次遇到当前的URL，自动放过（Forward），不做拦截。
+Action_Drop_Request_If_Host_Matches   如果后续再次遇到当前Host的任何URL，自动丢弃（drop），不发送请求。
 
-Forward Host： 如果后续再次遇到当前Host的任何URL，自动放过（Forward），不做拦截。
+Action_Drop_Request_If_URL_Matches   如果后续再次遇到当前的URL，自动丢弃（drop），不发送请求。
 
-Drop URL：如果后续再次遇到当前的URL，自动丢弃（drop），不发送请求。
+Action_Drop_Request_If_Keyword_Matches 如果后续的URL中包含制定的关键词，自动丢弃（drop），不发送请求。
 
-Drop Host：如果后续再次遇到当前Host的任何URL，自动丢弃（drop），不发送请求。
+Action_Forward_Request_If_Host_Matches   如果后续再次遇到当前Host的任何URL，自动放过（Forward），不做拦截。
+
+Action_Forward_Request_If_URL_Matches  如果后续再次遇到当前的URL，自动放过（Forward），不做拦截。
+
+Action_Forward_Request_If_Keyword_Matches 如果后续的URL中包含制定的关键词，自动放过（Forward），不做拦截。
 
 自动Drop掉的URL，可以配合History上方的过滤器”Hide items without responses“，让其不显示在History中。
 
-![image-20211230165134024](README.assets/image-20211230165134024.png)
+![image-20230419123228184](README.assets/image-20230419123228184.png)
 
 对应的配置项：
 
 ```
-DismissedTargets	{"*.firefox.com":"Drop","*.mozilla.com":"Drop"}	Config_Basic_Variable	true	
+18	*.firefox.com		Action_Drop_Request_If_Host_Matches	true	
+19	*.mozilla.com		Action_Drop_Request_If_Host_Matches	true	
+20	*.mozilla.org		Action_Drop_Request_If_Host_Matches	true	
+21	*.mozilla.net		Action_Drop_Request_If_Host_Matches	true	
 ```
 
-
+![image-20230419123702800](README.assets/image-20230419123702800.png)
 
 #### 9、Run SQLMap
 
@@ -180,15 +199,11 @@ RunTerminalWithRobotInput		Config_Basic_Variable	false
 
 ### 二、数据包显示Tab
 
-#### 1、U2C Tab
+#### 1、Chinese Tab
 
-将Unicode形式的字符转换为中文，比如 `\u4e2d\u6587`-->`中文` 显示效果和burp的显示设置中编码的设置有关，如果显示异常可以尝试修改编码设置。
+A：将Unicode形式的字符转换为中文，比如 `\u4e2d\u6587`-->`中文` 显示效果和burp的显示设置中编码的设置有关，如果显示异常可以尝试修改编码设置。
 
-![u2cTab](README.assets/u2cTab.png)
-
-#### 2、Chinese Tab
-
-当数据包中包含中文，如果默认显示为乱码，可以使用这个Tab，支持使用不同的编码来显示内容。
+B：当数据包中包含中文，如果默认显示为乱码，可以使用这个Tab，支持使用不同的编码来显示内容。
 
 ![image-20211230174237094](README.assets/image-20211230174237094.png)
 
@@ -198,7 +213,13 @@ https://passport.baidu.com/v2/api/getqrcode
 
 https://aiqicha.baidu.com/index/getCPlaceAjax
 
-### 三、请求包自动修改
+### 三、由ToolFlag和Scope控制范围的请求包自动修改
+
+控制条件的基本逻辑是 “对来自于（【是/否】proxy 或者【是/否】 scanner或者【是/否】repeater或者【是/否】intruder）中**并且**也包含在【是/否】scope中的请求进行修改操作“。
+
+![image-20230419131537362](README.assets/image-20230419131537362.png)
+
+比如，上图所示的逻辑是：对来自proxy并且在scope的中请求，执行数据包更改。
 
 #### 1、自动删除
 
@@ -222,21 +243,17 @@ https://aiqicha.baidu.com/index/getCPlaceAjax
 
 ![image-20211230181047699](README.assets/image-20211230181047699.png)
 
-#### 3、自动新增或者修改的作用范围
+### 四、由Base URL控制范围的请求包自动修改
 
-即影响 type是”Action_Add_Or_Replace_Header“和type是”Action_Append_To_Header_value“的配置项。
+执行的修改操和以上相同，不同的是控制范围的方式。当使用set cookie功能后，会自动添加响应的规则，当然也可以手动添加。
 
-![image-20211230174825402](README.assets/image-20211230174825402.png)
+![image-20230419132007829](README.assets/image-20230419132007829.png)
 
-控制条件的基本逻辑是 “对来自于（【是/否】proxy 或者【是/否】 scanner或者【是/否】repeater或者【是/否】intruder）中**并且**也包含在【是/否】scope中的请求进行修改操作“。
+上图对应的修改效果。
 
-比如，上图所示的逻辑是：对来自proxy并且在scope的中请求，执行数据包更改。
+![image-20230419132223617](README.assets/image-20230419132223617.png)
 
-#### 4、请求使用代理
 
-可以让请求使用上游代理，而且支持随机模式，即每个请求随机选择一个代理使用。
-
-![image-20211230182052389](README.assets/image-20211230182052389.png)
 
 #### 5、自动使用chunked encode
 

@@ -19,7 +19,7 @@ import manager.DismissedTargetsManager;
 public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 	public DismissMenu(BurpExtender burp){
-		this.setText("^_^ Dismissed");
+		this.setText("^_^ Dismiss");
 		this.addActionListener(new Dismiss_Action(burp,burp.invocation));
 	}
 }
@@ -73,7 +73,7 @@ class Dismiss_Action implements ActionListener{
 
 		if (selectedValue == options[options.length-1]) {
 			try {
-				Utils.browserOpen("https://github.com/bit4woo/knife/blob/master/Help.md", null);
+				Utils.browserOpen("https://github.com/bit4woo/knife/blob/master/README.md", null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

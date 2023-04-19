@@ -18,6 +18,8 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import burp.Getter;
 import burp.IBurpExtenderCallbacks;
@@ -208,7 +210,9 @@ public class ChineseTab implements IMessageEditorTab{
 	public static String beauty(String inputJson) {
 		//Take the input, determine request/response, parse as json, then print prettily.
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().serializeNulls().create();
-		return gson.toJson(inputJson);
+		JsonParser jp = new JsonParser();
+		JsonElement je = jp.parse(inputJson);//这段代码是在JSON中完成Unicode解码的关键，不能删除
+		return gson.toJson(je);
 	}
 
 	/**
