@@ -246,6 +246,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 				if (rule.isHeaderHandleWithIfActionType()) {
 					HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
 				}
+				
+				//remove header
+				if (rule.isGlobalRemoveHeaderHandleActionType()) {
+					HeaderManager.checkGlobalRuleAndTakeAction(rule, messageIsRequest, messageInfo);
+				}
 			}
 
 			if (isInScope(IBurpExtenderCallbacks.TOOL_PROXY,messageInfo)) {
@@ -279,6 +284,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 						if (rule.isHeaderHandleWithIfActionType()) {
 							HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
+						}
+						
+						//remove header
+						if (rule.isGlobalRemoveHeaderHandleActionType()) {
+							HeaderManager.checkGlobalRuleAndTakeAction(rule, messageIsRequest, messageInfo);
 						}
 					}
 

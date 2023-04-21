@@ -187,6 +187,11 @@ public class ConfigEntry {
 		if (type.equals(Action_Append_To_header_value)) {
 			return true;
 		}
+		return false;
+	}
+	
+	
+	public boolean isGlobalRemoveHeaderHandleActionType() {
 		if (type.equals(Action_Remove_From_Headers)) {
 			return true;
 		}

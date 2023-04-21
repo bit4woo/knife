@@ -299,12 +299,6 @@ public class HeaderManager {
 			}
 		}
 
-
-		//remove header
-		if (rule.getType().equals(ConfigEntry.Action_Remove_From_Headers) && rule.isEnable()) {
-			getter.removeHeader(messageIsRequest, messageInfo, key);
-		}
-
 		//add/update/append header
 		if (rule.getType().equals(ConfigEntry.Action_Add_Or_Replace_Header) && rule.isEnable()) {
 			getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
@@ -327,6 +321,17 @@ public class HeaderManager {
 			messageInfo.setComment("auto changed by knife");
 		}
 		//BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
+		return messageInfo;
+	}
+
+	public static IHttpRequestResponse checkGlobalRuleAndTakeAction(ConfigEntry rule,boolean messageIsRequest, IHttpRequestResponse messageInfo){
+		//remove header
+		String key = rule.getKey();
+		String value = rule.getValue();
+		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+		if (rule.getType().equals(ConfigEntry.Action_Remove_From_Headers) && rule.isEnable()) {
+			getter.removeHeader(messageIsRequest, messageInfo, key);
+		}
 		return messageInfo;
 	}
 
@@ -357,7 +362,7 @@ public class HeaderManager {
 			BurpExtender.getStdout().println("new handle rule added: "+targetShortUrl+" : "+headerLine);
 		}
 	}
-	
+
 	/**
 	 * 删除key、type完全相同，value的header相同的rule
 	 * @param newrule
@@ -376,7 +381,7 @@ public class HeaderManager {
 			}
 		}
 	}
-	
+
 	public static List<ConfigEntry> GetHeaderHandleWithIfRules() {
 		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
 
