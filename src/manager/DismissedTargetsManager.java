@@ -242,7 +242,7 @@ public class DismissedTargetsManager {
 		if (messageIsRequest) {
 			List<ConfigEntry> rules = getAllDropRules();
 			MatchResult res = whichAction(rules,message.getMessageInfo());
-			BurpExtender.getStdout().println(res.toString());
+			//BurpExtender.getStdout().println(res.toString());//for debug
 			if(res.getAction()== null) {
 				return false;
 			}
@@ -264,7 +264,7 @@ public class DismissedTargetsManager {
 	public static void checkForwardAction(ConfigEntry rule,boolean messageIsRequest,IInterceptedProxyMessage message) {
 		if (messageIsRequest) {
 			MatchResult res = whichAction(rule,message.getMessageInfo());
-			BurpExtender.getStdout().println(res.toString());
+			//BurpExtender.getStdout().println(res.toString());//for debug
 			if(res.getAction()== null) {
 				return;
 			}
