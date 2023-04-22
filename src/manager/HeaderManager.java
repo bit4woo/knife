@@ -326,15 +326,22 @@ public class HeaderManager {
 
 	public static IHttpRequestResponse checkGlobalRuleAndTakeAction(ConfigEntry rule,boolean messageIsRequest, IHttpRequestResponse messageInfo){
 		//remove header
+		byte[] oldRequest = messageInfo.getRequest();
+		
 		String key = rule.getKey();
-		String value = rule.getValue();
 		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 		if (rule.getType().equals(ConfigEntry.Action_Remove_From_Headers) && rule.isEnable()) {
 			getter.removeHeader(messageIsRequest, messageInfo, key);
 		}
+		
+		byte[] newRequest = messageInfo.getRequest();
+		if (!Arrays.equals(newRequest,oldRequest)){
+			//https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
+			messageInfo.setComment("auto changed by knife");
+		}
+		
 		return messageInfo;
 	}
-
 
 	public static IHttpRequestResponse updateCookie(boolean messageIsRequest, IHttpRequestResponse messageInfo, String cookieValue){
 		return updateHeader(messageIsRequest,messageInfo,cookieValue);
