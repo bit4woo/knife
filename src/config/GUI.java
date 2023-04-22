@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -292,7 +293,7 @@ public class GUI extends JFrame {
 						List<String> newEntries = config.getStringConfigEntries();
 
 						List<String> oldEntries = tableModel.getConfigJsons();//以此为修改基础，已存在的key不修改。
-
+						List<String> deprecatedEntryKeys = Arrays.asList("DismissedTargets DismissedAutoForward DismissedHost DismissedURL DismissAction Proxy-ServerList Proxy-UseRandomMode".split(" "));
 
 						List<String> oldKeys = new ArrayList<String>();
 						for (String config:oldEntries) {
@@ -306,6 +307,11 @@ public class GUI extends JFrame {
 							}
 							ConfigEntry entry  = new ConfigEntry().FromJson(config);
 							String configKey = entry.getKey();
+							
+							if (deprecatedEntryKeys.contains(configKey)) {
+								continue;//废弃的配置项不再添加
+							}
+							
 							if (oldKeys.contains(configKey)) {//存在相同Key,但是vaule或其他字段不同的配置，标记为冲突
 								entry.setKey(configKey+"[Conflict]");
 								oldEntries.add(entry.ToJson());
