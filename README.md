@@ -213,7 +213,13 @@ https://passport.baidu.com/v2/api/getqrcode
 
 https://aiqicha.baidu.com/index/getCPlaceAjax
 
+
+
 ### 三、由ToolFlag和Scope控制范围的请求包自动修改
+
+<u>**数据包处理规则的作用顺序：**</u>
+
+<u>**越新的规则越先被使用，因为它更能代表使用者的最新诉求和意图！**</u>
 
 控制条件的基本逻辑是 “对来自于（【是/否】proxy 或者【是/否】 scanner或者【是/否】repeater或者【是/否】intruder）中**并且**也包含在【是/否】scope中的请求进行修改操作“。
 
