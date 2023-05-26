@@ -68,6 +68,7 @@ public class GUI extends JFrame {
 	public JCheckBox chckbx_repeater;
 	public JCheckBox chckbx_intruder;
 	private JCheckBox chckbx_scanner;
+	private JCheckBox chckbx_target;//content discover
 	private JCheckBox chckbx_scope;
 
 	private JButton RestoreButton;
@@ -140,6 +141,14 @@ public class GUI extends JFrame {
 			}
 		});
 		panel.add(chckbx_intruder);
+		
+		chckbx_target = new JCheckBox("Target");
+		chckbx_target.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				config.setEnableStatus(checkEnabledFor());
+			}
+		});
+		panel.add(chckbx_target);
 
 		chckbx_scanner = new JCheckBox("Scanner ]");
 		chckbx_scanner.addActionListener(new ActionListener() {
@@ -432,6 +441,12 @@ public class GUI extends JFrame {
 		}else {
 			chckbx_scanner.setSelected(false);
 		}
+		if (IBurpExtenderCallbacks.TOOL_TARGET ==(config.getEnableStatus() & IBurpExtenderCallbacks.TOOL_TARGET)) {
+			chckbx_target.setSelected(true);
+		}else {
+			chckbx_target.setSelected(false);
+		}
+		
 		chckbx_scope.setSelected(config.isOnlyForScope());
 	}
 
@@ -458,6 +473,9 @@ public class GUI extends JFrame {
 		}
 		if(chckbx_scanner.isSelected()) {
 			status += IBurpExtenderCallbacks.TOOL_SCANNER;
+		}
+		if (chckbx_target.isSelected()) {
+			status += IBurpExtenderCallbacks.TOOL_TARGET;
 		}
 		return status;
 	}
