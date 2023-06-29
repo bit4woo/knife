@@ -3,6 +3,7 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,7 +36,7 @@ public class FindUrlAndRequest extends JMenuItem {
 		this.setText("^_^ Find URL And Request");
 		this.addActionListener(new FindUrl_Action(burp,burp.invocation));
 	}
-	
+
 	public static void main(String[] args) {
 		String url = "./abac/aaa.jpg";
 		if (url.startsWith("./")) {
@@ -65,8 +66,11 @@ class FindUrl_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		Runnable requestRunner = new Runnable() {
-			private String referUrl;
-
+			String referUrl;
+			String fullUrl;
+			String currentBaseUrl = null;
+			Set<String> baseUrls = new HashSet<String>();
+			List<String> urls = new ArrayList<String>();
 			@Override
 			public void run() {
 				try{
@@ -85,17 +89,31 @@ class FindUrl_Action implements ActionListener{
 						if (null == respBody) {
 							return;
 						}
-						String body = new String(respBody);
-						List<String> urls = Utils.grepURL(body);
-						Set<String> baseUrls = getBaseURL(urls);
 
 						referUrl = getter.getHeaderValueOf(true,message,"Referer");
+						fullUrl = getter.getFullURL(message).toString();
+
 						if (referUrl != null) {
 							baseUrls.add(referUrl);
 						}
-
-						String fullUrl = getter.getFullURL(message).toString();
 						baseUrls.add(fullUrl);
+
+						if (referUrl != null) {
+							currentBaseUrl = Utils.getBaseUrl(referUrl);
+						}
+						if (currentBaseUrl == null) {
+							currentBaseUrl = Utils.getBaseUrl(fullUrl);
+						}
+
+						messages = BurpExtender.getCallbacks().getSiteMap(currentBaseUrl);
+						for (IHttpRequestResponse item:messages) {
+							URL url = getter.getFullURL(item);
+							if (url != null && url.toString().endsWith(".js")) {
+								String body = new String(respBody);
+								urls.addAll(Utils.grepURL(body));
+								baseUrls.addAll(findPossibleBaseURL(urls));
+							}
+						}
 
 						String baseurl = choseAndEditBaseURL(baseUrls);
 
@@ -171,7 +189,7 @@ class FindUrl_Action implements ActionListener{
 		}
 	}
 
-	public static Set<String> getBaseURL(List<String> urls) {
+	public static Set<String> findPossibleBaseURL(List<String> urls) {
 		Set<String> baseURLs = new HashSet<String>();
 		for (String tmpurl:urls) {
 			//这部分提取的是含有协议头的完整URL地址
