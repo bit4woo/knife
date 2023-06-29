@@ -85,11 +85,6 @@ class FindUrl_Action implements ActionListener{
 					try {
 						//一般都是对一个JS文件进行路径提取，不需要循环
 						IHttpRequestResponse message = messages[0];
-						byte[] respBody = HelperPlus.getBody(false, message);
-						if (null == respBody) {
-							return;
-						}
-
 						referUrl = getter.getHeaderValueOf(true,message,"Referer");
 						fullUrl = getter.getFullURL(message).toString();
 
@@ -105,10 +100,14 @@ class FindUrl_Action implements ActionListener{
 							currentBaseUrl = Utils.getBaseUrl(fullUrl);
 						}
 
-						messages = BurpExtender.getCallbacks().getSiteMap(currentBaseUrl);
+						messages = BurpExtender.getCallbacks().getSiteMap(currentBaseUrl+"/");
 						for (IHttpRequestResponse item:messages) {
 							URL url = getter.getFullURL(item);
 							if (url != null && url.toString().endsWith(".js")) {
+								byte[] respBody = HelperPlus.getBody(false, item);
+								if (null == respBody) {
+									continue;
+								}
 								String body = new String(respBody);
 								urls.addAll(Utils.grepURL(body));
 								baseUrls.addAll(findPossibleBaseURL(urls));
