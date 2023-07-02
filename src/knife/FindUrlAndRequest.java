@@ -113,7 +113,10 @@ class FindUrl_Action implements ActionListener{
 								baseUrls.addAll(findPossibleBaseURL(urls));
 							}
 						}
-
+						
+						if (baseUrls.size() <=0) {
+							return;
+						}
 						String baseurl = choseAndEditBaseURL(baseUrls);
 
 						if (null==baseurl) {
