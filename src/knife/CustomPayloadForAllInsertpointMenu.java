@@ -90,7 +90,7 @@ class ForAllInserpointListener implements ActionListener {
 
 		Getter getter = new Getter(helpers);
 		List<IParameter> paras = getter.getParas(messageInfo);
-		
+
 		String charset = CharSetHelper.detectCharset(newRequest);
 		String xsspayload;
 		try {
@@ -145,18 +145,18 @@ class ForAllInserpointListener implements ActionListener {
 		}
 		messageInfo.setRequest(newRequest);
 	}
-	
+
 
 	public byte[] getPayload(String action){//action is the payload name
 
 		//debug
 		//PrintWriter stderr = new PrintWriter(myburp.callbacks.getStderr(), true);
-		
+
 		byte[] payloadBytes = null;
 		String payload =burp.tableModel.getConfigValueByKey(action);
 
 		if (burp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload)) {
-			
+
 			String host = burp.invocation.getSelectedMessages()[0].getHttpService().getHost();
 
 
@@ -171,6 +171,10 @@ class ForAllInserpointListener implements ActionListener {
 				Pattern p = Pattern.compile("(?i)%dnslogserver");
 				Matcher m  = p.matcher(payload);
 
+				if (dnslog == null) {
+					dnslog = "dnslog.com";
+				}
+
 				while ( m.find() ) {
 					String found = m.group(0);
 					payload = payload.replaceAll(found, dnslog);
@@ -180,13 +184,13 @@ class ForAllInserpointListener implements ActionListener {
 			//stderr.println(payload);
 			payloadBytes = payload.getBytes();
 		}
-		
+
 
 		if (burp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload_Base64)) {
 			payloadBytes = Base64.getDecoder().decode(payload);
 			//用IExtensionHelpers的stringToBytes bytesToString方法来转换的话？能保证准确性吗？
 		}
-		
+
 		return payloadBytes;
 	}
 

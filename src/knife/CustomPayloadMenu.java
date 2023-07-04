@@ -80,12 +80,12 @@ class CustomPayloadItemListener implements ActionListener {
 
 		//debug
 		//PrintWriter stderr = new PrintWriter(myburp.callbacks.getStderr(), true);
-		
+
 		byte[] payloadBytes = null;
 		String payload =myburp.tableModel.getConfigValueByKey(action);
 
 		if (myburp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload)) {
-			
+
 			String host = myburp.invocation.getSelectedMessages()[0].getHttpService().getHost();
 
 
@@ -97,6 +97,9 @@ class CustomPayloadItemListener implements ActionListener {
 
 			if(payload.toLowerCase().contains("%dnslogserver")) {
 				String dnslog = myburp.tableModel.getConfigValueByKey("DNSlogServer");
+				if (dnslog == null) {
+					dnslog = "dnslog.com";
+				}
 				Pattern p = Pattern.compile("(?i)%dnslogserver");
 				Matcher m  = p.matcher(payload);
 
@@ -109,13 +112,13 @@ class CustomPayloadItemListener implements ActionListener {
 			//stderr.println(payload);
 			payloadBytes = payload.getBytes();
 		}
-		
+
 
 		if (myburp.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload_Base64)) {
 			payloadBytes = Base64.getDecoder().decode(payload);
 			//用IExtensionHelpers的stringToBytes bytesToString方法来转换的话？能保证准确性吗？
 		}
-		
+
 
 		if(payloadBytes!=null) {
 			return Methods.do_modify_request(request, selectedIndex, payloadBytes);
