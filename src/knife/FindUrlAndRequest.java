@@ -15,6 +15,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
+import base.RequestTask;
+import base.RequestType;
 import burp.BurpExtender;
 import burp.HelperPlus;
 import burp.IBurpExtenderCallbacks;
@@ -80,7 +82,7 @@ class FindUrl_Action implements ActionListener{
 						return;
 					}
 
-					BlockingQueue<String> inputQueue = new LinkedBlockingQueue<String>();
+					BlockingQueue<RequestTask> inputQueue = new LinkedBlockingQueue<RequestTask>();
 
 					try {
 						//一般都是对一个JS文件进行路径提取，不需要循环
@@ -113,7 +115,7 @@ class FindUrl_Action implements ActionListener{
 								baseUrls.addAll(findPossibleBaseURL(urls));
 							}
 						}
-						
+
 						if (baseUrls.size() <=0) {
 							return;
 						}
@@ -135,7 +137,9 @@ class FindUrl_Action implements ActionListener{
 									url = url.replaceFirst("\\./", "");
 								}
 								url = baseurl+url; //baseurl统一以“/”结尾；url统一删除“/”的开头
-								inputQueue.put(url);
+								inputQueue.put(new RequestTask(url,RequestType.GET));
+								inputQueue.put(new RequestTask(url,RequestType.POST));
+								inputQueue.put(new RequestTask(url,RequestType.JSON));
 							}
 						}
 					} catch (Exception e) {
@@ -157,7 +161,7 @@ class FindUrl_Action implements ActionListener{
 	 * 多线程执行请求
 	 * @param inputQueue
 	 */
-	public void doRequest(BlockingQueue<String> inputQueue,String referUrl) {
+	public void doRequest(BlockingQueue<RequestTask> inputQueue,String referUrl) {
 		String proxyHost = BurpExtender.getProxyHost();
 		int proxyPort = BurpExtender.getProxyPort();
 
