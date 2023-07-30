@@ -68,9 +68,7 @@ class FindUrl_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		Runnable requestRunner = new Runnable() {
-			String referUrl;
-			String fullUrl;
-			String currentBaseUrl = null;
+			String siteBaseUrl = null;
 			Set<String> baseUrls = new HashSet<String>();
 			List<String> urls = new ArrayList<String>();
 			@Override
@@ -85,36 +83,7 @@ class FindUrl_Action implements ActionListener{
 					BlockingQueue<RequestTask> inputQueue = new LinkedBlockingQueue<RequestTask>();
 
 					try {
-						//一般都是对一个JS文件进行路径提取，不需要循环
-						IHttpRequestResponse message = messages[0];
-						referUrl = getter.getHeaderValueOf(true,message,"Referer");
-						fullUrl = getter.getFullURL(message).toString();
-
-						if (referUrl != null) {
-							baseUrls.add(referUrl);
-						}
-						baseUrls.add(fullUrl);
-
-						if (referUrl != null) {
-							currentBaseUrl = Utils.getBaseUrl(referUrl);
-						}
-						if (currentBaseUrl == null) {
-							currentBaseUrl = Utils.getBaseUrl(fullUrl);
-						}
-
-						messages = BurpExtender.getCallbacks().getSiteMap(currentBaseUrl+"/");
-						for (IHttpRequestResponse item:messages) {
-							URL url = getter.getFullURL(item);
-							if (url != null && url.toString().endsWith(".js")) {
-								byte[] respBody = HelperPlus.getBody(false, item);
-								if (null == respBody) {
-									continue;
-								}
-								String body = new String(respBody);
-								urls.addAll(Utils.grepURL(body));
-								baseUrls.addAll(findPossibleBaseURL(urls));
-							}
-						}
+						findUrls(messages[0]);
 
 						if (baseUrls.size() <=0) {
 							return;
@@ -146,16 +115,65 @@ class FindUrl_Action implements ActionListener{
 						e.printStackTrace(BurpExtender.getStderr());
 					}
 
-					doRequest(inputQueue,referUrl);
+					doRequest(inputQueue,siteBaseUrl);
 				}
 				catch (Exception e1)
 				{
 					e1.printStackTrace(stderr);
 				}
 			}
+
+
+			/**
+			 * 根据当前web的baseUrl找JS，特征就是referer以它开头
+			 * @param currentBaseUrl
+			 * @return
+			 */
+			public void findUrls(IHttpRequestResponse message){
+				HelperPlus getter = new HelperPlus(helpers);
+
+				String current_referUrl = getter.getHeaderValueOf(true,message,"Referer");
+				String current_fullUrl = getter.getFullURL(message).toString();
+
+				if (current_referUrl != null) {
+					baseUrls.add(current_referUrl);
+				}
+				baseUrls.add(current_fullUrl);
+
+				if (current_fullUrl != null) {
+					siteBaseUrl = Utils.getBaseUrl(current_referUrl);
+				}
+				if (siteBaseUrl == null) {
+					siteBaseUrl = Utils.getBaseUrl(current_fullUrl);
+				}
+
+
+				IHttpRequestResponse[] messages = BurpExtender.getCallbacks().getSiteMap(null);
+				for (IHttpRequestResponse item:messages) {
+					int code = getter.getStatusCode(item);
+					URL url = getter.getFullURL(item);
+					String referUrl = getter.getHeaderValueOf(true,item,"Referer");
+					if (referUrl == null ||  url== null || code <=0) {
+						continue;
+					}
+					if (!url.toString().toLowerCase().endsWith(".js")) {
+						continue;
+					}
+					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase()+"/")) {
+						byte[] respBody = getter.getBody(false, item);
+						String body = new String(respBody);
+						urls.addAll(Utils.grepURL(body));
+						baseUrls.addAll(findPossibleBaseURL(urls));
+					}
+				}
+			}
+
 		};
 		new Thread(requestRunner).start();
 	}
+
+
+
 
 	/**
 	 * 多线程执行请求
