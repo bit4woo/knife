@@ -75,7 +75,6 @@ class FindUrl_Action implements ActionListener{
 			public void run() {
 				try{
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-					HelperPlus getter = new HelperPlus(helpers);
 					if (messages == null || messages.length <=0) {
 						return;
 					}

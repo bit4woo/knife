@@ -20,7 +20,9 @@ import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
 import knife.AddHostToScopeMenu;
+import knife.ChangeToUploadRequest;
 import knife.ChunkedEncodingMenu;
+import knife.CopyJsOfThisSite;
 import knife.CustomPayloadForAllInsertpointMenu;
 import knife.CustomPayloadMenu;
 import knife.DismissCancelMenu;
@@ -135,6 +137,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//cookie身份凭证相关
 		menu_item_list.add(new UpdateCookieMenu(this));
 		menu_item_list.add(new UpdateCookieWithHistoryMenu(this));
+		menu_item_list.add(new ChangeToUploadRequest(this));
 
 		menu_item_list.add(new SetCookieMenu(this));
 		menu_item_list.add(new SetCookieWithHistoryMenu(this));
@@ -162,6 +165,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 		//menu_item_list.add(new JMenuItem());
 		//空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
 
+		menu_item_list.add(new CopyJsOfThisSite(this));
 		menu_item_list.add(new FindUrlAndRequest(this));
 
 		Iterator<JMenuItem> it = menu_item_list.iterator();
