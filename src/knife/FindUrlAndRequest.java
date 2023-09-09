@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -55,6 +56,7 @@ class FindUrl_Action implements ActionListener{
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
+	public static final String[] blackHostList = {"www.w3.org","ns.adobe.com","iptc.org"};
 
 	public FindUrl_Action(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.burp = burp;
@@ -218,6 +220,16 @@ class FindUrl_Action implements ActionListener{
 			//这部分提取的是含有协议头的完整URL地址
 			if (tmpurl.toLowerCase().startsWith("http://")
 					||tmpurl.toLowerCase().startsWith("https://")){
+				
+				try {
+					String host= new URL(tmpurl).getHost();
+					if (Arrays.asList(blackHostList).contains(host)) {
+						continue;
+					}
+				}catch(Exception E) {
+					continue;
+				}
+				
 				baseURLs.add(tmpurl);
 			}
 		}
