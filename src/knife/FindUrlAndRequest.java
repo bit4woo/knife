@@ -56,7 +56,8 @@ class FindUrl_Action implements ActionListener{
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
-	public static final String[] blackHostList = {"www.w3.org","ns.adobe.com","iptc.org"};
+	public static final String[] blackHostList = {"www.w3.org","ns.adobe.com","iptc.org","openoffice.org"
+			,"schemas.microsoft.com","schemas.openxmlformats.org","sheetjs.openxmlformats.org"};
 
 	public FindUrl_Action(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.burp = burp;
