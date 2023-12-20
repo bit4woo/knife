@@ -28,14 +28,11 @@ public class ConfigTable extends JTable
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private ConfigTableModel ConfigTableModel;
-
 
 
 	public ConfigTable(ConfigTableModel ConfigTableModel)
 	{
 		super(ConfigTableModel);
-		this.ConfigTableModel = ConfigTableModel;
 		this.setColumnModel(columnModel);
 		this.setFillsViewportHeight(true);//在table的空白区域显示右键菜单
 		//https://stackoverflow.com/questions/8903040/right-click-mouselistener-on-whole-jtable-component
@@ -47,11 +44,6 @@ public class ConfigTable extends JTable
 		//switchEnable();//no need 
 		//table.setupTypeColumn()//can't set here, only can after table data loaded.
 		//tableHeaderLengthInit();//can't set here, only can after table data loaded.
-	}
-
-	@Override
-	public ConfigTableModel getModel(){
-		return this.ConfigTableModel;
 	}
 
 	@Override
@@ -71,7 +63,7 @@ public class ConfigTable extends JTable
 	}
 
 	private void addClickSort() {
-		TableRowSorter<ConfigTableModel> sorter = new TableRowSorter<ConfigTableModel>(ConfigTableModel);
+		TableRowSorter<ConfigTableModel> sorter = new TableRowSorter<ConfigTableModel>((ConfigTableModel) this.getModel());
 		ConfigTable.this.setRowSorter(sorter);
 
 		JTableHeader header = this.getTableHeader();
@@ -88,7 +80,7 @@ public class ConfigTable extends JTable
 			}
 		});
 	}
-	
+
 	/**
 	 * 需要在数据加载后，即setModel后才有效果!
 	 */
@@ -98,11 +90,11 @@ public class ConfigTable extends JTable
 		int width = fm.stringWidth("A");//一个字符的宽度
 		for (int index=0;index<this.getColumnCount();index++) {
 			TableColumn column = this.getColumnModel().getColumn(index);
-			
+
 			if (column.getIdentifier().equals("#")) {
 				column.setMaxWidth(width*"100".length());
 			}
-			
+
 			if (column.getIdentifier().equals("Enable")) {
 				column.setMaxWidth(width*"Enable++".length());
 				//需要预留排序时箭头符合的位置，2个字符宽度
@@ -114,34 +106,7 @@ public class ConfigTable extends JTable
 		}
 		//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//配合横向滚动条
 	}
-	
-	
-	@Deprecated
-	private void switchEnable() {
-		this.addMouseListener(new MouseAdapter(){
-			public void mouseClicked(MouseEvent e)
-			{
-				if (e.getClickCount() == 2)// 实现双击
-				{
-					int row = ((ConfigTable) e.getSource()).rowAtPoint(e.getPoint()); // 获得行位置
-					int col = ((ConfigTable) e.getSource()).columnAtPoint(e.getPoint()); // 获得列位置
-					row = convertRowIndexToModel(row);
-					
-					String cellVal = (String) (ConfigTableModel.getValueAt(row, col)); // 获得点击单元格数据
-					
-					if(config.ConfigTableModel.titles[col].equals("Enable")) {
-						if (cellVal.equalsIgnoreCase("true")) {
-							ConfigTableModel.setValueAt("false", row, col);
-						}else {
-							ConfigTableModel.setValueAt("true", row, col);
-						}
-						ConfigTableModel.fireTableRowsInserted(row, row);
-					}
-				}
-			}
-		});
-	}
-	
+
 
 	private void registerListeners(){
 		final ConfigTable _this = this;
@@ -166,23 +131,23 @@ public class ConfigTable extends JTable
 	public void setupTypeColumn() {
 		//call this function must after table data loaded !!!!
 		JComboBox<String> comboBox = new JComboBox<String>();
-		
+
 		String[] items = new ConfigEntry().listAllConfigType();
 		for (String item:items) {
 			comboBox.addItem(item);
 		}
 		TableColumnModel model = this.getColumnModel();
-		
+
 		int col = Arrays.asList(config.ConfigTableModel.titles).indexOf("Type");
 		model.getColumn(col).setCellEditor(new DefaultCellEditor(comboBox));
 
 		JCheckBox jc1 = new JCheckBox();
 		int col1 = Arrays.asList(config.ConfigTableModel.titles).indexOf("Enable");
 		model.getColumn(col1).setCellEditor(new DefaultCellEditor(jc1));
-//		//Set up tool tips for the sport cells.
-//		DefaultTableCellRenderer renderer =
-//				new DefaultTableCellRenderer();
-//		renderer.setToolTipText("Click for combo box");
-//		typeColumn.setCellRenderer(renderer);
+		//		//Set up tool tips for the sport cells.
+		//		DefaultTableCellRenderer renderer =
+		//				new DefaultTableCellRenderer();
+		//		renderer.setToolTipText("Click for combo box");
+		//		typeColumn.setCellRenderer(renderer);
 	}
 }

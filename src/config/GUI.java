@@ -239,7 +239,7 @@ public class GUI extends JFrame {
 		 */
 
 		panel_1.add(new Label(" |"));
-
+		
 		/**
 		 * 旧配置全删除，使用选中文件中的配置。
 		 */
@@ -409,7 +409,7 @@ public class GUI extends JFrame {
 	//////////////////////////////methods//////////////////////////////////////
 
 	public void showToUI(Config config) {
-		tableModel = table.getModel();
+		tableModel = (ConfigTableModel) table.getModel();
 		tableModel.setConfigEntries(new ArrayList<ConfigEntry>());
 		//clearTable
 
