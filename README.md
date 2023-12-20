@@ -28,13 +28,23 @@
 
 ![image-20211230190034976](README.assets/image-20211230190034976.png)
 
-4、如果你想使用最新的功能，可以使用如下方法自行打包。
+## 使用最新版
+
+如果你想使用最新的功能，可以使用如下方法自行打包。
 
 ```bash
 git clone https://github.com/bit4woo/knife
 cd knife
 mvn package
 ```
+
+也可以通过github action下载最新的成功构建
+
+https://github.com/bit4woo/knife/actions
+
+![image-20231220194707237](assets/image-20231220194707237.png)
+
+![image-20231220194724635](assets/image-20231220194724635.png)
 
 
 
