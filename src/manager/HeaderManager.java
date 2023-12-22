@@ -63,7 +63,7 @@ public class HeaderManager {
 		for (int i=historyMessages.length-1; i>=0; i--) {
 			IHttpRequestResponse historyMessage = historyMessages[i];
 			String hisShortUrl = HelperPlus.getShortURL(historyMessage).toString();
-			HelperPlus.removeDefaultPort(hisShortUrl);
+			hisShortUrl = HelperPlus.removeDefaultPort(hisShortUrl);
 			if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
 				String headerLine = getter.getHeaderLine(true,historyMessage,headerName);
 				return headerLine;
@@ -88,7 +88,7 @@ public class HeaderManager {
 		for (int i=historyMessages.length-1; i>=0; i--) {
 			IHttpRequestResponse historyMessage = historyMessages[i];
 			String hisShortUrl = HelperPlus.getShortURL(historyMessage).toString();
-			HelperPlus.removeDefaultPort(hisShortUrl);
+			hisShortUrl = HelperPlus.removeDefaultPort(hisShortUrl);
 			if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
 				String headerLine = getter.getHeaderLine(true,historyMessage,headerName);
 				return headerLine;
@@ -192,10 +192,12 @@ public class HeaderManager {
 
 		String fullUrl = getter.getFullURL(messageInfo).toString();
 		String targetShortUrl = HelperPlus.getShortURL(messageInfo).toString();
+		targetShortUrl = HelperPlus.removeDefaultPort(targetShortUrl);
 		String host = HelperPlus.getHost(messageInfo);
 
 
 		String rulekey = rule.getKey();
+		rulekey = HelperPlus.removeDefaultPort(rulekey);
 		String rulevalue = rule.getValue();
 
 		if (rulekey.equalsIgnoreCase(targetShortUrl) ||
