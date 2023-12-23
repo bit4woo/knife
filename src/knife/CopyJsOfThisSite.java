@@ -104,7 +104,7 @@ class CopyJsOfThisSite_Action implements ActionListener{
 					if (referUrl == null ||  url== null || code <=0) {
 						continue;
 					}
-					if (!url.toString().toLowerCase().endsWith(".js")) {
+					if (!url.toString().toLowerCase().endsWith(".js") || !url.toString().toLowerCase().endsWith(".js.map")) {
 						continue;
 					}
 					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase()+"/")) {
