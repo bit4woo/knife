@@ -146,8 +146,12 @@ public class Utils {
 	 * @return
 	 */
 	public static List<String> textToLines(String input){
-		String[] lines = input.split("(\r\n|\r|\n)", -1);
 		List<String> result = new ArrayList<String>();
+		if (input ==null) {
+			return result;
+		}
+		
+		String[] lines = input.split("(\r\n|\r|\n)", -1);
 		for(String line: lines) {
 			line = line.trim();
 			if (!line.equalsIgnoreCase("")) {
