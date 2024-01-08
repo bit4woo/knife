@@ -19,6 +19,7 @@ public class ConfigEntry {
 	public static final String Action_Add_Or_Replace_Header = "Action_Add_Or_Replace_Header";// scope is controlled by gui
 	public static final String Action_Append_To_header_value = "Action_Append_To_header_value";// scope is controlled by gui
 	public static final String Action_Remove_From_Headers = "Action_Remove_From_Headers"; //scope is for all request
+	public static final String Action_Forward_And_Hide_Options = "Action_Forward_And_Hide_Options"; //scope is for all request
 	private static final String Action_ = "Action_";
 
 	public static final String Action_If_Base_URL_Matches_Add_Or_Replace_Header = "Action_If_Base_URL_Matches_Add_Or_Replace_Header";
@@ -35,6 +36,7 @@ public class ConfigEntry {
 	public static final String Action_Forward_Request_If_Host_Matches = "Action_Forward_Request_If_Host_Matches";
 	public static final String Action_Forward_Request_If_URL_Matches = "Action_Forward_Request_If_URL_Matches";
 	public static final String Action_Forward_Request_If_Keyword_Matches = "Action_Forward_Request_If_Keyword_Matches";
+	
 	private static final String Action_Forward_Request = "Action_Forward_Request";
 
 
@@ -191,8 +193,17 @@ public class ConfigEntry {
 	}
 	
 	
-	public boolean isGlobalRemoveHeaderHandleActionType() {
+	public boolean isGlobalHandleActionType() {
 		if (type.equals(Action_Remove_From_Headers)) {
+			return true;
+		}
+		if (type.equals(Action_Add_Or_Replace_Header)) {
+			return true;
+		}
+		if (type.equals(Action_Append_To_header_value)) {
+			return true;
+		}
+		if (type.equals(Action_Forward_And_Hide_Options)) {
 			return true;
 		}
 		return false;

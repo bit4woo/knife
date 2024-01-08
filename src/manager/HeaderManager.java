@@ -329,19 +329,29 @@ public class HeaderManager {
 	public static IHttpRequestResponse checkGlobalRuleAndTakeAction(ConfigEntry rule,boolean messageIsRequest, IHttpRequestResponse messageInfo){
 		//remove header
 		byte[] oldRequest = messageInfo.getRequest();
-		
+
 		String key = rule.getKey();
 		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 		if (rule.getType().equals(ConfigEntry.Action_Remove_From_Headers) && rule.isEnable()) {
 			getter.removeHeader(messageIsRequest, messageInfo, key);
 		}
-		
+
+		if (rule.getType().equals(ConfigEntry.Action_Forward_And_Hide_Options) && rule.isEnable()) {
+			if (!messageIsRequest) {
+				String method = getter.getMethod(messageInfo);
+				if (method.equals("OPTIONS")) {
+					getter.addOrUpdateHeader(messageIsRequest, messageInfo, "Content-Type", "application/octet-stream");
+					messageInfo.setComment("auto changed by knife");
+				}
+			}
+		}
+
 		byte[] newRequest = messageInfo.getRequest();
 		if (!Arrays.equals(newRequest,oldRequest)){
 			//https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
 			messageInfo.setComment("auto changed by knife");
 		}
-		
+
 		return messageInfo;
 	}
 

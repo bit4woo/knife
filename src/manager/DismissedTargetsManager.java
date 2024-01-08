@@ -44,14 +44,14 @@ public class DismissedTargetsManager {
 
 				if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Host_Matches)
 						|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Host_Matches)) {
-					
+
 					delSameConditionRule(host);
 					GUI.tableModel.addNewConfigEntry(new ConfigEntry(host, "",action,true));
 				}
 
 				if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_URL_Matches)
 						|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_URL_Matches)) {
-					
+
 					delSameConditionRule(url);
 					GUI.tableModel.addNewConfigEntry(new ConfigEntry(url, "",action,true));
 				}
@@ -61,7 +61,7 @@ public class DismissedTargetsManager {
 		if (keyword != null && !keyword.equals("")) {
 			if (action.equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Keyword_Matches)
 					|| action.equalsIgnoreCase(ConfigEntry.Action_Forward_Request_If_Keyword_Matches)) {
-				
+
 				delSameConditionRule(keyword);
 				GUI.tableModel.addNewConfigEntry(new ConfigEntry(keyword, "",action,true));
 			}
@@ -134,6 +134,14 @@ public class DismissedTargetsManager {
 	private static MatchResult whichAction(ConfigEntry rule,IHttpRequestResponse message) {
 		String host = getHost(message);//域名不应该大小写敏感
 		String url = getUrl(message);//URL中可能包含大写字母比如getUserInfo，URL应该是大小写敏感的。
+
+		if (rule.getType().equals(ConfigEntry.Action_Forward_And_Hide_Options) && rule.isEnable()) {
+			HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+			String method = getter.getMethod(message);
+			if (method.equals("OPTIONS")) {
+				return new MatchResult(Forward, rule);
+			}
+		}
 
 		if (rule.getType().equalsIgnoreCase(ConfigEntry.Action_Drop_Request_If_Host_Matches)) {
 			if (host.equalsIgnoreCase(rule.getKey())) {
