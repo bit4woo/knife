@@ -139,10 +139,14 @@ public class ConfigTable extends JTable
 		TableColumnModel model = this.getColumnModel();
 
 		int col = Arrays.asList(config.ConfigTableModel.titles).indexOf("Type");
-		model.getColumn(col).setCellEditor(new DefaultCellEditor(comboBox));
+		DefaultCellEditor editor = new DefaultCellEditor(comboBox);
+		editor.setClickCountToStart(2);
+		model.getColumn(col).setCellEditor(editor);
 
 		JCheckBox jc1 = new JCheckBox();
 		int col1 = Arrays.asList(config.ConfigTableModel.titles).indexOf("Enable");
+		DefaultCellEditor editor1 = new DefaultCellEditor(jc1);
+		//editor1.setClickCountToStart(2);//没作用
 		model.getColumn(col1).setCellEditor(new DefaultCellEditor(jc1));
 		//		//Set up tool tips for the sport cells.
 		//		DefaultTableCellRenderer renderer =
