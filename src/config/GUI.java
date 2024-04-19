@@ -417,7 +417,10 @@ public class GUI extends JFrame {
 			ConfigEntry entry  = new ConfigEntry().FromJson(stringEntry);
 			tableModel.addNewConfigEntry(entry);
 		}
-		table.setupTypeColumn();// must setup again when data cleaned
+
+		table.setupTypeColumn();
+		//call this function must after table data loaded !!!!
+		// must setup again when data cleaned
 		table.tableHeaderLengthInit();
 
 

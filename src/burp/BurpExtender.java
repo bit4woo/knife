@@ -41,6 +41,7 @@ import knife.UpdateHeaderMenu;
 import manager.ChunkManager;
 import manager.DismissedTargetsManager;
 import manager.HeaderManager;
+import org.apache.commons.lang3.StringUtils;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener, IProxyListener, IExtensionStateListener {
 
@@ -54,7 +55,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     public static PrintWriter stdout;
     public static PrintWriter stderr;
     public IContextMenuInvocation invocation;
-    public int proxyServerIndex = -1;
 
     public static String ExtensionName = "Knife";
     public static String Version = bsh.This.class.getPackage().getImplementationVersion();
@@ -75,15 +75,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         configPanel.setViewportView(table);
 
         String content = callbacks.loadExtensionSetting("knifeconfig");
-        if (content != null) {
-            config = new Gson().fromJson(content, Config.class);
-            showToUI(config);
-        } else {
-            showToUI(new Gson().fromJson(initConfig(), Config.class));
+        if (StringUtils.isEmpty(content)) {
+            content = initConfig();
         }
-        table.setupTypeColumn();//call this function must after table data loaded !!!!
-        table.tableHeaderLengthInit();
 
+        config = new Gson().fromJson(content, Config.class);
+        showToUI(config);
 
         ChineseTabFactory chntabFactory = new ChineseTabFactory(null, false, helpers, callbacks);
 
@@ -171,7 +168,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         Iterator<JMenuItem> it = menu_item_list.iterator();
         while (it.hasNext()) {
             JMenuItem item = it.next();
-            if (item.getText() == null || item.getText().equals("")) {
+            if (StringUtils.isEmpty(item.getText())) {
                 it.remove();
             }
         }
@@ -303,41 +300,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         } catch (Exception e) {
             e.printStackTrace();
             stderr.print(e.getStackTrace());
-        }
-    }
-
-    public static void confirmProxy() {
-        String proxy = JOptionPane.showInputDialog("Confirm Proxy Of Burp", "127.0.0.1:8080");
-        if (proxy != null) {
-            BurpExtender.CurrentProxy = proxy.trim();
-        }
-    }
-
-    public static String getProxyHost() {
-        try {
-            if (CurrentProxy == null || CurrentProxy.equals("") || CurrentProxy.split(":").length != 2) {
-                confirmProxy();
-            }
-            String proxyHost = CurrentProxy.split(":")[0];
-            return proxyHost;
-        } catch (Exception e) {
-            e.printStackTrace();
-            CurrentProxy = "";//设置为空，以便重新获取。
-            return null;
-        }
-    }
-
-    public static int getProxyPort() {
-        try {
-            if (CurrentProxy == null || CurrentProxy.equals("") || CurrentProxy.split(":").length != 2) {
-                confirmProxy();
-            }
-            String proxyPort = CurrentProxy.split(":")[1];
-            return Integer.parseInt(proxyPort);
-        } catch (Exception e) {
-            e.printStackTrace();
-            CurrentProxy = "";//设置为空，以便重新获取。
-            return -1;
         }
     }
 
