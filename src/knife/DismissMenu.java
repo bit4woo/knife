@@ -3,6 +3,7 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.util.Objects;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -49,8 +50,8 @@ class Dismiss_Action implements ActionListener{
 		IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 		
 		String keyword = null;
-		if (action == ConfigEntry.Action_Drop_Request_If_Keyword_Matches || 
-				action == ConfigEntry.Action_Forward_Request_If_Keyword_Matches) {
+		if (Objects.equals(action, ConfigEntry.Action_Drop_Request_If_Keyword_Matches) ||
+				Objects.equals(action, ConfigEntry.Action_Forward_Request_If_Keyword_Matches)) {
 			keyword = fetchKeyword();
 		}
 		

