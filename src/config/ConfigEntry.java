@@ -4,7 +4,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import burp.*;
 import com.google.gson.Gson;
@@ -281,33 +284,129 @@ public class ConfigEntry {
     }
 
     public boolean isInRuleScope(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-        if (type.equals(Action_Add_Or_Replace_Header)) {
-            return isInCheckBoxScope(toolFlag,messageInfo);
+
+        switch (type) {
+            case Action_Add_Or_Replace_Header:
+            case Action_Append_To_header_value:
+                return isInCheckBoxScope(toolFlag, messageInfo);
+            case Action_Remove_From_Headers:
+            case Action_Forward_And_Hide_Options:
+                return true;
+
+            //范围是URL的数据包修改
+            case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
+            case Action_If_Base_URL_Matches_Append_To_header_value:
+            case Action_If_Base_URL_Matches_Remove_From_Headers:
+
+                //丢弃请求的操作
+            case Action_Drop_Request_If_Host_Matches:
+            case Action_Drop_Request_If_URL_Matches:
+            case Action_Drop_Request_If_Keyword_Matches:
+
+                //自动放行的操作
+            case Action_Forward_Request_If_Host_Matches:
+            case Action_Forward_Request_If_URL_Matches:
+            case Action_Forward_Request_If_Keyword_Matches:
+
+                //TODO
+
         }
-        if (type.equals(Action_Append_To_header_value)) {
-            return isInCheckBoxScope(toolFlag,messageInfo);
-        }
-        if (type.equals(Action_Remove_From_Headers)) {
-            return true;
-        }
-        if (type.equals(Action_Forward_And_Hide_Options)) {
-            return true;
+        return false;
+    }
+
+    public String getFinalValue(IHttpRequestResponse messageInfo) {
+
+        String host = HelperPlus.getHost(messageInfo);
+        String value = getValue();
+
+        if (value.contains("%host")) {
+            value = value.replaceAll("%host", host);
         }
 
-        //TODO
-        return false;
+        if (value.toLowerCase().contains("%dnslogserver")) {
+            String dnslog = GUI.tableModel.getConfigValueByKey("DNSlogServer");
+            Pattern p = Pattern.compile("(?u)%dnslogserver");
+            Matcher m = p.matcher(value);
+
+            while (m.find()) {
+                String found = m.group(0);
+                value = value.replaceAll(found, dnslog);
+            }
+        }
+        return value;
     }
 
 
     /**
      * 参数结构和processProxyMessage一致
      * public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message)
+     *
      * @param messageIsRequest
      * @param message
      */
     public void takeAction(boolean messageIsRequest, IInterceptedProxyMessage message) {
+        if (!isEnable()) return;
         if (!isActionType()) return;
         if (!isInRuleScope(IBurpExtenderCallbacks.TOOL_PROXY, messageIsRequest, message.getMessageInfo())) return;
+
+        IHttpRequestResponse messageInfo = message.getMessageInfo();
+        byte[] oldRequest = messageInfo.getRequest();
+
+        String key = getKey();
+        String value = getFinalValue(messageInfo);
+
+        HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+
+        switch (type) {
+            case Action_Add_Or_Replace_Header:
+                getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
+                //TODO 注意，单个分支应该break。
+                break;
+            case Action_Append_To_header_value:
+                String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, key);
+                if (oldValue == null) {
+                    oldValue = "";
+                }
+                value = oldValue + value;
+                getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
+            case Action_Remove_From_Headers:
+                getter.removeHeader(messageIsRequest, messageInfo, key);
+            case Action_Forward_And_Hide_Options:
+                if (!messageIsRequest) {
+                    String method = getter.getMethod(messageInfo);
+                    if (method.equals("OPTIONS")) {
+                        getter.addOrUpdateHeader(messageIsRequest, messageInfo, "Content-Type", "application/octet-stream");
+                        messageInfo.setComment("auto changed by knife");
+                    }
+                }
+
+                //范围是URL的数据包修改
+            case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
+            case Action_If_Base_URL_Matches_Append_To_header_value:
+            case Action_If_Base_URL_Matches_Remove_From_Headers:
+
+                //丢弃请求的操作
+            case Action_Drop_Request_If_Host_Matches:
+            case Action_Drop_Request_If_URL_Matches:
+            case Action_Drop_Request_If_Keyword_Matches:
+
+                //自动放行的操作
+            case Action_Forward_Request_If_Host_Matches:
+            case Action_Forward_Request_If_URL_Matches:
+            case Action_Forward_Request_If_Keyword_Matches:
+
+        }
+
+        //TODO
+
+        byte[] newRequest = messageInfo.getRequest();
+
+        if (!Arrays.equals(newRequest, oldRequest)) {
+            //https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
+            messageInfo.setComment("auto changed by knife");
+        }
+        //BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
+
 
         if (messageIsRequest) {
             boolean dropped = DismissedTargetsManager.checkDropAction(messageIsRequest, message);//只在proxy中
@@ -316,7 +415,6 @@ public class ConfigEntry {
             }
             //TODO;
 
-            IHttpRequestResponse messageInfo = message.getMessageInfo();
 
             List<ConfigEntry> rules = DismissedTargetsManager.getAllChangeActionExceptDropRules();
             for (int index = rules.size() - 1; index >= 0; index--) {//按照时间倒叙引用规则
@@ -351,6 +449,7 @@ public class ConfigEntry {
     /**
      * 参数结构和processHttpMessage一致
      * public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo)
+     *
      * @param toolFlag
      * @param messageIsRequest
      * @param messageInfo
