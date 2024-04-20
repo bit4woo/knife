@@ -92,20 +92,20 @@ public class UpdateHeaderMenu extends JMenu {
 }
 
 class UpdateHeader_Action implements ActionListener{
-	private IContextMenuInvocation invocation;
+	private final IContextMenuInvocation invocation;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 
-	private String headerName;
+	private final String headerName;
 
 	public UpdateHeader_Action(BurpExtender burp,IContextMenuInvocation invocation,String headerName) {
 		this.invocation  = invocation;
 		this.helpers = burp.helpers;
-		this.callbacks = burp.callbacks;
-		this.stderr = burp.stderr;
-		this.stdout = burp.stdout;
+		this.callbacks = BurpExtender.callbacks;
+		this.stderr = BurpExtender.stderr;
+		this.stdout = BurpExtender.stdout;
 		this.headerName = headerName;
 	}
 

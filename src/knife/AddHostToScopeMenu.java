@@ -26,7 +26,7 @@ public class AddHostToScopeMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 class AddHostToScope_Action implements ActionListener{
 	//scope matching is actually String matching!!
-	private IContextMenuInvocation invocation;
+	private final IContextMenuInvocation invocation;
     public BurpExtender myburp;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -36,8 +36,8 @@ class AddHostToScope_Action implements ActionListener{
 	public AddHostToScope_Action(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.invocation  = invocation;
         this.helpers = burp.helpers;
-        this.callbacks = burp.callbacks;
-        this.stderr = burp.stderr;
+        this.callbacks = BurpExtender.callbacks;
+        this.stderr = BurpExtender.stderr;
 	}
 
 	

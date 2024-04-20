@@ -277,7 +277,7 @@ class ForAllInserpointListener implements ActionListener {
 	}
 
 	public static boolean isBooleanOrNumber(String input) {
-		if (input.toLowerCase().equals("true") || input.toLowerCase().equals("false")){
+		if (input.equalsIgnoreCase("true") || input.equalsIgnoreCase("false")){
 			return true;
 		}else{
 			return isNumeric(input);

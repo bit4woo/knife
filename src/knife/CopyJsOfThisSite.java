@@ -17,6 +17,7 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.SystemUtils;
 import burp.Utils;
+import org.apache.commons.lang3.StringUtils;
 
 
 public class CopyJsOfThisSite extends JMenuItem {
@@ -92,8 +93,11 @@ class CopyJsOfThisSite_Action implements ActionListener{
 				if (current_fullUrl != null) {
 					siteBaseUrl = Utils.getBaseUrl(current_referUrl);
 				}
-				if (siteBaseUrl == null) {
+				if (StringUtils.isEmpty(siteBaseUrl)) {
 					siteBaseUrl = Utils.getBaseUrl(current_fullUrl);
+				}
+				if (StringUtils.isEmpty(siteBaseUrl)){
+					return "";
 				}
 
 				IHttpRequestResponse[] messages = BurpExtender.getCallbacks().getSiteMap(null);
@@ -107,6 +111,7 @@ class CopyJsOfThisSite_Action implements ActionListener{
 					if (!url.toString().toLowerCase().endsWith(".js") || !url.toString().toLowerCase().endsWith(".js.map")) {
 						continue;
 					}
+
 					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase()+"/")) {
 						byte[] respBody = getter.getBody(false, item);
 						String body = new String(respBody);

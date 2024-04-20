@@ -16,6 +16,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Methods;
+import config.GUI;
 
 
 public class ChunkedEncodingMenu extends JMenuItem {
@@ -47,20 +48,20 @@ public class ChunkedEncodingMenu extends JMenuItem {
 }
 
 class ChunkedEncoding_Action implements ActionListener{
-	private IContextMenuInvocation invocation;
+	private final IContextMenuInvocation invocation;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
-	private BurpExtender burp;
+	private final BurpExtender burp;
 	
 	public ChunkedEncoding_Action(BurpExtender burp,IContextMenuInvocation invocation) {
 		this.burp = burp;
 		this.invocation  = invocation;
         this.helpers = burp.helpers;
-        this.callbacks = burp.callbacks;
-        this.stderr = burp.stderr;
-        this.stdout = burp.stdout;
+        this.callbacks = BurpExtender.callbacks;
+        this.stderr = BurpExtender.stderr;
+        this.stdout = BurpExtender.stdout;
 	}
 	
 	@Override
@@ -85,10 +86,10 @@ class ChunkedEncoding_Action implements ActionListener{
         	
             try {
             	boolean useComment =false;
-            	if (burp.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
+            	if (GUI.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
             		useComment = true;
             	}
-            	String lenStr = burp.tableModel.getConfigValueByKey("Chunked-Length");
+            	String lenStr = GUI.tableModel.getConfigValueByKey("Chunked-Length");
             	int len =10;
             	if (lenStr !=null) {
             		len = Integer.parseInt(lenStr);
