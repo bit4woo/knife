@@ -11,7 +11,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import manager.DismissedTargetsManager;
+import config.ProcessManager;
 
 public class DismissCancelMenu extends JMenuItem {//JMenuItem vs. JMenu
 
@@ -24,7 +24,7 @@ public class DismissCancelMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 class Dismiss_Cancel_Action implements ActionListener{
 	//scope matching is actually String matching!!
-	private IContextMenuInvocation invocation;
+	private final IContextMenuInvocation invocation;
 	public BurpExtender myburp;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -36,16 +36,13 @@ class Dismiss_Cancel_Action implements ActionListener{
 		this.myburp = burp;
 		this.helpers = burp.helpers;
 		this.callbacks = BurpExtender.callbacks;
-		this.stderr = burp.stderr;
+		this.stderr = BurpExtender.stderr;
 	}
 
 
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-
-		IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-		DismissedTargetsManager.removeRule(messages);
-
+		ProcessManager.removeDismissRule(invocation.getToolFlag(),invocation.getSelectedMessages());
 	}
 }

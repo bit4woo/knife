@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import javax.swing.JMenuItem;
 
 import burp.*;
-import manager.HeaderManager;
+import config.ProcessManager;
 
 public class UpdateCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -43,19 +43,19 @@ class UpdateCookieAction implements ActionListener {
 			//stdout.println("UpdateCookieAction called");
 			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 
-			String latestCookie = HeaderManager.getLatestCookieFromHistory(selectedItems[0]);//自行查找一次
+			String latestCookie = ProcessManager.getLatestCookieFromHistory(selectedItems[0]);//自行查找一次
 
 			//通过弹窗交互 获取Cookie
 			int time = 0;
 			while (!isVaildCookie(latestCookie) && time <2) {
-				latestCookie = HeaderManager.getLatestCookieFromUserInput();
+				latestCookie = ProcessManager.getLatestCookieFromUserInput();
 				time++;
 			}
 
 			if (isVaildCookie(latestCookie)) {
 				try{
-					selectedItems[0] = HeaderManager.updateCookie(true,selectedItems[0], latestCookie);
-					HeaderManager.setUsedCookieOfUpdate(latestCookie);
+					selectedItems[0] = ProcessManager.updateCookie(true,selectedItems[0], latestCookie);
+					ProcessManager.setUsedCookieOfUpdate(latestCookie);
 				}catch (Exception e){
 					e.printStackTrace(stderr);
 					//stderr.print(e.getMessage());

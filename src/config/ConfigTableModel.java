@@ -372,6 +372,24 @@ public class ConfigTableModel extends AbstractTableModel{
 		this.configEntries = configEntries;
 	}
 
+
+	/**
+	 * 获取所有对数据包进行修改的规则，除了drop和forward规则。
+	 * @return
+	 */
+	public static List<ConfigEntry> getAllChangeRules() {
+		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
+		List<ConfigEntry> entries = GUI.tableModel.getConfigEntries();
+		for (ConfigEntry entry:entries) {
+			if (entry.isActionType()) {
+				if (!entry.isDropOrForwardActionType()) {
+					result.add(entry);
+				}
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * 
 	 * @param newrule
@@ -407,5 +425,6 @@ public class ConfigTableModel extends AbstractTableModel{
 			}
 		}
 	}
+
 
 }

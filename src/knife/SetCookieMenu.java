@@ -7,12 +7,11 @@ import java.io.PrintWriter;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import manager.HeaderManager;
+import config.ProcessManager;
 
 public class SetCookieMenu extends JMenuItem {
 	//JMenuItem vs. JMenu
@@ -26,7 +25,7 @@ public class SetCookieMenu extends JMenuItem {
 }
 
 class SetCookie_Action implements ActionListener{
-	private IContextMenuInvocation invocation;
+	private final IContextMenuInvocation invocation;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
 	public PrintWriter stderr;
@@ -38,24 +37,24 @@ class SetCookie_Action implements ActionListener{
 		this.invocation  = invocation;
 		this.helpers = burp.helpers;
 		this.callbacks = BurpExtender.callbacks;
-		this.stderr = burp.stderr;
-		this.stdout = burp.stdout;
+		this.stderr = BurpExtender.stderr;
+		this.stdout = BurpExtender.stdout;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		try{
 			//stdout.println("SetCookie_Action called");
-			String cookieEntry = HeaderManager.getLatestCookieFromUserInput();
+			String cookieEntry = ProcessManager.getLatestCookieFromUserInput();
 
 			if (cookieEntry != null) {//当没有找到相应的cookie时为null
 				IHttpRequestResponse[] messages = invocation.getSelectedMessages();
 				if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
-					HeaderManager.updateCookie(true,messages[0], cookieEntry);
+					ProcessManager.updateCookie(true,messages[0], cookieEntry);
 				}
 
-				HeaderManager.addHandleRule(messages,cookieEntry);
-				HeaderManager.setUsedCookieOfUpdate(cookieEntry);
+				ProcessManager.addHandleRule(messages,cookieEntry);
+				ProcessManager.setUsedCookieOfUpdate(cookieEntry);
 			}else {
 				stderr.println("No cookie found with your input");
 			}

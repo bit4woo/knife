@@ -2,7 +2,6 @@ package config;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,9 +10,6 @@ import java.util.regex.Pattern;
 
 import burp.*;
 import com.google.gson.Gson;
-import manager.ChunkManager;
-import manager.DismissedTargetsManager;
-import manager.HeaderManager;
 
 import static burp.BurpExtender.isInCheckBoxScope;
 
@@ -207,47 +203,12 @@ public class ConfigEntry {
         return false;
     }
 
-    public boolean isForwardActionType() {
-        if (type.startsWith(Action_Drop_Request)) {
-            return true;
-        }
-        return false;
-    }
-
     public boolean isHeaderHandleWithIfActionType() {
         if (type.startsWith(Action_If_Base_URL_Matches_Header_Handle)) {
             return true;
         }
         return false;
     }
-
-    public boolean isScopeBasedHeaderHandleActionType() {
-        if (type.equals(Action_Add_Or_Replace_Header)) {
-            return true;
-        }
-        if (type.equals(Action_Append_To_header_value)) {
-            return true;
-        }
-        return false;
-    }
-
-
-    public boolean isGlobalHandleActionType() {
-        if (type.equals(Action_Remove_From_Headers)) {
-            return true;
-        }
-        if (type.equals(Action_Add_Or_Replace_Header)) {
-            return true;
-        }
-        if (type.equals(Action_Append_To_header_value)) {
-            return true;
-        }
-        if (type.equals(Action_Forward_And_Hide_Options)) {
-            return true;
-        }
-        return false;
-    }
-
 
     public String[] listAllDropForwardActions() {
         List<String> fieldList = new ArrayList<>();
@@ -266,7 +227,6 @@ public class ConfigEntry {
         return array;
     }
 
-
     public String[] listAllConfigType() {
         List<String> fieldList = new ArrayList<>();
         Field[] fields = getClass().getDeclaredFields();
@@ -283,33 +243,47 @@ public class ConfigEntry {
         return array;
     }
 
-    public boolean isInRuleScope(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+    public boolean isInRuleScope(int toolFlag, IHttpRequestResponse messageInfo) {
+        HelperPlus getter = new HelperPlus(BurpExtender.getCallbacks().getHelpers());
+        String baseUrl = HelperPlus.getShortURL(messageInfo).toString();
+        String url = getter.getFullURL(messageInfo).toString();
+        String host = HelperPlus.getHost(messageInfo);
+        String configkey = getKey();
 
         switch (type) {
             case Action_Add_Or_Replace_Header:
             case Action_Append_To_header_value:
                 return isInCheckBoxScope(toolFlag, messageInfo);
+
             case Action_Remove_From_Headers:
-            case Action_Forward_And_Hide_Options:
                 return true;
+            case Action_Forward_And_Hide_Options:
+                String method = getter.getMethod(messageInfo);
+                return method.equals("OPTIONS");
 
             //范围是URL的数据包修改
             case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
             case Action_If_Base_URL_Matches_Append_To_header_value:
             case Action_If_Base_URL_Matches_Remove_From_Headers:
+                return configkey.equalsIgnoreCase(baseUrl);
 
-                //丢弃请求的操作
+            //丢弃请求的操作//自动放行的操作
             case Action_Drop_Request_If_Host_Matches:
-            case Action_Drop_Request_If_URL_Matches:
-            case Action_Drop_Request_If_Keyword_Matches:
-
-                //自动放行的操作
             case Action_Forward_Request_If_Host_Matches:
+                if (configkey.startsWith("*.")) {
+                    String tmpDomain = configkey.replaceFirst("\\*", "");
+                    return host.toLowerCase().endsWith(tmpDomain.toLowerCase());
+                } else {
+                    return host.equalsIgnoreCase(configkey);
+                }
+
+            case Action_Drop_Request_If_URL_Matches:
             case Action_Forward_Request_If_URL_Matches:
+                return url.equalsIgnoreCase(configkey);
+
+            case Action_Drop_Request_If_Keyword_Matches:
             case Action_Forward_Request_If_Keyword_Matches:
-
-                //TODO
-
+                return url.contains(configkey);
         }
         return false;
     }
@@ -336,6 +310,11 @@ public class ConfigEntry {
         return value;
     }
 
+    public boolean ifNeedTakeAction(int toolFlag, IHttpRequestResponse messageInfo){
+        if (!isEnable()) return false;
+        if (!isActionType()) return false;
+        return isInRuleScope(toolFlag, messageInfo);
+    }
 
     /**
      * 参数结构和processProxyMessage一致
@@ -344,106 +323,44 @@ public class ConfigEntry {
      * @param messageIsRequest
      * @param message
      */
-    public void takeAction(boolean messageIsRequest, IInterceptedProxyMessage message) {
-        if (!isEnable()) return;
-        if (!isActionType()) return;
-        if (!isInRuleScope(IBurpExtenderCallbacks.TOOL_PROXY, messageIsRequest, message.getMessageInfo())) return;
+    public void takeProxyAction(boolean messageIsRequest, IInterceptedProxyMessage message) {
+        if (!ifNeedTakeAction(IBurpExtenderCallbacks.TOOL_PROXY,message.getMessageInfo())) return;
 
         IHttpRequestResponse messageInfo = message.getMessageInfo();
-        byte[] oldRequest = messageInfo.getRequest();
-
-        String key = getKey();
-        String value = getFinalValue(messageInfo);
-
         HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 
-        switch (type) {
-            case Action_Add_Or_Replace_Header:
-                getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
-                //TODO 注意，单个分支应该break。
-                break;
-            case Action_Append_To_header_value:
-                String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, key);
-                if (oldValue == null) {
-                    oldValue = "";
-                }
-                value = oldValue + value;
-                getter.addOrUpdateHeader(messageIsRequest, messageInfo, key, value);
-            case Action_Remove_From_Headers:
-                getter.removeHeader(messageIsRequest, messageInfo, key);
-            case Action_Forward_And_Hide_Options:
-                if (!messageIsRequest) {
-                    String method = getter.getMethod(messageInfo);
-                    if (method.equals("OPTIONS")) {
-                        getter.addOrUpdateHeader(messageIsRequest, messageInfo, "Content-Type", "application/octet-stream");
-                        messageInfo.setComment("auto changed by knife");
-                    }
-                }
-
-                //范围是URL的数据包修改
-            case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
-            case Action_If_Base_URL_Matches_Append_To_header_value:
-            case Action_If_Base_URL_Matches_Remove_From_Headers:
-
-                //丢弃请求的操作
-            case Action_Drop_Request_If_Host_Matches:
-            case Action_Drop_Request_If_URL_Matches:
-            case Action_Drop_Request_If_Keyword_Matches:
-
-                //自动放行的操作
-            case Action_Forward_Request_If_Host_Matches:
-            case Action_Forward_Request_If_URL_Matches:
-            case Action_Forward_Request_If_Keyword_Matches:
-
-        }
-
-        //TODO
-
-        byte[] newRequest = messageInfo.getRequest();
-
-        if (!Arrays.equals(newRequest, oldRequest)) {
-            //https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
-            messageInfo.setComment("auto changed by knife");
-        }
-        //BurpExtender.getStderr().println(messageInfo.getHttpService().toString()+" message not changed");
-
-
         if (messageIsRequest) {
-            boolean dropped = DismissedTargetsManager.checkDropAction(messageIsRequest, message);//只在proxy中
-            if (dropped) {
-                return;
+            switch (type) {
+                //自动放行的操作，只在proxy中
+                case Action_Forward_And_Hide_Options:
+                case Action_Forward_Request_If_Host_Matches:
+                case Action_Forward_Request_If_URL_Matches:
+                case Action_Forward_Request_If_Keyword_Matches:
+                    message.setInterceptAction(IInterceptedProxyMessage.ACTION_DONT_INTERCEPT);
+                    message.getMessageInfo().setComment("Auto Forwarded by Knife");
+                    message.getMessageInfo().setHighlight("gray");
+                    break;
+
+                //丢弃请求的操作，只在proxy中
+                case Action_Drop_Request_If_Host_Matches:
+                case Action_Drop_Request_If_URL_Matches:
+                case Action_Drop_Request_If_Keyword_Matches:
+                    message.setInterceptAction(IInterceptedProxyMessage.ACTION_DROP);
+                    message.getMessageInfo().setComment("Auto Dropped by Knife");
+                    message.getMessageInfo().setHighlight("gray");
+                    //无需进行后面的数据包修改
+                    return;
             }
-            //TODO;
-
-
-            List<ConfigEntry> rules = DismissedTargetsManager.getAllChangeActionExceptDropRules();
-            for (int index = rules.size() - 1; index >= 0; index--) {//按照时间倒叙引用规则
-
-                ConfigEntry rule = rules.get(index);
-
-                if (rule.isForwardActionType()) {
-                    DismissedTargetsManager.checkForwardAction(rule, messageIsRequest, message);//只在proxy中
-                }
-
-                if (rule.isScopeBasedHeaderHandleActionType()) {
-
-                    HeaderManager.checkScopeBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-
-                }
-
-                if (rule.isHeaderHandleWithIfActionType()) {
-                    HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                }
-
-                if (rule.isGlobalHandleActionType()) {
-                    HeaderManager.checkGlobalRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                }
+        } else {
+            switch (type) {
+                case Action_Forward_And_Hide_Options:
+                    getter.addOrUpdateHeader(messageIsRequest, messageInfo, "Content-Type", "application/octet-stream");
+                    messageInfo.setComment("auto changed by knife");
             }
-
-
-            ChunkManager.doChunk(messageIsRequest, messageInfo);
-
         }
+
+        takeEditAction(IBurpExtenderCallbacks.TOOL_PROXY, messageIsRequest, messageInfo);
+
     }
 
     /**
@@ -454,7 +371,43 @@ public class ConfigEntry {
      * @param messageIsRequest
      * @param messageInfo
      */
-    public void takeAction(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-        //TODO
+    public void takeEditAction(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+        if (!ifNeedTakeAction(toolFlag,messageInfo)) return;
+
+        byte[] oldRequest = messageInfo.getRequest();
+
+        String configKey = getKey();
+        String configValue = getFinalValue(messageInfo);
+
+        HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+
+        if (messageIsRequest) {//数据包自动修改
+            switch (type) {
+                case Action_Add_Or_Replace_Header:
+                case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
+                    getter.addOrUpdateHeader(messageIsRequest, messageInfo, configKey, configValue);
+                    //注意，单个分支应该break。
+                    break;
+                case Action_Append_To_header_value:
+                case Action_If_Base_URL_Matches_Append_To_header_value:
+                    String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, configKey);
+                    if (oldValue == null) {
+                        oldValue = "";
+                    }
+                    getter.addOrUpdateHeader(messageIsRequest, messageInfo, configKey, oldValue + configValue);
+                    break;
+                case Action_Remove_From_Headers:
+                case Action_If_Base_URL_Matches_Remove_From_Headers:
+                    getter.removeHeader(messageIsRequest, messageInfo, configKey);
+                    break;
+            }
+        }
+
+        byte[] newRequest = messageInfo.getRequest();
+
+        if (!Arrays.equals(newRequest, oldRequest)) {
+            //https://stackoverflow.com/questions/9499560/how-to-compare-the-java-byte-array
+            messageInfo.setComment("auto changed by knife");
+        }
     }
 }

@@ -7,27 +7,27 @@ import com.google.gson.Gson;
 
 import burp.IBurpExtenderCallbacks;
 
-public class Config {
+public class ConfigManager {
 
-	private String ConfigName = "";
-	private List<String> stringConfigEntries = new ArrayList<String>();// get from configTableModel
+	private String configManagerName = "";
+	private List<String> stringConfigEntries = new ArrayList<>();// get from configTableModel
 	private int enableStatus = IBurpExtenderCallbacks.TOOL_PROXY;
 	private boolean onlyForScope = true;
 
-	Config(){
+	ConfigManager(){
 		//to resolve "default constructor not found" error
 	}
 
-	public Config(String ConfigName){
-		this.ConfigName = ConfigName;
+	public ConfigManager(String configManagerName){
+		this.configManagerName = configManagerName;
 	}
 
-	public String getConfigName() {
-		return ConfigName;
+	public String getConfigManagerName() {
+		return configManagerName;
 	}
 
-	public void setConfigName(String configName) {
-		ConfigName = configName;
+	public void setConfigManagerName(String configManagerName) {
+		this.configManagerName = configManagerName;
 	}
 
 	public List<String> getStringConfigEntries() {
@@ -59,7 +59,7 @@ public class Config {
 		return new Gson().toJson(this);
 	}
 
-	public Config FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
-		return new Gson().fromJson(json, Config.class);
+	public ConfigManager FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
+		return new Gson().fromJson(json, ConfigManager.class);
 	}
 }

@@ -15,7 +15,7 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
 import config.ConfigEntry;
-import manager.DismissedTargetsManager;
+import config.ProcessManager;
 
 public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 
@@ -27,7 +27,7 @@ public class DismissMenu extends JMenuItem {//JMenuItem vs. JMenu
 
 class Dismiss_Action implements ActionListener{
 	//scope matching is actually String matching!!
-	private IContextMenuInvocation invocation;
+	private final IContextMenuInvocation invocation;
 	public BurpExtender myburp;
 	public IExtensionHelpers helpers;
 	public PrintWriter stdout;
@@ -39,7 +39,7 @@ class Dismiss_Action implements ActionListener{
 		this.myburp = burp;
 		this.helpers = burp.helpers;
 		this.callbacks = BurpExtender.callbacks;
-		this.stderr = burp.stderr;
+		this.stderr = BurpExtender.stderr;
 	}
 
 	@Override
@@ -55,7 +55,7 @@ class Dismiss_Action implements ActionListener{
 			keyword = fetchKeyword();
 		}
 		
-		DismissedTargetsManager.putRule(messages, keyword, action);
+		ProcessManager.putDismissRule(messages, keyword, action);
 	}
 
 	public static String fetchChangeType() {
@@ -72,7 +72,7 @@ class Dismiss_Action implements ActionListener{
 				JOptionPane.INFORMATION_MESSAGE, null,
 				options, options[0]);
 
-		if (selectedValue == options[options.length-1]) {
+		if (Objects.equals(selectedValue, options[options.length - 1])) {
 			try {
 				Utils.browserOpen("https://github.com/bit4woo/knife/blob/master/README.md", null);
 			} catch (Exception e) {

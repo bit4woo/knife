@@ -9,12 +9,11 @@ import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 
 import com.google.gson.Gson;
 
 import U2C.ChineseTabFactory;
-import config.Config;
+import config.ConfigManager;
 import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
@@ -38,9 +37,7 @@ import knife.SetCookieWithHistoryMenu;
 import knife.UpdateCookieMenu;
 import knife.UpdateCookieWithHistoryMenu;
 import knife.UpdateHeaderMenu;
-import manager.ChunkManager;
-import manager.DismissedTargetsManager;
-import manager.HeaderManager;
+import config.ProcessManager;
 import org.apache.commons.lang3.StringUtils;
 
 public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener, IProxyListener, IExtensionStateListener {
@@ -79,8 +76,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
             content = initConfig();
         }
 
-        config = new Gson().fromJson(content, Config.class);
-        showToUI(config);
+        configManager = new Gson().fromJson(content, ConfigManager.class);
+        showToUI(configManager);
 
         ChineseTabFactory chntabFactory = new ChineseTabFactory(null, false, helpers, callbacks);
 
@@ -206,7 +203,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
     @Override
     public String initConfig() {
-        config = new Config("default");
+        configManager = new ConfigManager("default");
         tableModel = new ConfigTableModel();
         return getAllConfig();
     }
@@ -216,45 +213,19 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
         //processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
         //same action will be executed twice! if call processHttpMessage() here.
-        if (CurrentProxy == null || CurrentProxy.equals("")) {
+        if (StringUtils.isEmpty(CurrentProxy)) {
             //为了知道burp当前监听的接口。供“find url and request”菜单使用
             CurrentProxy = message.getListenerInterface();
         }
+        IHttpRequestResponse messageInfo = message.getMessageInfo();
+        List<ConfigEntry> rules = ProcessManager.getAllActionRules();
+        for (ConfigEntry  rule:rules){
+            rule.takeProxyAction(messageIsRequest,message);
+        }
 
         if (messageIsRequest) {
-            boolean dropped = DismissedTargetsManager.checkDropAction(messageIsRequest, message);//只在proxy中
-            if (dropped) {
-                return;
-            }
-
-            IHttpRequestResponse messageInfo = message.getMessageInfo();
-
-            List<ConfigEntry> rules = DismissedTargetsManager.getAllChangeActionExceptDropRules();
-            for (int index = rules.size() - 1; index >= 0; index--) {//按照时间倒叙引用规则
-
-                ConfigEntry rule = rules.get(index);
-
-                if (rule.isForwardActionType()) {
-                    DismissedTargetsManager.checkForwardAction(rule, messageIsRequest, message);//只在proxy中
-                }
-
-                if (rule.isScopeBasedHeaderHandleActionType()) {
-                    if (isInCheckBoxScope(IBurpExtenderCallbacks.TOOL_PROXY, messageInfo)) {
-                        HeaderManager.checkScopeBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                    }
-                }
-
-                if (rule.isHeaderHandleWithIfActionType()) {
-                    HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                }
-
-                if (rule.isGlobalHandleActionType()) {
-                    HeaderManager.checkGlobalRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                }
-            }
-
             if (isInCheckBoxScope(IBurpExtenderCallbacks.TOOL_PROXY, messageInfo)) {
-                ChunkManager.doChunk(messageIsRequest, messageInfo);
+                ProcessManager.doChunk(messageIsRequest, messageInfo);
             }
         }
     }
@@ -271,50 +242,22 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
                     //handle it in processProxyMessage(). so we can see the changes in the proxy view.
                     //##############################//
                 } else {
-                    List<ConfigEntry> rules = HeaderManager.getAllChangeRules();
+                    List<ConfigEntry> rules = ProcessManager.getEditActionRules();
                     for (int index = rules.size() - 1; index >= 0; index--) {//按照时间倒叙引用规则
 
                         ConfigEntry rule = rules.get(index);
-
-                        if (rule.isScopeBasedHeaderHandleActionType()) {
-                            if (isInCheckBoxScope(toolFlag, messageInfo)) {
-                                HeaderManager.checkScopeBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                            }
-                        }
-
-                        if (rule.isHeaderHandleWithIfActionType()) {
-                            HeaderManager.checkURLBasedRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                        }
-
-                        //remove header
-                        if (rule.isGlobalHandleActionType()) {
-                            HeaderManager.checkGlobalRuleAndTakeAction(rule, messageIsRequest, messageInfo);
-                        }
+                        rule.takeEditAction(toolFlag, messageIsRequest, messageInfo);
                     }
 
-                    if (isInCheckBoxScope(IBurpExtenderCallbacks.TOOL_PROXY, messageInfo)) {
-                        ChunkManager.doChunk(messageIsRequest, messageInfo);
+                    if (isInCheckBoxScope(toolFlag, messageInfo)) {
+                        ProcessManager.doChunk(messageIsRequest, messageInfo);
                     }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            stderr.print(e.getStackTrace());
+            e.printStackTrace(stderr);
         }
-    }
-
-    public List<String> GetSetCookieHeaders(String cookies) {
-        if (cookies.startsWith("Cookie: ")) {
-            cookies = cookies.replaceFirst("Cookie: ", "");
-        }
-
-        String[] cookieList = cookies.split("; ");
-        List<String> setHeaderList = new ArrayList<String>();
-        //Set-Cookie: SST_S22__WEB_RIGHTS=SST_S22_JT_RIGHTS_113_9; Path=/
-        for (String cookie : cookieList) {
-            setHeaderList.add(String.format("Set-Cookie: %s; Path=/", cookie));
-        }
-        return setHeaderList;
     }
 
     public static IBurpExtenderCallbacks getCallbacks() {
@@ -323,12 +266,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
 
     public static boolean isInCheckBoxScope(int toolFlag, IHttpRequestResponse messageInfo) {
-        if (toolFlag == (toolFlag & config.getEnableStatus())) {
+        if (toolFlag == (toolFlag & configManager.getEnableStatus())) {
 
             IExtensionHelpers helpers = getCallbacks().getHelpers();
             URL url = new HelperPlus(helpers).getFullURL(messageInfo);
 
-            if (!config.isOnlyForScope() || callbacks.isInScope(url)) {
+            if (!configManager.isOnlyForScope() || callbacks.isInScope(url)) {
                 return true;
             }
         }
