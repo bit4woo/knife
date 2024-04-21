@@ -8,7 +8,6 @@ import java.net.URL;
 
 import javax.swing.JMenuItem;
 
-import U2C.CharSetHelper;
 import burp.BurpExtender;
 import burp.Getter;
 import burp.IBurpExtenderCallbacks;
@@ -16,6 +15,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.Utils;
+import messageTab.U2C.CharSetHelper;
 
 public class OpenWithBrowserMenu extends JMenuItem {
 	/**

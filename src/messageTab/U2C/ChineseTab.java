@@ -1,4 +1,4 @@
-package U2C;
+package messageTab.U2C;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

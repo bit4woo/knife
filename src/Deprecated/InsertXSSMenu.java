@@ -13,7 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import U2C.CharSetHelper;
 import burp.BurpExtender;
 import burp.Getter;
 import burp.IBurpExtenderCallbacks;
@@ -21,6 +20,7 @@ import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IParameter;
+import messageTab.U2C.CharSetHelper;
 
 
 @Deprecated

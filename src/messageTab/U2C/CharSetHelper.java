@@ -1,4 +1,4 @@
-package U2C;
+package messageTab.U2C;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;

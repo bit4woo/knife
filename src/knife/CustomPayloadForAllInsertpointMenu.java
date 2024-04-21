@@ -17,7 +17,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import U2C.CharSetHelper;
 import burp.BurpExtender;
 import burp.Getter;
 import burp.IBurpExtenderCallbacks;
@@ -27,6 +26,7 @@ import burp.IHttpRequestResponse;
 import burp.IParameter;
 import burp.Methods;
 import config.ConfigEntry;
+import messageTab.U2C.CharSetHelper;
 
 /**
  * 将某个payload插入所有的插入点，比如XSS

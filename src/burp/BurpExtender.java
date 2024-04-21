@@ -12,7 +12,6 @@ import javax.swing.JMenuItem;
 
 import com.google.gson.Gson;
 
-import U2C.ChineseTabFactory;
 import config.ConfigManager;
 import config.ConfigEntry;
 import config.ConfigTable;
@@ -37,6 +36,7 @@ import knife.SetCookieWithHistoryMenu;
 import knife.UpdateCookieMenu;
 import knife.UpdateCookieWithHistoryMenu;
 import knife.UpdateHeaderMenu;
+import messageTab.U2C.ChineseTabFactory;
 import config.ProcessManager;
 import org.apache.commons.lang3.StringUtils;
 

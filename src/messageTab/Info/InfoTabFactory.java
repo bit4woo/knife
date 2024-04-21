@@ -1,4 +1,4 @@
-package U2C;
+package messageTab.Info;
 
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
@@ -12,20 +12,20 @@ import burp.IMessageEditorTabFactory;
  * @github https://github.com/bit4woo
  *
  */
-public class ChineseTabFactory implements IMessageEditorTabFactory
+public class InfoTabFactory implements IMessageEditorTabFactory
 {
 	private static IExtensionHelpers helpers;
 	private static IBurpExtenderCallbacks callbacks;
 
 
-	public ChineseTabFactory(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
+	public InfoTabFactory(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
-		ChineseTabFactory.callbacks = callbacks;
-		ChineseTabFactory.helpers = helpers;
+		InfoTabFactory.callbacks = callbacks;
+		InfoTabFactory.helpers = helpers;
 	}
 
 	@Override
 	public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-		return new ChineseTab(controller,editable,helpers,callbacks);
+		return new InfoTab(controller,editable,helpers,callbacks);
 	}
 }
