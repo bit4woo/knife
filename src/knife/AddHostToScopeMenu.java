@@ -5,10 +5,10 @@ import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.net.URL;
 
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
+import burp.HelperPlus;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -47,7 +47,7 @@ class AddHostToScope_Action implements ActionListener{
        try{
         	IHttpRequestResponse[] messages = invocation.getSelectedMessages();
         	for(IHttpRequestResponse message:messages) {
-        		String url = message.getHttpService().toString();
+        		String url = HelperPlus.getShortURL(message.getHttpService());
 				URL shortUrl = new URL(url);
 	        	callbacks.includeInScope(shortUrl);
         	}
