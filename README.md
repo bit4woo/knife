@@ -30,7 +30,9 @@
 
 ## 使用最新版
 
-如果你想使用最新的功能，可以使用如下方法自行打包。
+如果你想使用最新的功能，可以使用如下方法：
+
+### 1、自行打包
 
 ```bash
 git clone https://github.com/bit4woo/knife
@@ -38,11 +40,15 @@ cd knife
 mvn package
 ```
 
-也可以通过github action下载最新的成功构建
 
-https://github.com/bit4woo/knife/actions
+
+### 2、通过github action下载
+
+访问项目的Action页面 https://github.com/bit4woo/knife/actions。找到最新成功的构建，绿色✔的成功的构建，红色×是失败的构建。
 
 ![image-20231220194707237](assets/image-20231220194707237.png)
+
+点击最新成功的构建链接，找到底部的 “jar-with-dependencies”，即可下载对应的jar包。
 
 ![image-20231220194724635](assets/image-20231220194724635.png)
 
