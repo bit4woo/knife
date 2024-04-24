@@ -1,17 +1,20 @@
 package config;
 
+import burp.*;
+import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
+import runcmd.MessagePart;
+import runcmd.TextUtils;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import burp.*;
-import com.google.gson.Gson;
-
 import static burp.BurpExtender.isInCheckBoxScope;
+import static runcmd.MessagePart.getValueByPartType;
 
 public class ConfigEntry {
 
@@ -62,8 +65,10 @@ public class ConfigEntry {
 
     private static final String Config_ = "Config_";
 
-    public static final String Scope_Comment_Global = "This config affects ALL requests";
-    public static final String Scope_Comment_checkbox = "The scope of this config is controlled by the checkbox above";
+    public static final String Run_External_Cmd = "Run_External_Cmd";
+
+    public static final String Scope_Comment_Global = " This config affects ALL requests; ";
+    public static final String Scope_Comment_checkbox = " The scope of this config is controlled by the checkbox above; ";
 
     public ConfigEntry() {
         //to resolve "default constructor not found" error
@@ -97,17 +102,18 @@ public class ConfigEntry {
     }
 
     public void autoComment(String type) {
-        if (type.equals(Action_Add_Or_Replace_Header)) {
-            this.comment = Scope_Comment_checkbox + " " + this.comment;
-        }
-        if (type.equals(Action_Append_To_header_value)) {
-            this.comment = Scope_Comment_checkbox + " " + this.comment;
-        }
-        if (type.equals(Action_Remove_From_Headers)) {
-            this.comment = Scope_Comment_Global + " " + this.comment;
-        }
-        if (type.equals(Action_Forward_And_Hide_Options)) {
-            this.comment = Scope_Comment_Global + " " + this.comment;
+        switch (type) {
+            case Action_Add_Or_Replace_Header:
+            case Action_Append_To_header_value:
+                this.comment = Scope_Comment_checkbox + this.comment;
+                break;
+            case Action_Remove_From_Headers:
+            case Action_Forward_And_Hide_Options:
+                this.comment = Scope_Comment_Global + this.comment;
+                break;
+            default:
+                this.comment = this.comment.replaceAll(Pattern.quote(Scope_Comment_checkbox), "");
+                this.comment = this.comment.replaceAll(Pattern.quote(Scope_Comment_Global), "");
         }
     }
 
@@ -288,29 +294,34 @@ public class ConfigEntry {
         return false;
     }
 
-    public String getFinalValue(IHttpRequestResponse messageInfo) {
-
-        String host = HelperPlus.getHost(messageInfo);
-        String value = getValue();
-
-        if (value.contains("%host")) {
-            value = value.replaceAll("%host", host);
+    public String getFinalValue(boolean isRequest, IHttpRequestResponse messageInfo) {
+        String valueStr = getValue();
+        if (StringUtils.isEmpty(valueStr)) {
+            return valueStr;
         }
 
-        if (value.toLowerCase().contains("%dnslogserver")) {
-            String dnslog = GUI.tableModel.getConfigValueByKey("DNSlogServer");
-            Pattern p = Pattern.compile("(?u)%dnslogserver");
-            Matcher m = p.matcher(value);
+        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{.*\\}");
 
-            while (m.find()) {
-                String found = m.group(0);
-                value = value.replaceAll(found, dnslog);
+        List<String> httpParts = MessagePart.getPartList();
+        List<ConfigEntry> varConfigs = GUI.tableModel.getBasicConfigVars();
+
+        for (String item : items) {
+            String partType = item.replace("{", "").replace("}", "");
+            for (String part : httpParts) {
+                if (partType.equalsIgnoreCase(part)) {
+                    valueStr = valueStr.replaceAll(Pattern.quote(item), getValueByPartType(isRequest, messageInfo, partType));
+                }
+            }
+            for (ConfigEntry config : varConfigs) {
+                if (partType.equalsIgnoreCase(config.getKey())) {
+                    valueStr = valueStr.replaceAll(Pattern.quote(item), config.getValue());
+                }
             }
         }
-        return value;
+        return valueStr;
     }
 
-    public boolean ifNeedTakeAction(int toolFlag, IHttpRequestResponse messageInfo){
+    public boolean ifNeedTakeAction(int toolFlag, IHttpRequestResponse messageInfo) {
         if (!isEnable()) return false;
         if (!isActionType()) return false;
         return isInRuleScope(toolFlag, messageInfo);
@@ -324,7 +335,7 @@ public class ConfigEntry {
      * @param message
      */
     public void takeProxyAction(boolean messageIsRequest, IInterceptedProxyMessage message) {
-        if (!ifNeedTakeAction(IBurpExtenderCallbacks.TOOL_PROXY,message.getMessageInfo())) return;
+        if (!ifNeedTakeAction(IBurpExtenderCallbacks.TOOL_PROXY, message.getMessageInfo())) return;
 
         IHttpRequestResponse messageInfo = message.getMessageInfo();
         HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
@@ -372,12 +383,12 @@ public class ConfigEntry {
      * @param messageInfo
      */
     public void takeEditAction(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-        if (!ifNeedTakeAction(toolFlag,messageInfo)) return;
+        if (!ifNeedTakeAction(toolFlag, messageInfo)) return;
 
         byte[] oldRequest = messageInfo.getRequest();
 
         String configKey = getKey();
-        String configValue = getFinalValue(messageInfo);
+        String configValue = getFinalValue(messageIsRequest, messageInfo);
 
         HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 
