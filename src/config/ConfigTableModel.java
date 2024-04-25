@@ -438,6 +438,4 @@ public class ConfigTableModel extends AbstractTableModel{
 			}
 		}
 	}
-
-
 }
