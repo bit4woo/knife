@@ -56,11 +56,8 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Run_External_Cmd,true,true));
 		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Run_External_Cmd,true,false));
-		if (Utils.isMac()){//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
-			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
-		}else {
-			configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,true,false,Robot_Input_Comment));
-		}
+		configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
+		//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
 		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));

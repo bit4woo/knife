@@ -319,7 +319,7 @@ public class ConfigEntry {
             return valueStr;
         }
 
-        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{.*\\}");
+        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{.*?\\}");
 
         List<String> httpParts = MessagePart.getPartList();
         List<ConfigEntry> varConfigs = GUI.tableModel.getBasicConfigVars();
@@ -328,12 +328,13 @@ public class ConfigEntry {
             String partType = item.replace("{", "").replace("}", "");
             for (String part : httpParts) {
                 if (partType.equalsIgnoreCase(part)) {
-                    valueStr = valueStr.replaceAll(Pattern.quote(item), getValueByPartType(messageInfos, partType));
+                    String value = getValueByPartType(messageInfos, partType);
+                    valueStr = valueStr.replace(item, value);
                 }
             }
             for (ConfigEntry config : varConfigs) {
                 if (partType.equalsIgnoreCase(config.getKey())) {
-                    valueStr = valueStr.replaceAll(Pattern.quote(item), config.getValue());
+                    valueStr = valueStr.replace(item, config.getValue());
                 }
             }
         }
