@@ -191,5 +191,6 @@ public class MessagePart {
 
     public static void main(String[] args) {
         System.out.println(getPartList());
+        System.out.println(contentToFile("1111", "1111"));
     }
 }

@@ -31,9 +31,9 @@ public class ConfigTableModel extends AbstractTableModel{
 	public static final String Firefox_Windows = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
 
 	// /usr/local/bin 本地默认可执行文件路径
-	public static final String SQLMap_Command = "python /usr/local/bin/sqlmap-dev/sqlmap.py -r {requestAsFile} --force-ssl --risk=3 --level=3";
+	public static final String SQLMap_Command = "python /usr/local/bin/sqlmap-dev/sqlmap.py -r {RequestAsFile} --force-ssl --risk=3 --level=3";
 	public static final String Nmap_Command = "nmap -Pn -sT -sV --min-rtt-timeout 1ms "
-			+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 {host}";
+			+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 {Host}";
 
 	private static final String Robot_Input_Comment = "this config effects how sqlmap and nmap runs";
 
@@ -218,7 +218,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 	@Override
 	public Class<?> getColumnClass(int columnIndex)
-	{	
+	{
 		if (titles[columnIndex].equals("#")) {
 			return Integer.class;//index
 		}else if (titles[columnIndex].equals("Enable")) {
@@ -404,7 +404,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	}
 
 	/**
-	 * 
+	 *
 	 * @param newrule
 	 */
 	public void delSameRule(ConfigEntry newrule) {
@@ -417,8 +417,8 @@ public class ConfigTableModel extends AbstractTableModel{
 			}
 		}
 	}
-	
-	
+
+
 	public void delRuleWithSameKeyAndValue(ConfigEntry newrule) {
 		for (int i= configEntries.size()-1;i>=0;i--) {
 			ConfigEntry entry = configEntries.get(i);
@@ -428,8 +428,8 @@ public class ConfigTableModel extends AbstractTableModel{
 			}
 		}
 	}
-	
-	
+
+
 	public void delRuleWithSameKey(ConfigEntry newrule) {
 		for (int i= configEntries.size()-1;i>=0;i--) {
 			ConfigEntry entry = configEntries.get(i);
