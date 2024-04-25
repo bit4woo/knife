@@ -4,7 +4,6 @@ import burp.*;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import runcmd.MessagePart;
-import runcmd.TextUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -139,6 +138,7 @@ public class ConfigEntry {
 
     public void setType(String type) {
         this.type = type;
+        autoComment(type);
     }
 
     public boolean isEnable() {
@@ -396,20 +396,20 @@ public class ConfigEntry {
             switch (type) {
                 case Action_Add_Or_Replace_Header:
                 case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
-                    getter.addOrUpdateHeader(messageIsRequest, messageInfo, configKey, configValue);
+                    getter.addOrUpdateHeader(true, messageInfo, configKey, configValue);
                     //注意，单个分支应该break。
                     break;
                 case Action_Append_To_header_value:
                 case Action_If_Base_URL_Matches_Append_To_header_value:
-                    String oldValue = getter.getHeaderValueOf(messageIsRequest, messageInfo, configKey);
+                    String oldValue = getter.getHeaderValueOf(true, messageInfo, configKey);
                     if (oldValue == null) {
                         oldValue = "";
                     }
-                    getter.addOrUpdateHeader(messageIsRequest, messageInfo, configKey, oldValue + configValue);
+                    getter.addOrUpdateHeader(true, messageInfo, configKey, oldValue + configValue);
                     break;
                 case Action_Remove_From_Headers:
                 case Action_If_Base_URL_Matches_Remove_From_Headers:
-                    getter.removeHeader(messageIsRequest, messageInfo, configKey);
+                    getter.removeHeader(true, messageInfo, configKey);
                     break;
             }
         }
