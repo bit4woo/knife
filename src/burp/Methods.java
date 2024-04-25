@@ -13,31 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 
 public class Methods {
-    
-    public static JMenu add_MenuItem_and_listener(JMenu menu, String[] itemList, Object actionListener){
-        for(int i = 0; i < itemList.length; i++){
-            JMenuItem item = new JMenuItem(itemList[i]);
-            item.addActionListener((ActionListener) actionListener);
-            menu.add(item);
-        }
-        return menu;
-    }
-    
-    public static JMenu Create_Main_Menu(JMenu MainMenu, String[] MainMenuItems, String[][] SubMenuItems, Object actionListener){
-        for(int i=0; i < MainMenuItems.length; i++){
-            JMenu menu = new JMenu(MainMenuItems[i]);
-            menu = add_MenuItem_and_listener(menu, SubMenuItems[i], actionListener);
-            if(MainMenuItems[i].equals("Basic Statements")){
-                MainMenu.add(new JSeparator());
-                MainMenu.add(menu);
-                MainMenu.add(new JSeparator());
-            }else{
-                MainMenu.add(menu);
-            }
-        }
-        return MainMenu;
-    }
-    
+
     
     public static String prompt_and_validate_input(String prompt, String str){
         String user_input = JOptionPane.showInputDialog(prompt, str);

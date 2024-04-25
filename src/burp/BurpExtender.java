@@ -18,25 +18,7 @@ import config.ConfigEntry;
 import config.ConfigTable;
 import config.ConfigTableModel;
 import config.GUI;
-import knife.AddHostToScopeMenu;
-import knife.ChangeToUploadRequest;
-import knife.ChunkedEncodingMenu;
-import knife.CopyJsOfThisSite;
-import knife.CustomPayloadForAllInsertpointMenu;
-import knife.CustomPayloadMenu;
-import knife.DismissCancelMenu;
-import knife.DismissMenu;
-import knife.DoActiveScanMenu;
-import knife.DoPortScanMenu;
-import knife.DownloadResponseMenu;
-import knife.FindUrlAndRequest;
-import knife.OpenWithBrowserMenu;
-import knife.RunSQLMapMenu;
-import knife.SetCookieMenu;
-import knife.SetCookieWithHistoryMenu;
-import knife.UpdateCookieMenu;
-import knife.UpdateCookieWithHistoryMenu;
-import knife.UpdateHeaderMenu;
+import knife.*;
 import messageTab.U2C.ChineseTabFactory;
 import config.ProcessManager;
 import org.apache.commons.lang3.StringUtils;
@@ -150,9 +132,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
         //扫描攻击相关
         menu_item_list.add(new AddHostToScopeMenu(this));
-        menu_item_list.add(new RunSQLMapMenu(this));
+        menu_item_list.add(new RunCmdMenu(this));
         menu_item_list.add(new DoActiveScanMenu(this));
-        menu_item_list.add(new DoPortScanMenu(this));
 
 
         //不太常用的

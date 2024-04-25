@@ -1,5 +1,15 @@
 package knife;
 
+import burp.*;
+import com.bit4woo.utilbox.burp.HelperPlus;
+import config.ConfigEntry;
+import config.GUI;
+import messageTab.U2C.CharSetHelper;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
@@ -10,24 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.swing.JMenu;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.bit4woo.utilbox.burp.HelperPlus;
-
-import burp.BurpExtender;
-import burp.IBurpExtenderCallbacks;
-import burp.IContextMenuInvocation;
-import burp.IExtensionHelpers;
-import burp.IHttpRequestResponse;
-import burp.IParameter;
-import burp.Methods;
-import config.ConfigEntry;
-import messageTab.U2C.CharSetHelper;
 
 /**
  * 将某个payload插入所有的插入点，比如XSS
@@ -41,25 +33,21 @@ public class CustomPayloadForAllInsertpointMenu extends JMenu {
 	 */
 	private static final long serialVersionUID = 1L;
 	public BurpExtender burp;
-	public String[] Custom_Payload_Menu;
 
 	public CustomPayloadForAllInsertpointMenu(BurpExtender burp){
 		try {
 			this.setText("^_^ Insert Payload For All");
 			this.burp = burp;
 
-			List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
-			List<ConfigEntry> configs1 = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
+			List<ConfigEntry> configs = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
+			List<ConfigEntry> configs1 = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
 			configs.addAll(configs1);
-			Iterator<ConfigEntry> it = configs.iterator();
-			List<String> tmp = new ArrayList<String>();
-			while (it.hasNext()) {
-				ConfigEntry item = it.next();
-				tmp.add(item.getKey());//custom payload name
+			for (ConfigEntry config:configs){
+				String name = config.getKey();
+				JMenuItem item = new JMenuItem(name);
+				item.addActionListener(new ForAllInserpointListener(burp));
+				add(item);
 			}
-
-			Custom_Payload_Menu = tmp.toArray(new String[0]);
-			Methods.add_MenuItem_and_listener(this, Custom_Payload_Menu, new ForAllInserpointListener(burp));
 		} catch (Exception e) {
 			e.printStackTrace(BurpExtender.getStderr());
 		}

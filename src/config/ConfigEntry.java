@@ -111,11 +111,15 @@ public class ConfigEntry {
         switch (type) {
             case Action_Add_Or_Replace_Header:
             case Action_Append_To_header_value:
-                this.comment = Scope_Comment_checkbox + this.comment;
+                if (!comment.contains(Scope_Comment_checkbox)){
+                    this.comment = Scope_Comment_checkbox + this.comment;
+                }
                 break;
             case Action_Remove_From_Headers:
             case Action_Forward_And_Hide_Options:
-                this.comment = Scope_Comment_Global + this.comment;
+                if (!comment.contains(Scope_Comment_Global)){
+                    this.comment = Scope_Comment_Global + this.comment;
+                }
                 break;
             default:
                 this.comment = this.comment.replaceAll(Pattern.quote(Scope_Comment_checkbox), "");
@@ -250,6 +254,9 @@ public class ConfigEntry {
             if (f.getName().startsWith(Config_) && Modifier.isPublic(f.getModifiers())) {
                 fieldList.add(f.getName());
             }
+            if (f.getName().startsWith(Run_External_Cmd) && Modifier.isPublic(f.getModifiers())) {
+                fieldList.add(f.getName());
+            }
         }
         String[] array = new String[fieldList.size()];
         fieldList.toArray(array); // fill the array
@@ -301,7 +308,12 @@ public class ConfigEntry {
         return false;
     }
 
-    public String getFinalValue(boolean isRequest, IHttpRequestResponse messageInfo) {
+    public String getFinalValue(IHttpRequestResponse messageInfo) {
+        IHttpRequestResponse[] messageInfos = {messageInfo};
+        return getFinalValue(messageInfos);
+    }
+
+    public String getFinalValue(IHttpRequestResponse[] messageInfos) {
         String valueStr = getValue();
         if (StringUtils.isEmpty(valueStr)) {
             return valueStr;
@@ -316,7 +328,7 @@ public class ConfigEntry {
             String partType = item.replace("{", "").replace("}", "");
             for (String part : httpParts) {
                 if (partType.equalsIgnoreCase(part)) {
-                    valueStr = valueStr.replaceAll(Pattern.quote(item), getValueByPartType(isRequest, messageInfo, partType));
+                    valueStr = valueStr.replaceAll(Pattern.quote(item), getValueByPartType(messageInfos, partType));
                 }
             }
             for (ConfigEntry config : varConfigs) {
@@ -395,7 +407,7 @@ public class ConfigEntry {
         byte[] oldRequest = messageInfo.getRequest();
 
         String configKey = getKey();
-        String configValue = getFinalValue(messageIsRequest, messageInfo);
+        String configValue = getFinalValue(messageInfo);
 
         HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 

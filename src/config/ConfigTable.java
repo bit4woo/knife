@@ -130,7 +130,7 @@ public class ConfigTable extends JTable
 
 	public void setupTypeColumn() {
 		//call this function must after table data loaded !!!!
-		JComboBox<String> comboBox = new JComboBox<String>();
+		JComboBox<String> comboBox = new JComboBox<>();
 
 		String[] items = new ConfigEntry().listAllConfigType();
 		for (String item:items) {

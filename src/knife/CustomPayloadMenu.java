@@ -1,53 +1,43 @@
 package knife;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.JMenu;
-
 import burp.BurpExtender;
 import burp.IHttpRequestResponse;
 import burp.Methods;
 import config.ConfigEntry;
+import config.GUI;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Base64;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author bit4woo 
  */
-
-//reference XXE_Menu.java
 public class CustomPayloadMenu extends JMenu {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	public BurpExtender myburp;
-	public String[] Custom_Payload_Menu;
-	//sub level menu of hackbar++, the name of payload;
-
-
 	public CustomPayloadMenu(BurpExtender burp){
 		try {
 			this.setText("^_^ Insert Payload");
 			this.myburp = burp;
 
-			List<ConfigEntry> configs = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
-			List<ConfigEntry> configs1 = burp.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
+			List<ConfigEntry> configs = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
+			List<ConfigEntry> configs1 = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
 			configs.addAll(configs1);
-			Iterator<ConfigEntry> it = configs.iterator();
-			List<String> tmp = new ArrayList<String>();
-			while (it.hasNext()) {
-				ConfigEntry item = it.next();
-				tmp.add(item.getKey());//custom payload name
+			for (ConfigEntry config:configs){
+				String name = config.getKey();
+				JMenuItem item = new JMenuItem(name);
+				item.addActionListener(new CustomPayloadItemListener(burp));
+				add(item);
 			}
-
-			Custom_Payload_Menu = tmp.toArray(new String[0]);
-			Methods.add_MenuItem_and_listener(this, Custom_Payload_Menu, new CustomPayloadItemListener(myburp));
 		} catch (Exception e) {
 			e.printStackTrace(BurpExtender.getStderr());
 		}
