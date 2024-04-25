@@ -16,12 +16,12 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
@@ -231,8 +231,8 @@ public class ChineseTab implements IMessageEditorTab{
 				//先尝试进行JSON格式的美化，如果其中有Unicode编码也会自动完成转换
 				if (isJSON(content, isRequest)) {
 					try {
-						Getter getter = new Getter(helpers);
-						byte[] body = getter.getBody(isRequest, content);
+						HelperPlus getter = new HelperPlus(helpers);
+						byte[] body = HelperPlus.getBody(isRequest, content);
 						List<String> headers = getter.getHeaderList(isRequest, content);
 
 						byte[] newBody = beauty(new String(body,originalCharSet)).getBytes(originalCharSet);

@@ -8,8 +8,9 @@ import java.net.URL;
 
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -81,7 +82,7 @@ class OpenWithBrowser_Action implements ActionListener{
 				}
 			}else if (messages.length > 1 &&  messages.length <=50) {
 				for(IHttpRequestResponse message:messages) {
-					Getter getter = new Getter(helpers);
+					HelperPlus getter = new HelperPlus(helpers);
 					URL targetShortUrl = getter.getFullURL(message);
 					Utils.browserOpen(targetShortUrl,browserPath);
 				}
@@ -231,7 +232,7 @@ class OpenWithBrowser_Action implements ActionListener{
 			
 		}else{//没有斜杠的情况。<link href="www.microsoft.com">这只会被当成目标，不会被当成域名
 			
-			Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
+			HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 			String fullUrl = getter.getFullURL(message).toString().split("\\?")[0];
 			int indexOfLastSlash = fullUrl.lastIndexOf("/");//截取的内容不不包含当前index对应的元素
 			return fullUrl.substring(0,indexOfLastSlash+1)+url;

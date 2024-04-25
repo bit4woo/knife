@@ -8,13 +8,14 @@ import java.util.Set;
 
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.utils.SystemUtils;
+
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
-import burp.SystemUtils;
 import config.GUI;
 
 

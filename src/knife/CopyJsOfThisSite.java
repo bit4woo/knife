@@ -10,14 +10,15 @@ import java.util.List;
 import javax.swing.JMenuItem;
 
 import burp.BurpExtender;
-import burp.HelperPlus;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import burp.SystemUtils;
 import burp.Utils;
 import org.apache.commons.lang3.StringUtils;
+
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.SystemUtils;
 
 
 public class CopyJsOfThisSite extends JMenuItem {

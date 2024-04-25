@@ -12,8 +12,9 @@ import java.util.List;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -55,8 +56,8 @@ public class UpdateHeaderMenu extends JMenu {
 	public List<String> possibleHeaderNames(IContextMenuInvocation invocation) {
 		IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 		//byte selectedInvocationContext = invocation.getInvocationContext();
-		Getter getter = new Getter(BurpExtender.callbacks.getHelpers());
-		LinkedHashMap<String, String> headers = getter.getHeaderMap(true, selectedItems[0]);
+		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
+		List<String> headers = getter.getHeaderList(true, selectedItems[0]);
 
 		String tokenHeadersStr = GUI.tableModel.getConfigValueByKey("tokenHeaders");
 
@@ -65,11 +66,14 @@ public class UpdateHeaderMenu extends JMenu {
 		if (tokenHeadersStr!= null && headers != null) {
 			String[] tokenHeaders = tokenHeadersStr.split(",");
 			List<String> keywords = Arrays.asList(tokenHeaders);
-			Iterator<String> it = headers.keySet().iterator();
-			while (it.hasNext()) {
-				String item = it.next();
-				if (containOneOfKeywords(item,keywords,false)) {
-					ResultHeaders.add(item);
+			for (String header:headers) {
+				try {
+					String headerKey = header.split(":",2)[0].trim();
+					if (containOneOfKeywords(headerKey,keywords,false)) {
+						ResultHeaders.add(headerKey);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}

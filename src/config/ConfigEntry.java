@@ -1,9 +1,7 @@
 package config;
 
-import burp.*;
-import com.google.gson.Gson;
-import org.apache.commons.lang3.StringUtils;
-import runcmd.MessagePart;
+import static burp.BurpExtender.isInCheckBoxScope;
+import static runcmd.MessagePart.getValueByPartType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -12,8 +10,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static burp.BurpExtender.isInCheckBoxScope;
-import static runcmd.MessagePart.getValueByPartType;
+import org.apache.commons.lang3.StringUtils;
+
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.TextUtils;
+import com.google.gson.Gson;
+
+import burp.BurpExtender;
+import burp.IBurpExtenderCallbacks;
+import burp.IHttpRequestResponse;
+import burp.IInterceptedProxyMessage;
+import runcmd.MessagePart;
 
 public class ConfigEntry {
 
@@ -250,8 +257,8 @@ public class ConfigEntry {
     }
 
     public boolean isInRuleScope(int toolFlag, IHttpRequestResponse messageInfo) {
-        HelperPlus getter = new HelperPlus(BurpExtender.getCallbacks().getHelpers());
-        String baseUrl = HelperPlus.getShortURL(messageInfo).toString();
+        HelperPlus getter = BurpExtender.getHelperPlus();
+        String baseUrl = HelperPlus.getBaseURL(messageInfo).toString();
         String url = getter.getFullURL(messageInfo).toString();
         String host = HelperPlus.getHost(messageInfo);
         String configkey = getKey();

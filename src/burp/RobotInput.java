@@ -9,6 +9,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 
+import com.bit4woo.utilbox.utils.SystemUtils;
+
 //https://bbs.51cto.com/thread-1097189-1.html
 public class RobotInput extends Robot {
 

@@ -7,8 +7,9 @@ import java.io.PrintWriter;
 
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -45,7 +46,7 @@ class View_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-		Getter getter = new Getter(helpers);
+		HelperPlus getter = new HelperPlus(helpers);
 		if (messages == null) {
 			return;
 		}

@@ -10,6 +10,7 @@ import java.util.List;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
 import com.google.gson.Gson;
 
 import config.ConfigManager;
@@ -48,11 +49,15 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     private static final long serialVersionUID = 1L;
 
     public static IBurpExtenderCallbacks callbacks;
-    public IExtensionHelpers helpers;
+    public static IExtensionHelpers helpers;
+    private static HelperPlus helperPlus;
+    
+    
     public static PrintWriter stdout;
     public static PrintWriter stderr;
     public IContextMenuInvocation invocation;
 
+	
     public static String ExtensionName = "Knife";
     public static String Version = bsh.This.class.getPackage().getImplementationVersion();
     public static String Author = "by bit4woo";
@@ -63,7 +68,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
         BurpExtender.callbacks = callbacks;
-        this.helpers = callbacks.getHelpers();
+        BurpExtender.helpers = callbacks.getHelpers();
+        BurpExtender.helperPlus = new HelperPlus(helpers);
+        
         flushStd();
         BurpExtender.stdout.println(getFullExtensionName());
         BurpExtender.stdout.println(github);
@@ -265,7 +272,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     }
 
 
-    public static boolean isInCheckBoxScope(int toolFlag, IHttpRequestResponse messageInfo) {
+    public static HelperPlus getHelperPlus() {
+		return helperPlus;
+	}
+
+
+	public static boolean isInCheckBoxScope(int toolFlag, IHttpRequestResponse messageInfo) {
         if (toolFlag == (toolFlag & configManager.getEnableStatus())) {
 
             IExtensionHelpers helpers = getCallbacks().getHelpers();

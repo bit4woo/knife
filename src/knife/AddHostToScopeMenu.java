@@ -7,8 +7,9 @@ import java.net.URL;
 
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.HelperPlus;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -47,7 +48,7 @@ class AddHostToScope_Action implements ActionListener{
        try{
         	IHttpRequestResponse[] messages = invocation.getSelectedMessages();
         	for(IHttpRequestResponse message:messages) {
-        		String url = HelperPlus.getShortURL(message.getHttpService());
+        		String url = HelperPlus.getBaseURL(message.getHttpService());
 				URL shortUrl = new URL(url);
 	        	callbacks.includeInScope(shortUrl);
         	}

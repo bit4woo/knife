@@ -14,8 +14,9 @@ import javax.swing.JMenuItem;
 
 import org.apache.commons.io.FileUtils;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -60,7 +61,7 @@ class Download_Action implements ActionListener{
 			public void run() {
 				try{
 					IHttpRequestResponse[] messages = invocation.getSelectedMessages();
-					Getter getter = new Getter(helpers);
+					HelperPlus getter = new HelperPlus(helpers);
 					if (messages == null) {
 						return;
 					}
@@ -154,11 +155,11 @@ class Download_Action implements ActionListener{
 	public File getFileName(IHttpRequestResponse message,File rootPath) throws IOException{
 		String canonicalFile = "KnifeSaved";
 		try {
-			Getter getter = new Getter(helpers);
+			HelperPlus getter = new HelperPlus(helpers);
 
 			String pathStr = null;
 			//1、从参数名中获取文件名称，任意文件读取多是这种情况
-			List<IParameter> paras = getter.getParas(message);
+			List<IParameter> paras = getter.getParameters(message);
 			for (IParameter para:paras) {
 				if (para.getType() == IParameter.PARAM_COOKIE) continue;
 				String value = para.getValue();

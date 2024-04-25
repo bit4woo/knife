@@ -6,8 +6,9 @@ import java.util.Random;
 
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.HelperPlus;
 import burp.IHttpRequestResponse;
 
 /**

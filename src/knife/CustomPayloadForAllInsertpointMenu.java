@@ -17,8 +17,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
@@ -88,8 +89,8 @@ class ForAllInserpointListener implements ActionListener {
 		IHttpRequestResponse messageInfo = selectedItems[0];
 		byte[] newRequest = messageInfo.getRequest();//为了不影响原始request，通过final进行一次转换
 
-		Getter getter = new Getter(helpers);
-		List<IParameter> paras = getter.getParas(messageInfo);
+		HelperPlus getter = new HelperPlus(helpers);
+		List<IParameter> paras = getter.getParameters(messageInfo);
 
 		String charset = CharSetHelper.detectCharset(newRequest);
 		String xsspayload;

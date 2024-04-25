@@ -3,11 +3,11 @@ package messageTab.U2C;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IExtensionHelpers;
 
 public class CharSetHelper {
@@ -43,7 +43,7 @@ public class CharSetHelper {
 	 */
 	public static String detectCharset(byte[] requestOrResponse){
 		IExtensionHelpers helpers = BurpExtender.getCallbacks().getHelpers();
-		Getter getter = new Getter(helpers);
+		HelperPlus getter = new HelperPlus(helpers);
 		boolean isRequest = true;
 		if (new String(requestOrResponse).startsWith("HTTP/")) {//response
 			isRequest = false;

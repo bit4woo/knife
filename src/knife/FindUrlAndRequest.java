@@ -19,7 +19,8 @@ import javax.swing.JOptionPane;
 import base.RequestTask;
 import base.RequestType;
 import burp.*;
-import org.apache.commons.lang3.StringUtils;
+
+import com.bit4woo.utilbox.burp.HelperPlus;
 
 
 public class FindUrlAndRequest extends JMenuItem {

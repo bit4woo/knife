@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 
 import javax.swing.JMenuItem;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.*;
 import config.ProcessManager;
 

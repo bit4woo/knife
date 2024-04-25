@@ -8,6 +8,8 @@ import java.util.regex.MatchResult;
 import burp.*;
 import org.apache.commons.lang3.StringUtils;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 public class ProcessManager {
 
     //////////////////////////////////////////common methods for cookie handle///////////////////////////////
@@ -44,21 +46,21 @@ public class ProcessManager {
     }
 
     public static String getLatestHeaderFromHistory(IHttpRequestResponse messageInfo, String headerName) {
-        String sourceshorturl = HelperPlus.getShortURL(messageInfo).toString();
+        String sourceshorturl = HelperPlus.getBaseURL(messageInfo).toString();
         return getLatestHeaderFromHistory(sourceshorturl, headerName);
     }
 
     public static String getLatestHeaderFromHistory(String shortUrl, String headerName) {
         //还是草粉师傅说得对，直接从history里面拿最好
 
-        shortUrl = HelperPlus.removeDefaultPort(shortUrl);//url格式标准化，以保证后面比较的准确性。
+        shortUrl = HelperPlus.removeUrlDefaultPort(shortUrl);//url格式标准化，以保证后面比较的准确性。
         IHttpRequestResponse[] historyMessages = BurpExtender.callbacks.getProxyHistory();
         HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 
         for (int i = historyMessages.length - 1; i >= 0; i--) {
             IHttpRequestResponse historyMessage = historyMessages[i];
-            String hisShortUrl = HelperPlus.getShortURL(historyMessage).toString();
-            hisShortUrl = HelperPlus.removeDefaultPort(hisShortUrl);
+            String hisShortUrl = HelperPlus.getBaseURL(historyMessage).toString();
+            hisShortUrl = HelperPlus.removeUrlDefaultPort(hisShortUrl);
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String headerLine = getter.getHeaderLine(true, historyMessage, headerName);
                 return headerLine;
@@ -77,14 +79,14 @@ public class ProcessManager {
     public static String getLatestHeaderFromSiteMap(String shortUrl, String headerName) {
         //还是草粉师傅说得对，直接从history里面拿最好
 
-        shortUrl = HelperPlus.removeDefaultPort(shortUrl);//url格式标准化，以保证后面比较的准确性。
+        shortUrl = HelperPlus.removeUrlDefaultPort(shortUrl);//url格式标准化，以保证后面比较的准确性。
         IHttpRequestResponse[] historyMessages = BurpExtender.callbacks.getSiteMap(shortUrl);
         HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 
         for (int i = historyMessages.length - 1; i >= 0; i--) {
             IHttpRequestResponse historyMessage = historyMessages[i];
-            String hisShortUrl = HelperPlus.getShortURL(historyMessage).toString();
-            hisShortUrl = HelperPlus.removeDefaultPort(hisShortUrl);
+            String hisShortUrl = HelperPlus.getBaseURL(historyMessage).toString();
+            hisShortUrl = HelperPlus.removeUrlDefaultPort(hisShortUrl);
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String headerLine = getter.getHeaderLine(true, historyMessage, headerName);
                 return headerLine;
@@ -182,7 +184,7 @@ public class ProcessManager {
 
     public static void addHandleRule(IHttpRequestResponse[] messages, String headerLine) {
         for (IHttpRequestResponse message : messages) {
-            String targetShortUrl = HelperPlus.getShortURL(message).toString();
+            String targetShortUrl = HelperPlus.getBaseURL(message).toString();
             ConfigEntry rule = new ConfigEntry(targetShortUrl, headerLine, ConfigEntry.Action_If_Base_URL_Matches_Add_Or_Replace_Header, true);
             delSameConditionRule(rule);
             GUI.tableModel.addNewConfigEntry(rule);

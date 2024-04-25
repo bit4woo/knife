@@ -52,6 +52,7 @@
 					<target>1.8</target>
 					<excludes>
 						<!-- 编译时排除Deprecated包及下面的资源 -->
+						<exclude>**/Deprecated/**</exclude>
 						<exclude>**/Requester/**</exclude>
 						<exclude>**/test/**</exclude>
 					</excludes>
@@ -81,11 +82,11 @@
 			<version>1.7.22</version>
 		</dependency>
 
-		<!-- https://github.com/bit4woo/burp-api-common -->
+		<!-- https://github.com/bit4woo/java_utilbox -->
 		<dependency>
 			<groupId>com.github.bit4woo</groupId>
-			<artifactId>burp-api-common</artifactId>
-			<version>master-SNAPSHOT</version>
+			<artifactId>java_utilbox</artifactId>
+			<version>main-SNAPSHOT</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec <dependency> 

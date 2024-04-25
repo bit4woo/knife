@@ -1,14 +1,16 @@
 package runcmd;
 
 import burp.BurpExtender;
-import burp.HelperPlus;
 import burp.IHttpRequestResponse;
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.ClassUtils;
 
 import java.util.List;
 
 public class MessagePart {
 
     public static final String Host = "Host";
+    public static final String HostPort = "HostPort";
     public static final String BaseURL = "BaseURL";
     public static final String FullURL = "FullURL";
 
@@ -29,8 +31,10 @@ public class MessagePart {
         switch (partType) {
             case Host:
                 return HelperPlus.getHost(message);
+            case HostPort:
+                return HelperPlus.getHost(message)+":"+HelperPlus.getPort(message);
             case BaseURL:
-                return HelperPlus.getShortURL(message).toString();
+                return HelperPlus.getBaseURL(message).toString();
             case FullURL:
                 return getter.getFullURL(message).toString();
             case Request:

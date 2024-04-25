@@ -12,14 +12,15 @@ import javax.swing.JMenuItem;
 
 import org.apache.commons.io.FileUtils;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.SystemUtils;
+
 import burp.BurpExtender;
-import burp.Getter;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.RobotInput;
-import burp.SystemUtils;
 import config.GUI;
 
 
@@ -103,7 +104,7 @@ class RunSQLMap_Action implements ActionListener{
 	 */
 	public String RequestToFile(IHttpRequestResponse message) {
 		try {
-			Getter getter = new Getter(helpers);
+			HelperPlus getter = new HelperPlus(helpers);
 			String host = getter.getHost(message);
 			SimpleDateFormat simpleDateFormat = 
 					new SimpleDateFormat("MMdd-HHmmss");

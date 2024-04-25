@@ -3,10 +3,10 @@ package base;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
 import com.github.kevinsawicki.http.HttpRequest;
 
 import burp.BurpExtender;
-import burp.HelperPlus;
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpRequestResponse;
 import burp.IHttpService;

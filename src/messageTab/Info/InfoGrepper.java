@@ -1,14 +1,15 @@
 package messageTab.Info;
 
+import com.bit4woo.utilbox.burp.HelperPlus;
+
 import burp.BurpExtender;
-import burp.HelperPlus;
 
 public class InfoGrepper {
 
 	public InfoGrepper(byte[] content, boolean isRequest) {
 		HelperPlus getter = new HelperPlus(BurpExtender.getCallbacks().getHelpers());
 		
-		byte[] body = getter.getBody(isRequest, content);
+		byte[] body = HelperPlus.getBody(isRequest, content);
 		
 		if (body!= null) {
 			String bodyStr = new String(body);
