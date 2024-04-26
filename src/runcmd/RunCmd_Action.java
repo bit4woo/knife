@@ -42,7 +42,7 @@ public class RunCmd_Action implements ActionListener, Runnable {
         try {
             IHttpRequestResponse[] messages = invocation.getSelectedMessages();
             if (messages != null) {
-                boolean useRobot = (BurpExtender.tableModel.getConfigValueByKey("RunTerminalWithRobotInput") != null);
+                boolean useRobot = (BurpExtender.getConfigTableModel().getConfigValueByKey("RunTerminalWithRobotInput") != null);
                 if (useRobot) {
                     RobotInput.startCmdConsole();//尽早启动减少出错概率
                 }

@@ -29,8 +29,8 @@ public class CustomPayloadMenu extends JMenu {
             this.setText("^_^ Insert Payload");
             this.myburp = burp;
 
-            List<ConfigEntry> configs = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
-            List<ConfigEntry> configs1 = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
+            List<ConfigEntry> configs = GUI.getConfigTableModel().getConfigByType(ConfigEntry.Config_Custom_Payload);
+            List<ConfigEntry> configs1 = GUI.getConfigTableModel().getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
             configs.addAll(configs1);
             for (ConfigEntry config : configs) {
                 String name = config.getKey();

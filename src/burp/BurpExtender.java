@@ -57,8 +57,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         BurpExtender.stdout.println(getFullExtensionName());
         BurpExtender.stdout.println(github);
 
-        table = new ConfigTable(new ConfigTableModel());
-        configPanel.setViewportView(table);
+        configTable = new ConfigTable(new ConfigTableModel());
+        configPanel.setViewportView(configTable);
 
         String content = callbacks.loadExtensionSetting("knifeconfig");
         if (StringUtils.isEmpty(content)) {
@@ -158,7 +158,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
             }
         }
 
-        String oneMenu = tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
+        String oneMenu = configTableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
         if (oneMenu != null) {
             ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();
             JMenu knifeMenu = new JMenu("^_^ Knife");
@@ -192,7 +192,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     @Override
     public String initConfig() {
         configManager = new ConfigManager("default");
-        tableModel = new ConfigTableModel();
+        configTableModel = new ConfigTableModel();
         return getAllConfig();
     }
 

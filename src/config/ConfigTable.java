@@ -11,6 +11,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.RowFilter.Entry;
 import javax.swing.border.LineBorder;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -42,6 +44,10 @@ public class ConfigTable extends JTable {
         //switchEnable();//no need
         //table.setupTypeColumn()//can't set here, only can after table data loaded.
         //tableHeaderLengthInit();//can't set here, only can after table data loaded.
+    }
+    
+    public ConfigTableModel getConfigTableModel(){
+    	return (ConfigTableModel)this.getModel();
     }
 
     @Override
@@ -133,4 +139,25 @@ public class ConfigTable extends JTable {
         editor.setClickCountToStart(2);
         model.getColumn(col).setCellEditor(editor);
     }
+    
+    
+	/**
+	 * 搜索功能
+	 * @param caseSensitive
+	 */
+	public void search(String Input,boolean caseSensitive) {
+		final RowFilter filter = new RowFilter() {
+			@Override
+			public boolean include(Entry entry) {
+				int row = (int) entry.getIdentifier();
+				ConfigEntry line = getConfigTableModel().getConfigEntries().get(row);
+				if (caseSensitive) {
+					return line.ToJson().contains(Input);
+				}else {
+					return line.ToJson().toLowerCase().contains(Input.toLowerCase());
+				}
+			}
+		};
+		((TableRowSorter)getRowSorter()).setRowFilter(filter);
+	}
 }

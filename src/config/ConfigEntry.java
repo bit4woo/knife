@@ -321,7 +321,7 @@ public class ConfigEntry {
         List<String> items = TextUtils.grepWithRegex(valueStr, "\\{.*?\\}");
 
         List<String> httpParts = MessagePart.getPartList();
-        List<ConfigEntry> varConfigs = GUI.tableModel.getBasicConfigVars();
+        List<ConfigEntry> varConfigs = GUI.configTableModel.getBasicConfigVars();
 
         for (String item : items) {
             String partType = item.replace("{", "").replace("}", "");

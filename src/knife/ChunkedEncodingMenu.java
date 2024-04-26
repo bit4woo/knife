@@ -87,10 +87,10 @@ class ChunkedEncoding_Action implements ActionListener{
         	
             try {
             	boolean useComment =false;
-            	if (GUI.tableModel.getConfigValueByKey("Chunked-UseComment") != null) {
+            	if (GUI.getConfigTableModel().getConfigValueByKey("Chunked-UseComment") != null) {
             		useComment = true;
             	}
-            	String lenStr = GUI.tableModel.getConfigValueByKey("Chunked-Length");
+            	String lenStr = GUI.getConfigTableModel().getConfigValueByKey("Chunked-Length");
             	int len =10;
             	if (lenStr !=null) {
             		len = Integer.parseInt(lenStr);

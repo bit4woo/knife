@@ -18,7 +18,7 @@ public class RunCmdMenu extends JMenu {
     public RunCmdMenu(BurpExtender burp) {
         try {
             this.setText("^_^ Run Cmd");
-            List<ConfigEntry> configs = GUI.tableModel.getConfigByType(ConfigEntry.Run_External_Cmd);
+            List<ConfigEntry> configs = GUI.getConfigTableModel().getConfigByType(ConfigEntry.Run_External_Cmd);
 
             for (ConfigEntry config : configs) {
                 JMenuItem item = new JMenuItem(config.getKey());

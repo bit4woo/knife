@@ -205,6 +205,7 @@ public class ConfigTableModel extends AbstractTableModel{
 			}
 		}
 	}
+	
 
 	////////////////////// extend AbstractTableModel////////////////////////////////
 
@@ -390,7 +391,7 @@ public class ConfigTableModel extends AbstractTableModel{
 	 */
 	public static List<ConfigEntry> getAllChangeRules() {
 		List<ConfigEntry> result = new ArrayList<ConfigEntry>();
-		List<ConfigEntry> entries = GUI.tableModel.getConfigEntries();
+		List<ConfigEntry> entries = GUI.configTableModel.getConfigEntries();
 		for (ConfigEntry entry:entries) {
 			if (entry.isActionType()) {
 				if (!entry.isDropOrForwardActionType()) {
@@ -411,7 +412,7 @@ public class ConfigTableModel extends AbstractTableModel{
 			if (entry.getKey().equalsIgnoreCase(newrule.getKey()) &&
 					entry.getValue().equals(newrule.getValue()) &&
 					entry.getType().equals(newrule.getType())) {
-				GUI.tableModel.removeConfigEntry(entry);
+				GUI.configTableModel.removeConfigEntry(entry);
 			}
 		}
 	}
@@ -422,7 +423,7 @@ public class ConfigTableModel extends AbstractTableModel{
 			ConfigEntry entry = configEntries.get(i);
 			if (entry.getKey().equalsIgnoreCase(newrule.getKey()) &&
 					entry.getValue().equals(newrule.getValue())) {
-				GUI.tableModel.removeConfigEntry(entry);
+				GUI.configTableModel.removeConfigEntry(entry);
 			}
 		}
 	}
@@ -432,7 +433,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		for (int i= configEntries.size()-1;i>=0;i--) {
 			ConfigEntry entry = configEntries.get(i);
 			if (entry.getKey().equalsIgnoreCase(newrule.getKey())) {
-				GUI.tableModel.removeConfigEntry(entry);
+				GUI.configTableModel.removeConfigEntry(entry);
 			}
 		}
 	}

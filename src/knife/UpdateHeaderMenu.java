@@ -59,7 +59,7 @@ public class UpdateHeaderMenu extends JMenu {
 		HelperPlus getter = new HelperPlus(BurpExtender.callbacks.getHelpers());
 		List<String> headers = getter.getHeaderList(true, selectedItems[0]);
 
-		String tokenHeadersStr = GUI.tableModel.getConfigValueByKey("tokenHeaders");
+		String tokenHeadersStr = GUI.getConfigTableModel().getConfigValueByKey("tokenHeaders");
 
 		List<String> ResultHeaders = new ArrayList<String>();
 		

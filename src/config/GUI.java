@@ -28,6 +28,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.SortOrder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -58,8 +59,8 @@ public class GUI extends JFrame {
 	private JLabel lblNewLabel_2;
 	protected JScrollPane configPanel;
 	private SortOrder sortedMethod;
-	public ConfigTable table;//create in burpextender.java
-	public static ConfigTableModel tableModel;//create in burpextender.java
+	protected ConfigTable configTable;//create in burpextender.java
+	protected static ConfigTableModel configTableModel;//create in burpextender.java
 	private JButton RemoveButton;
 	private JButton AddButton;
 	private JSplitPane TargetSplitPane;
@@ -90,6 +91,32 @@ public class GUI extends JFrame {
 			}
 		});
 	}
+	
+	
+
+	public ConfigTable getConfigTable() {
+		return configTable;
+	}
+
+
+
+	public void setConfigTable(ConfigTable configTable) {
+		this.configTable = configTable;
+	}
+
+
+
+	public static ConfigTableModel getConfigTableModel() {
+		return configTableModel;
+	}
+
+
+
+	public static void setConfigTableModel(ConfigTableModel configTableModel) {
+		GUI.configTableModel = configTableModel;
+	}
+
+
 
 	/**
 	 * Create the frame.
@@ -172,6 +199,25 @@ public class GUI extends JFrame {
 
 		JLabel lblNewLabel_display1 = new JLabel(" will be auto updated");
 		panel.add(lblNewLabel_display1);
+		
+		
+		JButton buttonSearch = new JButton("Search");
+		JTextField textFieldSearch = new JTextField(null,"",20);
+		textFieldSearch.addActionListener(null);
+		textFieldSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				buttonSearch.doClick();
+			}
+		});
+		panel.add(textFieldSearch);
+
+		buttonSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String keyword = textFieldSearch.getText();
+				configTable.search(keyword,false);
+			}
+		});
+		panel.add(buttonSearch);
 
 		////////////////////////////////////config area///////////////////////////////////////////////////////
 
@@ -206,7 +252,7 @@ public class GUI extends JFrame {
 		AddButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//tableModel = table.getModel();
-				tableModel.addNewConfigEntry(new ConfigEntry("","","",true));
+				configTableModel.addNewConfigEntry(new ConfigEntry("","","",true));
 				stdout.println("add: "+new Gson().toJson(configManager));
 				//saveConfigToBurp();
 				//会触发modelListener 更新config。所以需要调用showToUI。
@@ -221,8 +267,8 @@ public class GUI extends JFrame {
 		panel_1.add(RemoveButton);
 		RemoveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int[] rowindexs = table.getSelectedModelRows();
-				tableModel.removeRows(rowindexs);
+				int[] rowindexs = configTable.getSelectedModelRows();
+				configTableModel.removeRows(rowindexs);
 				//saveConfigToBurp();
 			}
 		});
@@ -301,7 +347,7 @@ public class GUI extends JFrame {
 						configManager = new Gson().fromJson(contents, ConfigManager.class);
 						List<String> newEntries = configManager.getStringConfigEntries();
 
-						List<String> oldEntries = tableModel.getConfigJsons();//以此为修改基础，已存在的key不修改。
+						List<String> oldEntries = configTableModel.getConfigJsons();//以此为修改基础，已存在的key不修改。
 						List<String> deprecatedEntryKeys = Arrays.asList("DismissedTargets DismissedAutoForward DismissedHost DismissedURL DismissAction Proxy-ServerList Proxy-UseRandomMode".split(" "));
 
 						List<String> oldKeys = new ArrayList<String>();
@@ -409,19 +455,19 @@ public class GUI extends JFrame {
 	//////////////////////////////methods//////////////////////////////////////
 
 	public void showToUI(ConfigManager configManager) {
-		tableModel = (ConfigTableModel) table.getModel();
-		tableModel.setConfigEntries(new ArrayList<ConfigEntry>());
+		configTableModel = (ConfigTableModel) configTable.getModel();
+		configTableModel.setConfigEntries(new ArrayList<ConfigEntry>());
 		//clearTable
 
 		for (String stringEntry: configManager.getStringConfigEntries()) {
 			ConfigEntry entry  = new ConfigEntry().FromJson(stringEntry);
-			tableModel.addNewConfigEntry(entry);
+			configTableModel.addNewConfigEntry(entry);
 		}
 
-		table.setupTypeColumn();
+		configTable.setupTypeColumn();
 		//call this function must after table data loaded !!!!
 		// must setup again when data cleaned
-		table.tableHeaderLengthInit();
+		configTable.tableHeaderLengthInit();
 
 
 		if (IBurpExtenderCallbacks.TOOL_INTRUDER ==(configManager.getEnableStatus() & IBurpExtenderCallbacks.TOOL_INTRUDER)) {
@@ -454,7 +500,7 @@ public class GUI extends JFrame {
 	}
 
 	public static String getAllConfig() {
-		configManager.setStringConfigEntries(tableModel.getConfigJsons());
+		configManager.setStringConfigEntries(configTableModel.getConfigJsons());
 		return configManager.ToJson();
 	}
 

@@ -44,8 +44,8 @@ public class CustomPayloadForAllInsertpointMenu extends JMenu {
 			this.setText("^_^ Insert Payload For All");
 			this.burp = burp;
 
-			List<ConfigEntry> configs = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload);
-			List<ConfigEntry> configs1 = GUI.tableModel.getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
+			List<ConfigEntry> configs = GUI.getConfigTableModel().getConfigByType(ConfigEntry.Config_Custom_Payload);
+			List<ConfigEntry> configs1 = GUI.getConfigTableModel().getConfigByType(ConfigEntry.Config_Custom_Payload_Base64);
 			configs.addAll(configs1);
 			for (ConfigEntry config:configs){
 				String name = config.getKey();

@@ -51,7 +51,7 @@ class OpenWithBrowser_Action implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		try{
-			String browserPath = burp.tableModel.getConfigValueByKey("browserPath");
+			String browserPath = burp.getConfigTableModel().getConfigValueByKey("browserPath");
 			if (browserPath!=null && new File(browserPath).exists() && new File(browserPath).isFile()) {
 
 			}else {//when no browserPath in config, the value will be null
