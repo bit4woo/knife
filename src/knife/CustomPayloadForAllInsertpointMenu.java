@@ -1,21 +1,30 @@
 package knife;
 
-import burp.*;
-import com.bit4woo.utilbox.burp.HelperPlus;
-import config.ConfigEntry;
-import config.GUI;
-import messageTab.U2C.CharSetHelper;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.CharsetUtils;
+
+import burp.BurpExtender;
+import burp.IBurpExtenderCallbacks;
+import burp.IContextMenuInvocation;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.IParameter;
+import config.ConfigEntry;
+import config.GUI;
 
 /**
  * 将某个payload插入所有的插入点，比如XSS
@@ -78,7 +87,7 @@ class ForAllInserpointListener implements ActionListener {
 		HelperPlus getter = new HelperPlus(helpers);
 		List<IParameter> paras = getter.getParameters(messageInfo);
 
-		String charset = CharSetHelper.detectCharset(newRequest);
+		String charset = CharsetUtils.detectCharset(newRequest);
 		String xsspayload  = config.getFinalValue(messageInfo);
 		if (xsspayload == null) return;
 

@@ -9,14 +9,14 @@ import java.net.URL;
 import javax.swing.JMenuItem;
 
 import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.CharsetUtils;
+import com.bit4woo.utilbox.utils.SystemUtils;
 
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import burp.Utils;
-import messageTab.U2C.CharSetHelper;
 
 public class OpenWithBrowserMenu extends JMenuItem {
 	/**
@@ -74,17 +74,17 @@ class OpenWithBrowser_Action implements ActionListener{
 				if (selectedUrl.length()>10) {// http://a.cn
 					stdout.println();
 					stdout.println("//////////open URL: "+selectedUrl+" //////////");
-					Utils.browserOpen(selectedUrl,browserPath);
+					SystemUtils.browserOpen(selectedUrl,browserPath);
 					//stdout.println(selectedUrl);
 				}else {
 					String hosturl =helpers.analyzeRequest(messages[0]).getUrl().toString();
-					Utils.browserOpen(hosturl,browserPath);
+					SystemUtils.browserOpen(hosturl,browserPath);
 				}
 			}else if (messages.length > 1 &&  messages.length <=50) {
 				for(IHttpRequestResponse message:messages) {
 					HelperPlus getter = new HelperPlus(helpers);
 					URL targetShortUrl = getter.getFullURL(message);
-					Utils.browserOpen(targetShortUrl,browserPath);
+					SystemUtils.browserOpen(targetShortUrl,browserPath);
 				}
 			}else {
 				stderr.println("Please Select Less URLs to Open");
@@ -193,7 +193,7 @@ class OpenWithBrowser_Action implements ActionListener{
 			//burp进行的byte和string之间的转换，没有考虑特定的编码，是一刀切的方式，所以将index用于byte序列上，就不能正确对应。
 
 			if(source!=null && selectedIndex !=null && selectedIndex[1]-selectedIndex[0]>=3) {
-				String originalCharSet = CharSetHelper.detectCharset(source);
+				String originalCharSet = CharsetUtils.detectCharset(source);
 				String text;
 				try {
 					text = new String(source,originalCharSet);

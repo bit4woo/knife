@@ -11,8 +11,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
+import com.bit4woo.utilbox.utils.SystemUtils;
+
 import burp.BurpExtender;
-import burp.Utils;
 
 
 public class ConfigTableModel extends AbstractTableModel{
@@ -41,7 +42,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
 		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
 		configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true,false));
-		if (Utils.isMac()) {
+		if (SystemUtils.isMac()) {
 			configEntries.add(new ConfigEntry("browserPath", Firefox_Mac,ConfigEntry.Config_Basic_Variable,true,false));
 		}else {
 			configEntries.add(new ConfigEntry("browserPath", Firefox_Windows,ConfigEntry.Config_Basic_Variable,true,false));

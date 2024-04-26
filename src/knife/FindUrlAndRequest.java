@@ -3,6 +3,7 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +22,8 @@ import base.RequestType;
 import burp.*;
 
 import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.SystemUtils;
+import com.bit4woo.utilbox.utils.UrlUtils;
 
 
 public class FindUrlAndRequest extends JMenuItem {
@@ -93,7 +96,7 @@ class FindUrl_Action implements ActionListener {
                         }
 
                         for (String url : urls) {
-                            if (Utils.uselessExtension(url)) {
+                            if (UrlUtils.uselessExtension(url)) {
                                 continue;
                             }
                             if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -137,10 +140,18 @@ class FindUrl_Action implements ActionListener {
                 baseUrls.add(current_fullUrl);
 
                 if (current_fullUrl != null) {
-                    siteBaseUrl = Utils.getBaseUrl(current_referUrl);
+                    try {
+						siteBaseUrl = new UrlUtils(current_referUrl).getBaseURL();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
                 }
                 if (siteBaseUrl == null) {
-                    siteBaseUrl = Utils.getBaseUrl(current_fullUrl);
+                    try {
+						siteBaseUrl = new UrlUtils(current_fullUrl).getBaseURL();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
                 }
 
 
@@ -158,7 +169,7 @@ class FindUrl_Action implements ActionListener {
                     if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase() + "/")) {
                         byte[] respBody = getter.getBody(false, item);
                         String body = new String(respBody);
-                        urls.addAll(Utils.grepURL(body));
+                        urls.addAll(UrlUtils.grepUrls(body));
                         baseUrls.addAll(findPossibleBaseURL(urls));
                     }
                 }

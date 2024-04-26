@@ -3,22 +3,24 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JMenuItem;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.SystemUtils;
+import com.bit4woo.utilbox.utils.UrlUtils;
+
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import burp.Utils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.bit4woo.utilbox.burp.HelperPlus;
-import com.bit4woo.utilbox.utils.SystemUtils;
 
 
 public class CopyJsOfThisSite extends JMenuItem {
@@ -91,12 +93,21 @@ class CopyJsOfThisSite_Action implements ActionListener{
 
 
 				String siteBaseUrl = null;
-				if (current_fullUrl != null) {
-					siteBaseUrl = Utils.getBaseUrl(current_referUrl);
-				}
-				if (StringUtils.isEmpty(siteBaseUrl)) {
-					siteBaseUrl = Utils.getBaseUrl(current_fullUrl);
-				}
+                if (current_fullUrl != null) {
+                    try {
+						siteBaseUrl = new UrlUtils(current_referUrl).getBaseURL();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
+                }
+                if (siteBaseUrl == null) {
+                    try {
+						siteBaseUrl = new UrlUtils(current_fullUrl).getBaseURL();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
+                }
+                
 				if (StringUtils.isEmpty(siteBaseUrl)){
 					return "";
 				}

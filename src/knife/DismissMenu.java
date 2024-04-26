@@ -8,12 +8,14 @@ import java.util.Objects;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
+import com.bit4woo.utilbox.utils.SystemUtils;
+import com.ibm.icu.impl.duration.impl.Utils;
+
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
-import burp.Utils;
 import config.ConfigEntry;
 import config.ProcessManager;
 
@@ -74,7 +76,7 @@ class Dismiss_Action implements ActionListener{
 
 		if (Objects.equals(selectedValue, options[options.length - 1])) {
 			try {
-				Utils.browserOpen("https://github.com/bit4woo/knife/blob/master/README.md", null);
+				SystemUtils.browserOpen("https://github.com/bit4woo/knife/blob/master/README.md", null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

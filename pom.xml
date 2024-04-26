@@ -88,7 +88,12 @@
 			<artifactId>java_utilbox</artifactId>
 			<version>main-SNAPSHOT</version>
 		</dependency>
-
+		<!--本地引用-->
+<!--		<dependency>
+			<groupId>com.bit4woo.utilbox</groupId>
+			<artifactId>java-utilbox</artifactId>
+			<version>0.1</version>
+		</dependency>-->
 		<!-- https://mvnrepository.com/artifact/commons-codec/commons-codec <dependency> 
 			<groupId>commons-codec</groupId> <artifactId>commons-codec</artifactId> <version>1.11</version> 
 			</dependency> -->
@@ -157,6 +162,13 @@
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>1.8.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.fifesoft/rsyntaxtextarea -->
+		<dependency>
+			<groupId>com.fifesoft</groupId>
+			<artifactId>rsyntaxtextarea</artifactId>
+			<version>3.4.0</version>
 		</dependency>
 
 
