@@ -1,10 +1,13 @@
 package config;
 
-import burp.BurpExtender;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.PrintWriter;
+
+import javax.swing.AbstractAction;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
+import burp.BurpExtender;
 
 
 public class ConfigTableMenu extends JPopupMenu {
@@ -13,7 +16,7 @@ public class ConfigTableMenu extends JPopupMenu {
 	private static final long serialVersionUID = 1L;
 	PrintWriter stdout = BurpExtender.getStdout();
 	PrintWriter stderr = BurpExtender.getStderr();
-	
+
 	private ConfigTable configTable;
 
 	/**
@@ -21,15 +24,15 @@ public class ConfigTableMenu extends JPopupMenu {
 	 * @param modelRows
 	 * @param columnIndex
 	 */
-	ConfigTableMenu(final GUI gui, final int[] modelRows,final int columnIndex){
-
+	ConfigTableMenu(final ConfigTable configTable, final int[] modelRows,final int columnIndex){
+		this.configTable = configTable;
 		JMenuItem itemNumber = new JMenuItem(new AbstractAction(modelRows.length+" Items Selected") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 
 			}
 		});
-		
+
 		JMenuItem enableItem = new JMenuItem(new AbstractAction("Enable Config") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
@@ -39,7 +42,7 @@ public class ConfigTableMenu extends JPopupMenu {
 				}
 			}
 		});
-		
+
 		JMenuItem disableItem = new JMenuItem(new AbstractAction("Disable Config") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
@@ -49,7 +52,7 @@ public class ConfigTableMenu extends JPopupMenu {
 				}
 			}
 		});
-		
+
 		add(itemNumber);
 		add(enableItem);
 		add(disableItem);

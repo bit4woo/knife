@@ -1,27 +1,24 @@
 package config;
 
-import java.awt.*;
+import static config.ConfigTableModel.titles;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.PrintWriter;
 import java.util.Arrays;
 
 import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
-import javax.swing.RowFilter.Entry;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
-import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-
-import burp.BurpExtender;
-
-import static config.ConfigTableModel.titles;
 
 
 public class ConfigTable extends JTable {
@@ -96,6 +93,17 @@ public class ConfigTable extends JTable {
         //this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//配合横向滚动条
     }
 
+    
+	//将选中的行（图形界面的行）转换为Model中的行数（数据队列中的index）.因为图形界面排序等操作会导致图像和数据队列的index不是线性对应的。
+	public int[] SelectedRowsToModelRows(int[] SelectedRows) {
+
+		for (int i = 0; i < SelectedRows.length; i++){
+			SelectedRows[i] = convertRowIndexToModel(SelectedRows[i]);//转换为Model的索引，否则排序后索引不对应〿
+		}
+		Arrays.sort(SelectedRows);//升序
+
+		return SelectedRows;
+	}
 
     private void registerListeners() {
         this.addMouseListener(new MouseAdapter() {
@@ -112,9 +120,20 @@ public class ConfigTable extends JTable {
                 }
             }
 
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
+			@Override//title表格中的鼠标右键菜单
+			public void mouseReleased( MouseEvent e ){
+				if ( SwingUtilities.isRightMouseButton( e )){
+					if (e.isPopupTrigger() && e.getComponent() instanceof ConfigTable ) {
+						int[] rows = getSelectedRows();
+						int col = ((ConfigTable) e.getSource()).columnAtPoint(e.getPoint()); // 获得列位置
+						int modelCol = ConfigTable.this.convertColumnIndexToModel(col);
+						if (rows.length>0){
+							int[] modelRows = SelectedRowsToModelRows(rows);
+							new ConfigTableMenu(ConfigTable.this, modelRows, modelCol).show(e.getComponent(), e.getX(), e.getY());
+						}
+					}
+				}
+			}
 
             @Override
             public void mousePressed(MouseEvent e) {
