@@ -67,7 +67,6 @@ public class ConfigEntry {
     public static final String Config_Custom_Payload_Base64 = "Config_Custom_Payload_Base64";
     public static final String Config_Basic_Variable = "Config_Basic_Variable";
     public static final String Config_Chunked_Variable = "Config_Chunked_Variable";
-    public static final String Config_Proxy_Variable = "Config_Proxy_Variable";
 
     private static final String Config_ = "Config_";
 
@@ -111,13 +110,13 @@ public class ConfigEntry {
         switch (type) {
             case Action_Add_Or_Replace_Header:
             case Action_Append_To_header_value:
-                if (!comment.contains(Scope_Comment_checkbox)){
+                if (!comment.contains(Scope_Comment_checkbox)) {
                     this.comment = Scope_Comment_checkbox + this.comment;
                 }
                 break;
             case Action_Remove_From_Headers:
             case Action_Forward_And_Hide_Options:
-                if (!comment.contains(Scope_Comment_Global)){
+                if (!comment.contains(Scope_Comment_Global)) {
                     this.comment = Scope_Comment_Global + this.comment;
                 }
                 break;
