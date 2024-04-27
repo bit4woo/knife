@@ -32,7 +32,7 @@ public class ChinesePanel extends JPanel {
     private final JButton buttonChangeEncoding;
     private final RSyntaxTextArea textArea;
     private final JTextField searchField;
-    private final JLabel statusLabel = new JLabel("0 matches");
+    private final JLabel statusLabel = new JLabel("   0 matches");
     boolean isRequest;
     private final ChineseTab chineseTab;
 
@@ -136,6 +136,7 @@ public class ChinesePanel extends JPanel {
 
         footPanel.add(panelA, BorderLayout.WEST);
         footPanel.add(searchField, BorderLayout.CENTER);
+
         footPanel.add(statusLabel, BorderLayout.EAST);
 
         add(footPanel, BorderLayout.SOUTH);
@@ -248,7 +249,7 @@ public class ChinesePanel extends JPanel {
             }
         }
         int num = textArea.getHighlighter().getHighlights().length;
-        statusLabel.setText(num + " matches");
+        statusLabel.setText("   "+num + " matches");
     }
 
 
