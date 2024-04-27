@@ -1,24 +1,13 @@
 package messageTab.U2C;
 
-import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-
+import burp.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
-import com.bit4woo.utilbox.utils.CharsetUtils;
-
-import burp.BurpExtender;
-import burp.IBurpExtenderCallbacks;
-import burp.IExtensionHelpers;
-import burp.IMessageEditorController;
-import burp.IMessageEditorTab;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author bit4woo
@@ -44,6 +33,7 @@ public class ChineseTab implements IMessageEditorTab {
 
     public ChineseTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks) {
         panel = new ChinesePanel(this);
+        BurpExtender.getCallbacks().customizeUiComponent(panel);//尝试使用burp的font size
     }
 
 

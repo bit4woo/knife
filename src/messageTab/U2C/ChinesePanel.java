@@ -1,14 +1,13 @@
 package messageTab.U2C;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import burp.BurpExtender;
+import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.JsonUtils;
+import com.bit4woo.utilbox.utils.TextUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -17,17 +16,13 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
-
-import org.apache.commons.text.StringEscapeUtils;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
-import com.bit4woo.utilbox.burp.HelperPlus;
-import com.bit4woo.utilbox.utils.JsonUtils;
-import com.bit4woo.utilbox.utils.TextUtils;
-
-import burp.BurpExtender;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rtextarea.RTextScrollPane;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.fife.ui.rsyntaxtextarea.RSyntaxUtilities.getWordEnd;
 import static org.fife.ui.rsyntaxtextarea.RSyntaxUtilities.getWordStart;
@@ -37,8 +32,11 @@ public class ChinesePanel extends JPanel {
     private final JButton buttonChangeEncoding;
     private final RSyntaxTextArea textArea;
     private final JTextField searchField;
+    private final JLabel statusLabel = new JLabel("0 matches");
     boolean isRequest;
     private final ChineseTab chineseTab;
+
+    private int currentHighlightIndex = 0;
 
     ChinesePanel(ChineseTab chineseTab) {
 
@@ -89,25 +87,73 @@ public class ChinesePanel extends JPanel {
 
         add(scrollPane, BorderLayout.CENTER);
 
+
+        JPanel footPanel = new JPanel(new BorderLayout());
         searchField = new JTextField();
+        Timer searchTimer = createSearchTimer();
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                search();
+                searchTimer.restart();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                search();
+                searchTimer.restart();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                search();
+                searchTimer.restart();
             }
         });
-        add(searchField, BorderLayout.SOUTH);
 
+        JButton leftButton = new JButton("<");
+        leftButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Highlighter.Highlight[] highLights = textArea.getHighlighter().getHighlights();
+                scrollToHighLigth(currentHighlightIndex--);
+                if (currentHighlightIndex < 0) {
+                    currentHighlightIndex = highLights.length - 1;
+                }
+            }
+        });
+        JButton rightButton = new JButton(">");
+        rightButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Highlighter.Highlight[] highLights = textArea.getHighlighter().getHighlights();
+                scrollToHighLigth(currentHighlightIndex++);
+                if (currentHighlightIndex >= highLights.length) {
+                    currentHighlightIndex = 0;
+                }
+            }
+        });
+        JPanel panelA = new JPanel();
+        panelA.add(leftButton);
+        panelA.add(rightButton);
+
+        footPanel.add(panelA, BorderLayout.WEST);
+        footPanel.add(searchField, BorderLayout.CENTER);
+        footPanel.add(statusLabel, BorderLayout.EAST);
+
+        add(footPanel, BorderLayout.SOUTH);
+    }
+
+    private void scrollToHighLigth(int index) {
+        Highlighter.Highlight[] highLights = textArea.getHighlighter().getHighlights();
+        if (index >= highLights.length || index < 0) {
+            return;
+        }
+        try {
+            int end = highLights[index].getEndOffset();
+            Rectangle rect = textArea.modelToView(end); // 获取中心位置的矩形范围
+            textArea.scrollRectToVisible(rect); // 将该矩形范围滚动至可见
+            textArea.setCaretPosition(end);
+        } catch (BadLocationException e1) {
+            e1.printStackTrace();
+        }
     }
 
     /**
@@ -149,27 +195,60 @@ public class ChinesePanel extends JPanel {
         });
     }
 
-    private void search() {
-        Highlighter highlighter = textArea.getHighlighter();
-        highlighter.removeAllHighlights();
+    private Timer createSearchTimer() {
+        Timer searchTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 执行搜索操作
+                String searchTerm = searchField.getText();
+                search(searchTerm, false, false);
+            }
+        });
+        searchTimer.setRepeats(false); // 设置计时器只执行一次
+        return searchTimer;
+    }
 
-        String searchTerm = searchField.getText();
+    private void search(String searchTerm, boolean isRegex, boolean isCaseSensitive) {
         if (searchTerm.isEmpty()) {
             return;
         }
 
+        // 清除之前的高亮显示
+        Highlighter highlighter = textArea.getHighlighter();
+        highlighter.removeAllHighlights();
+
         String text = textArea.getText();
-        Pattern pattern = Pattern.compile(Pattern.quote(searchTerm));
-        Matcher matcher = pattern.matcher(text);
-        while (matcher.find()) {
-            int start = matcher.start();
-            int end = matcher.end();
-            try {
-                highlighter.addHighlight(start, end, new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
-            } catch (BadLocationException e) {
-                e.printStackTrace();
+        int flags = 0;
+        if (!isCaseSensitive) {
+            flags |= Pattern.CASE_INSENSITIVE;
+        }
+
+        Pattern pattern;
+        if (isRegex) {
+            pattern = Pattern.compile(searchTerm, flags);
+            Matcher matcher = pattern.matcher(text);
+            while (matcher.find()) {
+                int start = matcher.start();
+                int end = matcher.end();
+                try {
+                    highlighter.addHighlight(start, end, new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        } else {
+            int index = text.indexOf(searchTerm);
+            while (index != -1) {
+                try {
+                    textArea.getHighlighter().addHighlight(index, index + searchTerm.length(), new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW));
+                    index = text.indexOf(searchTerm, index + searchTerm.length()); // 继续搜索下一个匹配项
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
+        int num = textArea.getHighlighter().getHighlights().length;
+        statusLabel.setText(num + " matches");
     }
 
 
