@@ -3,7 +3,6 @@ package knife;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,21 +92,13 @@ class CopyJsOfThisSite_Action implements ActionListener{
 
 
 				String siteBaseUrl = null;
-                if (current_fullUrl != null) {
-                    try {
-						siteBaseUrl = new UrlUtils(current_referUrl).getBaseURL();
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-					}
-                }
-                if (siteBaseUrl == null) {
-                    try {
-						siteBaseUrl = new UrlUtils(current_fullUrl).getBaseURL();
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-					}
-                }
-                
+				if (current_fullUrl != null) {
+					siteBaseUrl = UrlUtils.getBaseUrl(current_referUrl);
+				}
+				if (siteBaseUrl == null) {
+					siteBaseUrl = UrlUtils.getBaseUrl(current_fullUrl);
+				}
+
 				if (StringUtils.isEmpty(siteBaseUrl)){
 					return "";
 				}
