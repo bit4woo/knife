@@ -26,7 +26,7 @@ public class Proxy {
             }
             String portStr = parts[1];
             port = Integer.parseInt(portStr);
-            if (port >= 0 && port <= 65535) {
+            if (!(port >= 0 && port <= 65535)) {
                 throw new IllegalArgumentException("invalid port range");
             }
         } catch (Exception e) {
