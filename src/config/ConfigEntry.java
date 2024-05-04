@@ -265,7 +265,12 @@ public class ConfigEntry {
     public boolean isInRuleScope(int toolFlag, IHttpRequestResponse messageInfo) {
         HelperPlus getter = BurpExtender.getHelperPlus();
         String baseUrl = HelperPlus.getBaseURL(messageInfo).toString();
-        String url = getter.getFullURL(messageInfo).toString();
+        String url;
+		try {
+			url = getter.getFullURL(messageInfo).toString();
+		} catch (Exception e) {
+			url = baseUrl;
+		}
         String host = HelperPlus.getHost(messageInfo);
         String configkey = getKey();
 
