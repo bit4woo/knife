@@ -271,7 +271,7 @@ public class ProcessManager {
                         configKey = keyword;
                         break;
                 }
-                if (StringUtils.isNotEmpty(keyword)) {
+                if (StringUtils.isNotEmpty(configKey)) {
                     delSameConditionRule(configKey);
                     GUI.configTableModel.addNewConfigEntry(new ConfigEntry(configKey, "", action, true));
                 }
