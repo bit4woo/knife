@@ -39,8 +39,10 @@ public class MessagePart {
     public static final String MultiResponseHeaders = "MultiResponseHeaders";
     public static final String ResponseBody = "ResponseBody";
     public static final String MultiResponseBody = "MultiResponseBody";
-
-    public static final String workdir = System.getProperty("user.home") + File.separator + ".knife";
+    
+    
+    private static final String ConnectingCharacter =" ";
+    private static final String workdir = System.getProperty("user.home") + File.separator + ".knife";
 
     public static List<String> getPartList() {
         return ClassUtils.getPublicStaticFinalStringFields(MessagePart.class);
@@ -149,13 +151,15 @@ public class MessagePart {
                 break;
             }
         }
-        String content = String.join(System.lineSeparator(), tempValues);
+        
         if (partType.toLowerCase().endsWith("asfile")) {
             if (tempValues.size() > 1) {
                 firstHost = firstHost + "." + tempValues.size();
             }
+            String content = String.join(System.lineSeparator(), tempValues);
             return contentToFile(firstHost, content);
         } else {
+        	String content = String.join(ConnectingCharacter, tempValues);
             return content;
         }
     }

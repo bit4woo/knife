@@ -175,7 +175,7 @@ Action_Forward_Request_If_Keyword_Matches 如果后续的URL中包含制定的�
 
 ![image-20230419123702800](README.assets/image-20230419123702800.png)
 
-#### 9、Run SQLMap
+#### 9、Run SQLMap(2.3版本已融合到Run Cmd中)
 
 一键对当前数据包跑sqlmap，修改SQLMap-Command配置的值可以根据自己的习惯进行修改。
 
@@ -205,13 +205,56 @@ RunTerminalWithRobotInput		Config_Basic_Variable	false
 
 ![runsqlmap](README.assets/runsqlmap-new.gif)
 
-#### 10、Run Nmap
+#### 10、Run Nmap(2.3版本已融合到Run Cmd中)
 
 和”Run SQLMap“类似，调用Nmap，对当前选择请求的Host进行扫描。
 
 对应的配置项：
 
 ![image-20211230172843489](README.assets/image-20211230172843489.png)
+
+
+
+#### 11、Run Cmd(2.3版本引入)
+
+根据用户的建议，开发了添加自定义命令的功能，配置类型为“Run_External_Cmd”，该功还不完善，如果你有想法，欢迎反馈给我。
+
+![image-20240506105704093](assets/image-20240506105704093.png)
+
+![image-20240506105825874](assets/image-20240506105825874.png)
+
+在命令中，支持的字段列表如下：
+
+```
+BaseURL ---比如https://www.example.com
+FullURL ---比如https://www.example.com/user?id=1&isactive=true
+Host ---比如www.example.com
+HostPort ---比如www.example.com:443
+Request
+RequestAsFile ---比如 将整个请求存入文件，并将文件名拼接到命令中，sqlmap命令中就有用到
+RequestBody
+RequestHeaders
+Response
+ResponseAsFile
+ResponseBody
+ResponseHeaders
+
+如下是以上字段的多选版本，当前用户选中多个HTTP数据包时，都将被提取并处理，否则只会处理第一个。
+MultiBaseURL
+MultiFullURL
+MultiHost
+MultiHostPort
+MultiRequest
+MultiRequestAsFile
+MultiRequestBody
+MultiRequestHeaders
+MultiResponse
+MultiResponseAsFile
+MultiResponseBody
+MultiResponseHeaders
+```
+
+
 
 ### 二、数据包显示Tab
 
@@ -221,7 +264,11 @@ A：将Unicode形式的字符转换为中文，比如 `\u4e2d\u6587`-->`中文` 
 
 B：当数据包中包含中文，如果默认显示为乱码，可以使用这个Tab，支持使用不同的编码来显示内容。
 
+C:   根据用户的建议，引入了语法高亮、自动换行功能，方便阅读。
+
 ![image-20211230174237094](README.assets/image-20211230174237094.png)
+
+![image-20240506112829034](assets/image-20240506112829034.png)
 
 Unicode测试URL
 
