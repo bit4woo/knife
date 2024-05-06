@@ -79,14 +79,14 @@ class CopyJsOfThisSite_Action implements ActionListener{
 
 			/**
 			 * 根据当前web的baseUrl找JS，特征就是referer以它开头
-			 * @param currentBaseUrl
+			 * @param message
 			 * @return 
 			 * @return
 			 */
 			public String findUrls(IHttpRequestResponse message){
 				HelperPlus getter = new HelperPlus(helpers);
 
-				List<String> JsCode = new ArrayList<String>();
+				List<String> JsCode = new ArrayList<>();
 				String current_referUrl = getter.getHeaderValueOf(true,message,"Referer");
 				String current_fullUrl = getter.getFullURL(message).toString();
 
@@ -115,8 +115,8 @@ class CopyJsOfThisSite_Action implements ActionListener{
 						continue;
 					}
 
-					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase()+"/")) {
-						byte[] respBody = getter.getBody(false, item);
+					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase())) {
+						byte[] respBody = HelperPlus.getBody(false, item);
 						String body = new String(respBody);
 						JsCode.add(url.toString());
 						JsCode.add(body);

@@ -60,6 +60,7 @@ class FindUrl_Action implements ActionListener {
 	public BurpExtender burp;
 	public static final String[] blackHostList = {"www.w3.org", "ns.adobe.com", "iptc.org", "openoffice.org"
 			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org"};
+	private static Proxy proxy;
 
 	public FindUrl_Action(BurpExtender burp, IContextMenuInvocation invocation) {
 		this.burp = burp;
@@ -74,8 +75,8 @@ class FindUrl_Action implements ActionListener {
 	public void actionPerformed(ActionEvent event) {
 		Runnable requestRunner = new Runnable() {
 			String siteBaseUrl = null;
-			Set<String> baseUrls = new HashSet<String>();
-			List<String> urls = new ArrayList<String>();
+			Set<String> baseUrls = new HashSet<>();
+			List<String> urls = new ArrayList<>();
 
 			@Override
 			public void run() {
@@ -85,7 +86,7 @@ class FindUrl_Action implements ActionListener {
 						return;
 					}
 
-					BlockingQueue<RequestTask> inputQueue = new LinkedBlockingQueue<RequestTask>();
+					BlockingQueue<RequestTask> inputQueue = new LinkedBlockingQueue<>();
 
 					try {
 						findUrls(messages[0]);
@@ -129,7 +130,7 @@ class FindUrl_Action implements ActionListener {
 
 			/**
 			 * 根据当前web的baseUrl找JS，特征就是referer以它开头
-			 * @param currentBaseUrl
+			 * @param message
 			 * @return
 			 */
 			public void findUrls(IHttpRequestResponse message) {
@@ -139,31 +140,31 @@ class FindUrl_Action implements ActionListener {
 				String current_fullUrl = getter.getFullURL(message).toString();
 
 				if (current_referUrl != null) {
+					//认为当前数据包是前端触发的
 					baseUrls.add(current_referUrl);
-				}
-				baseUrls.add(current_fullUrl);
-
-				if (current_fullUrl != null) {
 					siteBaseUrl = UrlUtils.getBaseUrl(current_referUrl);
-				}
-				if (siteBaseUrl == null) {
+				} else {
+					//认为其是当前数据包是浏览器地址栏访问直接触发的
+					baseUrls.add(current_fullUrl);
 					siteBaseUrl = UrlUtils.getBaseUrl(current_fullUrl);
 				}
 
 
 				IHttpRequestResponse[] messages = BurpExtender.getCallbacks().getSiteMap(null);
 				for (IHttpRequestResponse item : messages) {
-					int code = getter.getStatusCode(item);
 					URL url = getter.getFullURL(item);
+					if (url == null || (!url.toString().toLowerCase().endsWith(".js") && !url.toString().toLowerCase().endsWith(".js.map"))) {
+						continue;
+					}
+
+					int code = getter.getStatusCode(item);
 					String referUrl = getter.getHeaderValueOf(true, item, "Referer");
-					if (referUrl == null || url == null || code <= 0) {
+					if (referUrl == null || code <= 0) {
 						continue;
 					}
-					if (!url.toString().toLowerCase().endsWith(".js")) {
-						continue;
-					}
-					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase() + "/")) {
-						byte[] respBody = getter.getBody(false, item);
+
+					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase())) {
+						byte[] respBody = HelperPlus.getBody(false, item);
 						String body = new String(respBody);
 						urls.addAll(UrlUtils.grepUrls(body));
 						baseUrls.addAll(findPossibleBaseURL(urls));
@@ -182,7 +183,9 @@ class FindUrl_Action implements ActionListener {
 	 * @param inputQueue
 	 */
 	public void doRequest(BlockingQueue<RequestTask> inputQueue, String referUrl) {
-		Proxy proxy = Proxy.inputProxy();
+		if (proxy == null) {
+			proxy = Proxy.inputProxy();
+		}
 		if (proxy == null) {
 			return;
 		}
@@ -199,7 +202,7 @@ class FindUrl_Action implements ActionListener {
 	 * 根据已有的域名梳理，预估应该使用的线程数
 	 * 假设1个任务需要1秒钟。线程数在1-100之间，如何选择线程数使用最小的时间？
 	 *
-	 * @param domains
+	 * @param domainNum
 	 * @return
 	 */
 	public static int threadNumberShouldUse(int domainNum) {
@@ -215,7 +218,7 @@ class FindUrl_Action implements ActionListener {
 	}
 
 	public static Set<String> findPossibleBaseURL(List<String> urls) {
-		Set<String> baseURLs = new HashSet<String>();
+		Set<String> baseURLs = new HashSet<>();
 		for (String tmpurl : urls) {
 			//这部分提取的是含有协议头的完整URL地址
 			if (tmpurl.toLowerCase().startsWith("http://")
