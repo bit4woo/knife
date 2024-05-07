@@ -104,7 +104,7 @@ class FindUrl_Action implements ActionListener {
 						if (null == baseurl) {
 							return;
 						}
-						
+
 						urls = choseURLPath(urls);
 
 						for (String url : urls) {
@@ -173,14 +173,7 @@ class FindUrl_Action implements ActionListener {
 						urls.addAll(UrlUtils.grepUrlsWithProtocol(body));
 						urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(body));
 						urls.addAll(UrlUtils.grepUrlsInQuotes(body));
-						urls = TextUtils.deduplicate(urls);
-						Iterator<String> it  = urls.iterator();
-						while (it.hasNext()) {
-							String urlItem = it.next();
-							if (UrlUtils.uselessExtension(urlItem)) {
-								it.remove();;
-							}
-						}
+						urls = cleanUrls(urls);
 						baseUrls.addAll(findPossibleBaseURL(urls));
 					}
 				}
@@ -238,20 +231,33 @@ class FindUrl_Action implements ActionListener {
 			if (tmpurl.toLowerCase().startsWith("http://")
 					|| tmpurl.toLowerCase().startsWith("https://")) {
 
-				try {
-					String host = new URL(tmpurl).getHost();
-					if (Arrays.asList(blackHostList).contains(host)) {
-						continue;
-					}
-				} catch (Exception E) {
-					continue;
-				}
-
 				baseURLs.add(tmpurl);
 			}
 		}
 		return baseURLs;
 	}
+
+	public static List<String> cleanUrls(List<String> urls) {
+
+		urls = TextUtils.deduplicate(urls);
+		Iterator<String> it  = urls.iterator();
+		while (it.hasNext()) {
+			String urlItem = it.next();
+			if (UrlUtils.uselessExtension(urlItem)) {
+				it.remove();
+			}
+			try {
+				String host = new URL(urlItem).getHost();
+				if (Arrays.asList(blackHostList).contains(host)) {
+					it.remove();
+				}
+			} catch (Exception E) {
+				continue;
+			}
+		}
+		return urls;
+	}
+
 
 	public static String choseAndEditBaseURL(Set<String> inputs) {
 
@@ -280,12 +286,12 @@ class FindUrl_Action implements ActionListener {
 		}
 		return selectedValue;
 	}
-	
-	
+
+
 	public static List<String> choseURLPath(List<String> urls) {
 
 		Collections.sort(urls);
-		
+
 		String text = SwingUtils.showTextAreaDialog(String.join(System.lineSeparator(), urls));
 		if (StringUtils.isEmpty(text)) {
 			return new ArrayList<String>();
