@@ -106,7 +106,7 @@ class FindUrl_Action implements ActionListener {
 						}
 
 						urls = choseURLPath(urls);
-
+						if (urls.size()<=0) return; 
 						for (String url : urls) {
 							if (!url.startsWith("http://") && !url.startsWith("https://")) {
 								if (url.startsWith("/")) {
