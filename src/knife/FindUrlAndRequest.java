@@ -16,7 +16,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.TextUtils;
 import com.bit4woo.utilbox.utils.UrlUtils;
 
 import base.RequestTask;
@@ -99,6 +102,8 @@ class FindUrl_Action implements ActionListener {
 						if (null == baseurl) {
 							return;
 						}
+						
+						urls = choseURLPath(urls);
 
 						for (String url : urls) {
 							if (UrlUtils.uselessExtension(url)) {
@@ -166,7 +171,10 @@ class FindUrl_Action implements ActionListener {
 					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase())) {
 						byte[] respBody = HelperPlus.getBody(false, item);
 						String body = new String(respBody);
-						urls.addAll(UrlUtils.grepUrls(body));
+						urls.addAll(UrlUtils.grepUrlsWithProtocol(body));
+						urls.addAll(UrlUtils.grepUrlPathNotStartWithSlash(body));
+						urls.addAll(UrlUtils.grepUrlsInQuotes(body));
+						urls = TextUtils.deduplicate(urls);
 						baseUrls.addAll(findPossibleBaseURL(urls));
 					}
 				}
@@ -265,5 +273,18 @@ class FindUrl_Action implements ActionListener {
 			return baseUrl.trim();
 		}
 		return selectedValue;
+	}
+	
+	
+	public static List<String> choseURLPath(List<String> urls) {
+
+		Collections.sort(urls);
+		
+		String text = SwingUtils.showTextAreaDialog(String.join(System.lineSeparator(), urls));
+		if (StringUtils.isEmpty(text)) {
+			return new ArrayList<String>();
+		}else {
+			return TextUtils.textToLines(text);
+		}
 	}
 }
