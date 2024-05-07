@@ -64,7 +64,13 @@ class FindUrl_Action implements ActionListener {
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
 	public static final String[] blackHostList = {"www.w3.org", "ns.adobe.com", "iptc.org", "openoffice.org"
-			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org"};
+			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org","registry.npmjs.org"};
+	
+	public static final List<String> blackPath = TextUtils.textToLines("text/css\r\n"
+			+ "	text/html\r\n"
+			+ "	text/plain\r\n"
+			+ "	image/pdf\r\n");
+
 	private static Proxy proxy;
 
 	public FindUrl_Action(BurpExtender burp, IContextMenuInvocation invocation) {
@@ -244,6 +250,9 @@ class FindUrl_Action implements ActionListener {
 		while (it.hasNext()) {
 			String urlItem = it.next();
 			if (UrlUtils.uselessExtension(urlItem)) {
+				it.remove();
+			}
+			if (blackPath.contains(urlItem)) {
 				it.remove();
 			}
 			try {
