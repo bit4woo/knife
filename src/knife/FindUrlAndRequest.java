@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -19,6 +20,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang3.StringUtils;
 
 import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.SwingUtils;
 import com.bit4woo.utilbox.utils.TextUtils;
 import com.bit4woo.utilbox.utils.UrlUtils;
 
@@ -106,9 +108,6 @@ class FindUrl_Action implements ActionListener {
 						urls = choseURLPath(urls);
 
 						for (String url : urls) {
-							if (UrlUtils.uselessExtension(url)) {
-								continue;
-							}
 							if (!url.startsWith("http://") && !url.startsWith("https://")) {
 								if (url.startsWith("/")) {
 									url = url.replaceFirst("/", "");
@@ -172,9 +171,16 @@ class FindUrl_Action implements ActionListener {
 						byte[] respBody = HelperPlus.getBody(false, item);
 						String body = new String(respBody);
 						urls.addAll(UrlUtils.grepUrlsWithProtocol(body));
-						urls.addAll(UrlUtils.grepUrlPathNotStartWithSlash(body));
+						urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(body));
 						urls.addAll(UrlUtils.grepUrlsInQuotes(body));
 						urls = TextUtils.deduplicate(urls);
+						Iterator<String> it  = urls.iterator();
+						while (it.hasNext()) {
+							String urlItem = it.next();
+							if (UrlUtils.uselessExtension(urlItem)) {
+								it.remove();;
+							}
+						}
 						baseUrls.addAll(findPossibleBaseURL(urls));
 					}
 				}
