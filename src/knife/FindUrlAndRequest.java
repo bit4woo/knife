@@ -176,6 +176,7 @@ class FindUrl_Action implements ActionListener {
 					if (referUrl.toLowerCase().startsWith(siteBaseUrl.toLowerCase())) {
 						byte[] respBody = HelperPlus.getBody(false, item);
 						String body = new String(respBody);
+						body = TextUtils.decodeAll(body);
 						urls.addAll(UrlUtils.grepUrlsWithProtocol(body));
 						urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(body));
 						urls.addAll(UrlUtils.grepUrlsInQuotes(body));
@@ -184,7 +185,6 @@ class FindUrl_Action implements ActionListener {
 					}
 				}
 			}
-
 		};
 		new Thread(requestRunner).start();
 	}
