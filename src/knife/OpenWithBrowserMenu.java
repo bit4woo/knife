@@ -90,9 +90,6 @@ class OpenWithBrowser_Action implements ActionListener{
 				stderr.println("Please Select Less URLs to Open");
 			}
 		}
-		catch (java.net.URISyntaxException e) {
-			stderr.println(e.getMessage());
-		}
 		catch (Exception e1)
 		{
 			e1.printStackTrace(stderr);
