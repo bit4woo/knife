@@ -1,13 +1,20 @@
 package messageTab.U2C;
 
-import burp.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-
-import java.awt.*;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.SwingWorker;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+
+import burp.BurpExtender;
+import burp.IBurpExtenderCallbacks;
+import burp.IExtensionHelpers;
+import burp.IMessageEditorController;
+import burp.IMessageEditorTab;
 
 /**
  * @author bit4woo
@@ -86,13 +93,20 @@ public class ChineseTab implements IMessageEditorTab {
 
     @Override
     public void setMessage(byte[] content, boolean isRequest) {
-        originContent = content;
-        detectedCharset = BurpExtender.getHelperPlus().detectCharset(isRequest, content);
-        if (StringUtils.isEmpty(detectedCharset)) {
-            panel.display(content, isRequest, "UTF-8");
-        } else {
-            panel.display(content, isRequest, detectedCharset);
-        }
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                originContent = content;
+                detectedCharset = BurpExtender.getHelperPlus().detectCharset(isRequest, content);
+                if (StringUtils.isEmpty(detectedCharset)) {
+                    panel.display(content, isRequest, "UTF-8");
+                } else {
+                    panel.display(content, isRequest, detectedCharset);
+                }
+                return null;
+            }
+        };
+        worker.execute();
     }
 
     /**
@@ -111,7 +125,7 @@ public class ChineseTab implements IMessageEditorTab {
 
     @Override
     public byte[] getSelectedData() {
-//		return txtInput.getSelectedText();
+        //		return txtInput.getSelectedText();
         return null;
     }
 
