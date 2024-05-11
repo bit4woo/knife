@@ -53,9 +53,35 @@ public class ChineseTab implements IMessageEditorTab {
     public Component getUiComponent() {
         return panel;
     }
-
+    
+    /**
+     * 还是需要适当控制减少内存的占用
+     * 
+     *  Content-Type: image/x-icon
+        Content-Type: image/png
+        Content-Type: text/css
+        Content-Type: font/woff2
+        Content-Type: application/x-protobuf
+     */
     @Override
     public boolean isEnabled(byte[] content, boolean isRequest) {
+    	String contentType = BurpExtender.getHelperPlus().getHeaderValueOf(isRequest, content, "Content-Type");
+    	if (StringUtils.isEmpty(contentType)) {
+    		return true;
+    	}
+    	if (contentType.contains("image/")) {
+    		return false;
+    	}
+    	else if (contentType.contains("text/css")) {
+    		return false;
+    	}
+    	else if (contentType.contains("font/")) {
+    		return false;
+    	}
+    	else if (contentType.contains("x-protobuf")) {
+    		return false;
+    	}
+    	
         return true;
     }
 
