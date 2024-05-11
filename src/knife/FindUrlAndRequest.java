@@ -64,7 +64,8 @@ class FindUrl_Action implements ActionListener {
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
 	public static final String[] blackHostList = {"www.w3.org", "ns.adobe.com", "iptc.org", "openoffice.org"
-			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org","registry.npmjs.org"};
+			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org","registry.npmjs.org"
+			,"json-schema.org","jmespath.org"};
 	
 	public static final List<String> blackPath = TextUtils.textToLines("text/css\r\n"
 			+ "	text/html\r\n"
