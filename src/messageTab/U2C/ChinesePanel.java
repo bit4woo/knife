@@ -264,9 +264,12 @@ public class ChinesePanel extends JPanel {
 
             if (getter.isJSON(content, isRequest)) {
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+            } else if (getter.isJavaScript(content, isRequest)){
+            	textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
             } else {
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
             }
+            
             try {
                 textArea.setText(new String(newContent, currentCharset));
             } catch (UnsupportedEncodingException e) {
