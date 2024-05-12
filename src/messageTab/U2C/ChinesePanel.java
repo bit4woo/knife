@@ -249,7 +249,7 @@ public class ChinesePanel extends JPanel {
             }
         }
         int num = textArea.getHighlighter().getHighlights().length;
-        statusLabel.setText("   "+num + " matches");
+        statusLabel.setText("   " + num + " matches");
     }
 
 
@@ -259,19 +259,22 @@ public class ChinesePanel extends JPanel {
     public void display(byte[] content, boolean isRequest, String currentCharset) {
         HelperPlus getter = BurpExtender.getHelperPlus();
 
+        int position = textArea.getCaretPosition();
+
         try {
             byte[] newContent = handleContent(content, isRequest, currentCharset);
 
             if (getter.isJSON(content, isRequest)) {
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
-            } else if (getter.isJavaScript(content, isRequest)){
-            	textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+            } else if (getter.isJavaScript(content, isRequest)) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
             } else {
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
             }
-            
+
             try {
                 textArea.setText(new String(newContent, currentCharset));
+                textArea.setCaretPosition(position);
             } catch (UnsupportedEncodingException e) {
                 textArea.setText(e.getMessage());
             }
@@ -285,6 +288,7 @@ public class ChinesePanel extends JPanel {
             e.printStackTrace(pw);
             String stackTrace = sw.toString();
             textArea.setText(stackTrace);
+            textArea.setCaretPosition(position);
         }
     }
 
@@ -318,8 +322,13 @@ public class ChinesePanel extends JPanel {
             } else {
                 int i = 0;
                 while (TextUtils.needUnicodeConvert(contentStr) && i < 3) {
+                    int oldLength = contentStr.length();
                     contentStr = StringEscapeUtils.unescapeJava(contentStr);
                     i++;
+                    int newLength = contentStr.length();
+                    if (oldLength == newLength) {
+                        break;
+                    }
                 }
 
                 displayContent = contentStr.getBytes(charSet);
