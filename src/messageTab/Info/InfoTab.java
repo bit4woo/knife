@@ -99,19 +99,7 @@ public class InfoTab implements IMessageEditorTab{
 		return null;//TODO
 	}
 
-	public static boolean isJSON(byte[] content,boolean isRequest) {
-		if (isRequest) {
-			IRequestInfo requestInfo = helpers.analyzeRequest(content);
-			return requestInfo.getContentType() == IRequestInfo.CONTENT_TYPE_JSON;
-		} else {
-			IResponseInfo responseInfo = helpers.analyzeResponse(content);
-			return responseInfo.getInferredMimeType().equals("JSON");
-		}
-	}
-
 
 	public static void main(String[] args) {
-		String aaa = "STK_7411642209636022({\"errno\":1003,\"errmsg\":\"\\u7528\\u6237\\u672a\\u767b\\u5f55\",\"errmsg_lang\":{\"zh\":\"\\u7528\\u6237\\u672a\\u767b\\u5f55\",\"en\":\"User is not logged in.\",\"zh-HK\":\"\\u7528\\u6236\\u672a\\u767b\\u9304\"},\"data\":null});";
-		System.out.println(StringEscapeUtils.unescapeJava(aaa));
 	}
 }
