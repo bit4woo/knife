@@ -3,15 +3,9 @@ package messageTab.Info;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-
-import com.bit4woo.utilbox.utils.SystemUtils;
 
 import burp.BurpExtender;
 

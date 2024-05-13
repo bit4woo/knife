@@ -1,8 +1,5 @@
 package messageTab.Info;
 
-import burp.BurpExtender;
-import com.bit4woo.utilbox.utils.SystemUtils;
-
 import static config.ConfigTableModel.titles;
 
 import java.awt.Color;
@@ -10,20 +7,19 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.DefaultCellEditor;
-import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
+
+import com.bit4woo.utilbox.utils.SystemUtils;
+
+import burp.BurpExtender;
 
 
 public class InfoTable extends JTable {
