@@ -1,5 +1,6 @@
 package config;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +30,8 @@ public class ConfigTableModel extends AbstractTableModel{
 	};
 
 	public static final String Firefox_Mac = "/Applications/Firefox.app/Contents/MacOS/firefox";
-	public static final String Firefox_Windows = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
+	public static final String Firefox_Windows_D = "D:\\Program Files\\Mozilla Firefox\\firefox.exe";
+	public static final String Firefox_Windows_C = "C:\\Program Files\\Mozilla Firefox\\firefox.exe";
 
 	// /usr/local/bin 本地默认可执行文件路径
 	public static final String SQLMap_Command = "python /usr/local/bin/sqlmap-dev/sqlmap.py -r {RequestAsFile} --force-ssl --risk=3 --level=3";
@@ -45,7 +47,11 @@ public class ConfigTableModel extends AbstractTableModel{
 		if (SystemUtils.isMac()) {
 			configEntries.add(new ConfigEntry("browserPath", Firefox_Mac,ConfigEntry.Config_Basic_Variable,true,false));
 		}else {
-			configEntries.add(new ConfigEntry("browserPath", Firefox_Windows,ConfigEntry.Config_Basic_Variable,true,false));
+			if (new File(Firefox_Windows_C).exists()){
+				configEntries.add(new ConfigEntry("browserPath", Firefox_Windows_C,ConfigEntry.Config_Basic_Variable,true,false));
+			}else {
+				configEntries.add(new ConfigEntry("browserPath", Firefox_Windows_D,ConfigEntry.Config_Basic_Variable,true,false));
+			}
 		}
 		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
 		//configEntries.add(new ConfigEntry("DismissedTargets", "{\"*.firefox.com\":\"Drop\",\"*.mozilla.com\":\"Drop\"}",ConfigEntry.Config_Basic_Variable,true,false));

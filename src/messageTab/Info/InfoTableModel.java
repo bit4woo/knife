@@ -64,15 +64,7 @@ public class InfoTableModel extends AbstractTableModel{
 
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		InfoEntry entry = infoEntries.get(rowIndex);
-		if (!entry.isEditable()) {
-			if (titles[columnIndex].equals("Key")) {
-				return false;
-			}else if (titles[columnIndex].equals("Type")) {
-				return false;
-			}
-		}
-		return true;
+		return false;
 	}
 
 	@Override
@@ -126,8 +118,8 @@ public class InfoTableModel extends AbstractTableModel{
 			//fireTableRowsInserted(row, row);
 			//need to use row-1 when add setRowSorter to table. why??
 			//https://stackoverflow.com/questions/6165060/after-adding-a-tablerowsorter-adding-values-to-model-cause-java-lang-indexoutofb
-			//fireTableRowsInserted(row-1, row-1);
-			fireTableRowsInserted(row-2, row-2);
+			fireTableRowsInserted(row-1, row-1);
+			//fireTableRowsInserted(row-2, row-2);
 		}
 	}
 

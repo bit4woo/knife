@@ -1,5 +1,8 @@
 package messageTab.Info;
 
+import burp.BurpExtender;
+import com.bit4woo.utilbox.utils.SystemUtils;
+
 import static config.ConfigTableModel.titles;
 
 import java.awt.Color;
@@ -28,8 +31,8 @@ public class InfoTable extends JTable {
      *
      */
     private static final long serialVersionUID = 1L;
-    
-    public static final String[] headers ={"value","type"};
+
+    public static final String[] headers = {"Value", "Type"};
 
 
     public InfoTable(InfoTableModel tableModel) {
@@ -46,14 +49,14 @@ public class InfoTable extends JTable {
         //table.setupTypeColumn()//can't set here, only can after table data loaded.
         //tableHeaderLengthInit();//can't set here, only can after table data loaded.
     }
-    
-    public static List<String> getHeaders(){
-    	return Arrays.asList(headers);
+
+    public static List<String> getHeaders() {
+        return Arrays.asList(headers);
     }
-    
-    
-    public InfoTableModel getInfoTableModel(){
-    	return (InfoTableModel)this.getModel();
+
+
+    public InfoTableModel getInfoTableModel() {
+        return (InfoTableModel) this.getModel();
     }
 
 
@@ -94,47 +97,60 @@ public class InfoTable extends JTable {
         //this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//配合横向滚动条
     }
 
-    
-	//将选中的行（图形界面的行）转换为Model中的行数（数据队列中的index）.因为图形界面排序等操作会导致图像和数据队列的index不是线性对应的。
-	public int[] SelectedRowsToModelRows(int[] SelectedRows) {
 
-		for (int i = 0; i < SelectedRows.length; i++){
-			SelectedRows[i] = convertRowIndexToModel(SelectedRows[i]);//转换为Model的索引，否则排序后索引不对应〿
-		}
-		Arrays.sort(SelectedRows);//升序
+    //将选中的行（图形界面的行）转换为Model中的行数（数据队列中的index）.因为图形界面排序等操作会导致图像和数据队列的index不是线性对应的。
+    public int[] SelectedRowsToModelRows(int[] SelectedRows) {
 
-		return SelectedRows;
-	}
+        for (int i = 0; i < SelectedRows.length; i++) {
+            SelectedRows[i] = convertRowIndexToModel(SelectedRows[i]);//转换为Model的索引，否则排序后索引不对应〿
+        }
+        Arrays.sort(SelectedRows);//升序
+
+        return SelectedRows;
+    }
 
     private void registerListeners() {
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                	InfoTable target = (InfoTable) e.getSource();
+                    InfoTable target = (InfoTable) e.getSource();
                     int row = target.getSelectedRow();
                     int column = target.getSelectedColumn();
                     if (titles[column].equals("Enable")) {
                         boolean value = (boolean) getValueAt(row, column);
                         setValueAt(!value, row, column);
                     }
+                    //双击浏览器打开url
+                    if (headers[column].equalsIgnoreCase("Value")) {//双击url在浏览器中打开
+                        try {
+                            String url = (String) getValueAt(row, column);
+                            if (url != null && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+                                url = "http://" + url;//针对DNS记录中URL字段是host的情况
+                            }
+                            String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
+                            SystemUtils.browserOpen(url, browserPath);
+                        } catch (Exception e1) {
+                            e1.printStackTrace(BurpExtender.getStderr());
+                        }
+                    }
                 }
             }
 
-			@Override//title表格中的鼠标右键菜单
-			public void mouseReleased( MouseEvent e ){
-				if ( SwingUtilities.isRightMouseButton( e )){
-					if (e.isPopupTrigger() && e.getComponent() instanceof InfoTable ) {
-						int[] rows = getSelectedRows();
-						int col = ((InfoTable) e.getSource()).columnAtPoint(e.getPoint()); // 获得列位置
-						int modelCol = InfoTable.this.convertColumnIndexToModel(col);
-						if (rows.length>0){
-							int[] modelRows = SelectedRowsToModelRows(rows);
-							//new ConfigTableMenu(ConfigTable.this, modelRows, modelCol).show(e.getComponent(), e.getX(), e.getY());
-						}
-					}
-				}
-			}
+            @Override//title表格中的鼠标右键菜单
+            public void mouseReleased(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    if (e.isPopupTrigger() && e.getComponent() instanceof InfoTable) {
+                        int[] rows = getSelectedRows();
+                        int col = ((InfoTable) e.getSource()).columnAtPoint(e.getPoint()); // 获得列位置
+                        int modelCol = InfoTable.this.convertColumnIndexToModel(col);
+                        if (rows.length > 0) {
+                            int[] modelRows = SelectedRowsToModelRows(rows);
+                            //new ConfigTableMenu(ConfigTable.this, modelRows, modelCol).show(e.getComponent(), e.getX(), e.getY());
+                        }
+                    }
+                }
+            }
 
             @Override
             public void mousePressed(MouseEvent e) {
@@ -144,10 +160,10 @@ public class InfoTable extends JTable {
     }
 
 
-	/**
-	 * 搜索功能
-	 * @param caseSensitive
-	 */
+    /**
+     * 搜索功能
+     * @param caseSensitive
+     */
     /*
 	public void search(String Input,boolean caseSensitive) {
 		final RowFilter filter = new RowFilter() {

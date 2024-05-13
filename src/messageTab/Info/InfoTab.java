@@ -4,16 +4,20 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
+import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
 import burp.IRequestInfo;
 import burp.IResponseInfo;
+import messageTab.U2C.ChinesePanel;
 
 /** 
  * @author bit4woo
@@ -33,22 +37,10 @@ public class InfoTab implements IMessageEditorTab{
 
 	private byte[] originContent;
 
-	private static IExtensionHelpers helpers;
-
 	public InfoTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks)
 	{
-		panel = createpanel();
-		InfoTab.helpers = helpers;
-	}
-
-
-	public JPanel createpanel() {
-
-		JPanel contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-
-		return contentPane;
+		panel = new InfoPanel(this);
+        BurpExtender.getCallbacks().customizeUiComponent(panel);//尝试使用burp的font size
 	}
 
 	@Override
@@ -73,7 +65,16 @@ public class InfoTab implements IMessageEditorTab{
 	public void setMessage(byte[] content, boolean isRequest)
 	{
 		originContent = content;
-		
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                originContent = content;
+                InfoEntry aaa = new InfoEntry("http://www.baidu.com",InfoEntry.Type_URL);
+                ((InfoPanel)panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
+                return null;
+            }
+        };
+        worker.execute();
 	}
 
 

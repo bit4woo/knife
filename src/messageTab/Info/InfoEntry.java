@@ -16,6 +16,12 @@ public class InfoEntry {
     public InfoEntry() {
         //to resolve "default constructor not found" error
     }
+    
+    public InfoEntry(String value, String type) {
+        this.value = value;
+        this.type = type;
+        this.enable = true;
+    }
 
     public InfoEntry(String value, String type, boolean enable) {
         this.value = value;
