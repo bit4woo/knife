@@ -65,6 +65,10 @@ public class InfoTable extends JTable {
         Arrays.sort(rows);//升序
         return rows;
     }
+    
+    public InfoEntry getEntryAt(int row) {
+        return ((InfoTableModel) this.getModel()).getEntryAt(convertRowIndexToModel(row));
+    }
 
     private void addClickSort() {
         TableRowSorter<InfoTableModel> sorter = new TableRowSorter<>((InfoTableModel) this.getModel());
@@ -113,19 +117,18 @@ public class InfoTable extends JTable {
                     InfoTable target = (InfoTable) e.getSource();
                     int row = target.getSelectedRow();
                     int column = target.getSelectedColumn();
-                    if (titles[column].equals("Enable")) {
-                        boolean value = (boolean) getValueAt(row, column);
-                        setValueAt(!value, row, column);
-                    }
+
                     //双击浏览器打开url
                     if (headers[column].equalsIgnoreCase("Value")) {//双击url在浏览器中打开
                         try {
-                            String url = (String) getValueAt(row, column);
-                            if (url != null && !url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
-                                url = "http://" + url;//针对DNS记录中URL字段是host的情况
-                            }
-                            String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
-                            SystemUtils.browserOpen(url, browserPath);
+                        	InfoEntry entry = getEntryAt(row);
+                        	if (entry.getType().equals(InfoEntry.Type_URL)) {
+                                String url = (String) getValueAt(row, column);
+                                if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://")) {
+                                	String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
+                                    SystemUtils.browserOpen(url, browserPath);
+                                }
+                        	}
                         } catch (Exception e1) {
                             e1.printStackTrace(BurpExtender.getStderr());
                         }

@@ -40,11 +40,44 @@ public class FindUrlAndRequest extends JMenuItem {
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
+	public static final String[] blackHostList = {"www.w3.org", "ns.adobe.com", "iptc.org", "openoffice.org"
+			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org","registry.npmjs.org"
+			,"json-schema.org","jmespath.org"};
+
+	public static final List<String> blackPath = TextUtils.textToLines("text/css\r\n"
+			+ "	text/html\r\n"
+			+ "	text/plain\r\n"
+			+ "	image/pdf\r\n");
 
 	//JMenuItem vs. JMenu
 	public FindUrlAndRequest(BurpExtender burp) {
 		this.setText("^_^ Find URL And Request");
 		this.addActionListener(new FindUrl_Action(burp, burp.invocation));
+	}
+
+
+	public static List<String> cleanUrls(List<String> urls) {
+
+		urls = TextUtils.deduplicate(urls);
+		Iterator<String> it  = urls.iterator();
+		while (it.hasNext()) {
+			String urlItem = it.next();
+			if (UrlUtils.uselessExtension(urlItem)) {
+				it.remove();
+			}
+			if (blackPath.contains(urlItem)) {
+				it.remove();
+			}
+			try {
+				String host = new URL(urlItem).getHost();
+				if (Arrays.asList(blackHostList).contains(host)) {
+					it.remove();
+				}
+			} catch (Exception E) {
+				continue;
+			}
+		}
+		return urls;
 	}
 
 	public static void main(String[] args) {
@@ -63,14 +96,7 @@ class FindUrl_Action implements ActionListener {
 	public PrintWriter stderr;
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
-	public static final String[] blackHostList = {"www.w3.org", "ns.adobe.com", "iptc.org", "openoffice.org"
-			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org","registry.npmjs.org"
-			,"json-schema.org","jmespath.org"};
-	
-	public static final List<String> blackPath = TextUtils.textToLines("text/css\r\n"
-			+ "	text/html\r\n"
-			+ "	text/plain\r\n"
-			+ "	image/pdf\r\n");
+
 
 	private static Proxy proxy;
 
@@ -181,7 +207,7 @@ class FindUrl_Action implements ActionListener {
 						urls.addAll(UrlUtils.grepUrlsWithProtocol(body));
 						urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(body));
 						urls.addAll(UrlUtils.grepUrlsInQuotes(body));
-						urls = cleanUrls(urls);
+						urls = FindUrlAndRequest.cleanUrls(urls);
 						baseUrls.addAll(findPossibleBaseURL(urls));
 					}
 				}
@@ -244,29 +270,6 @@ class FindUrl_Action implements ActionListener {
 		return baseURLs;
 	}
 
-	public static List<String> cleanUrls(List<String> urls) {
-
-		urls = TextUtils.deduplicate(urls);
-		Iterator<String> it  = urls.iterator();
-		while (it.hasNext()) {
-			String urlItem = it.next();
-			if (UrlUtils.uselessExtension(urlItem)) {
-				it.remove();
-			}
-			if (blackPath.contains(urlItem)) {
-				it.remove();
-			}
-			try {
-				String host = new URL(urlItem).getHost();
-				if (Arrays.asList(blackHostList).contains(host)) {
-					it.remove();
-				}
-			} catch (Exception E) {
-				continue;
-			}
-		}
-		return urls;
-	}
 
 
 	public static String choseAndEditBaseURL(Set<String> inputs) {

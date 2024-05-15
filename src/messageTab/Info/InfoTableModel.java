@@ -60,6 +60,11 @@ public class InfoTableModel extends AbstractTableModel{
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		return false;
 	}
+	
+	public InfoEntry getEntryAt(int rowIndex)
+	{
+		return infoEntries.get(rowIndex);
+	}
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex)

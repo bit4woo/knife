@@ -1,17 +1,22 @@
 package messageTab.Info;
 
 import java.awt.Component;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
 import com.bit4woo.utilbox.utils.ByteArrayUtils;
+import com.bit4woo.utilbox.utils.EmailUtils;
+import com.bit4woo.utilbox.utils.TextUtils;
+import com.bit4woo.utilbox.utils.UrlUtils;
 
 import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
+import knife.FindUrlAndRequest;
 
 /** 
  * @author bit4woo
@@ -59,18 +64,34 @@ public class InfoTab implements IMessageEditorTab{
 	 * 每次切换到这个tab，都会调用这个函数。应考虑避免重复劳动，根据originContent是否变化来判断。
 	 */
 	@Override
-	public void setMessage(byte[] content, boolean isRequest)
-	{	
-		if (ByteArrayUtils.equals(originContent,content)) {
+	public void setMessage(byte[] content, boolean isRequest){	
+		if (content ==null || content.length ==0) {
+			return;
+		}else if (ByteArrayUtils.equals(originContent,content)) {
 			return;
 		}else {
 			originContent = content;
 			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 				@Override
 				protected Void doInBackground() throws Exception {
-					originContent = content;
-					InfoEntry aaa = new InfoEntry("http://www.baidu.com",InfoEntry.Type_URL);
-					((InfoPanel)panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
+					String text = new String(content);
+					text = TextUtils.decodeAll(text);
+
+					List<String> urls = UrlUtils.grepUrlsWithProtocol(text);
+					urls.addAll(UrlUtils.grepUrlsInQuotes(text));
+					urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(text));
+					urls = FindUrlAndRequest.cleanUrls(urls);
+					for (String url:urls) {
+						InfoEntry aaa = new InfoEntry(url,InfoEntry.Type_URL);
+						((InfoPanel)panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
+					}
+
+					List<String> emails = EmailUtils.grepEmail(text);
+					for (String email:emails) {
+						InfoEntry aaa = new InfoEntry(email,InfoEntry.Type_Email);
+						((InfoPanel)panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
+					}
+
 					return null;
 				}
 			};
