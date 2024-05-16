@@ -1,11 +1,9 @@
 package messageTab.Info;
 
 import java.awt.Component;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.SwingWorker;
 
 import com.bit4woo.utilbox.utils.ByteArrayUtils;
@@ -90,6 +88,7 @@ public class InfoTab implements IMessageEditorTab{
 					}
 
 					List<String> emails = EmailUtils.grepEmail(text);
+					emails = TextUtils.deduplicate(emails);
 					for (String email:emails) {
 						InfoEntry aaa = new InfoEntry(email,InfoEntry.Type_Email);
 						((InfoPanel)panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
@@ -118,30 +117,16 @@ public class InfoTab implements IMessageEditorTab{
 	{
 		return false;
 	}
-	
+
 	/**
 	 * ctrl+c复制数据逻辑会调用这个函数
 	 */
 	@Override
 	public byte[] getSelectedData()
 	{	
-		JTable table = ((InfoPanel)panel).getTable();
-		int[] rows = table.getSelectedRows();
-		int[] columns = table.getSelectedColumns();
-		List<String> result = new ArrayList<>();
-		for (int row:rows) {
-			List<String> line = new ArrayList<>();
-			for (int column:columns) {
-				try {
-					String value = (String)table.getValueAt(row, column);
-					line.add(value);
-				} catch (Exception e) {
-					//e.printStackTrace();
-				}
-			}
-			result.add(String.join(" ", line));
-		}
-		return String.join(System.lineSeparator(), result).getBytes();
+		InfoTable table = (InfoTable)((InfoPanel)panel).getTable();
+		String content = table.getSelectedContent();
+		return content.getBytes();
 	}
 
 
