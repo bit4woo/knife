@@ -1,7 +1,5 @@
 package messageTab.Info;
 
-import static config.ConfigTableModel.titles;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -28,8 +26,8 @@ public class InfoTable extends JTable {
      */
     private static final long serialVersionUID = 1L;
 
-    public static final String[] headers = {"Value", "Type"};
-
+    //public static final String[] headers = {"Value", "Type"};
+    public static final String[] headers = {"Value"};
 
     public InfoTable(InfoTableModel tableModel) {
         super(tableModel);
@@ -127,12 +125,17 @@ public class InfoTable extends JTable {
                                 if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://")) {
                                 	String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
                                     SystemUtils.browserOpen(url, browserPath);
+                                    return;
                                 }
                         	}
                         } catch (Exception e1) {
                             e1.printStackTrace(BurpExtender.getStderr());
                         }
                     }
+                    
+                    //默认行为，复制到剪切板
+                    String value = (String) getValueAt(row, column);
+                    SystemUtils.writeToClipboard(value);
                 }
             }
 
