@@ -82,6 +82,7 @@ public class InfoTab implements IMessageEditorTab{
 					List<String> urls = UrlUtils.grepUrlsWithProtocol(text);
 					urls.addAll(UrlUtils.grepUrlsInQuotes(text));
 					urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(text));
+					urls = TextUtils.deduplicate(urls);
 					urls = FindUrlAndRequest.cleanUrls(urls);
 					for (String url:urls) {
 						InfoEntry aaa = new InfoEntry(url,InfoEntry.Type_URL);
@@ -140,7 +141,7 @@ public class InfoTab implements IMessageEditorTab{
 			}
 			result.add(String.join(" ", line));
 		}
-		return String.join(" ", result).getBytes();
+		return String.join(System.lineSeparator(), result).getBytes();
 	}
 
 
