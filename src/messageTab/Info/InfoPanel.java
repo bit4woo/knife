@@ -24,9 +24,20 @@ public class InfoPanel extends JPanel {
     boolean isRequest;
     
     InfoTable table;
+	private InfoTab InfoTab;
+
+	
+    public InfoTab getInfoTab() {
+		return InfoTab;
+	}
 
 
-    public InfoTable getTable() {
+	public void setInfoTab(InfoTab infoTab) {
+		InfoTab = infoTab;
+	}
+
+
+	public InfoTable getTable() {
 		return table;
 	}
 
@@ -37,7 +48,7 @@ public class InfoPanel extends JPanel {
 
 
 	InfoPanel(InfoTab parent) {
-
+		this.InfoTab = parent;
         setBorder(new EmptyBorder(5, 5, 5, 5));
         setLayout(new BorderLayout(0, 0));
 
@@ -45,7 +56,7 @@ public class InfoPanel extends JPanel {
         add(buttonPanel, BorderLayout.NORTH);
 
         InfoTableModel model = new InfoTableModel();
-        table = new InfoTable(model);
+        table = new InfoTable(model,this);
 
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setViewportView(table);

@@ -33,6 +33,14 @@ public class InfoTableMenu extends JPopupMenu {
 				SystemUtils.writeToClipboard(content);
 			}
 		});
+		
+		JMenuItem changeBaseUrlItem = new JMenuItem(new AbstractAction("Set/Change Base URL") {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				String content = infoTable.getSelectedContent();
+				SystemUtils.writeToClipboard(content);
+			}
+		});
 
 		add(copyItem);
 	}

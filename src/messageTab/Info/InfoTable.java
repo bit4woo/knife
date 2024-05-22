@@ -30,8 +30,11 @@ public class InfoTable extends JTable {
 	//public static final String[] headers = {"Value", "Type"};
 	public static final String[] headers = {"Value"};
 
-	public InfoTable(InfoTableModel tableModel) {
+	private InfoPanel infoPanel;
+
+	public InfoTable(InfoTableModel tableModel,InfoPanel infoPanel) {
 		super(tableModel);
+		this.infoPanel = infoPanel;
 		this.setColumnModel(columnModel);
 		this.setFillsViewportHeight(true);//在table的空白区域显示右键菜单
 		//https://stackoverflow.com/questions/8903040/right-click-mouselistener-on-whole-jtable-component
@@ -127,6 +130,13 @@ public class InfoTable extends JTable {
 									String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
 									SystemUtils.browserOpen(url, browserPath);
 									return;
+								}else {
+									//TODO 还没有想要获取baseUrl的方法
+									byte[] content = infoPanel.getInfoTab().getOriginContent();
+									/*
+									 * FindUrl_Action.FindAllUrls(content); FindUrl_Action.findPossibleBaseURL();
+									 * BurpExtender.BaseUrlMap.get(e);
+									 */
 								}
 							}
 						} catch (Exception e1) {
