@@ -16,9 +16,14 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 
-import com.bit4woo.utilbox.utils.SystemUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import com.bit4woo.utilbox.utils.SystemUtils;
+import com.bit4woo.utilbox.utils.UrlUtils;
+
+import base.FindUrlAction;
 import burp.BurpExtender;
+import burp.IMessageEditorController;
 
 
 public class InfoTable extends JTable {
@@ -32,7 +37,7 @@ public class InfoTable extends JTable {
 
 	private InfoPanel infoPanel;
 
-	public InfoTable(InfoTableModel tableModel,InfoPanel infoPanel) {
+	public InfoTable(InfoTableModel tableModel, InfoPanel infoPanel) {
 		super(tableModel);
 		this.infoPanel = infoPanel;
 		this.setColumnModel(columnModel);
@@ -130,13 +135,10 @@ public class InfoTable extends JTable {
 									String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
 									SystemUtils.browserOpen(url, browserPath);
 									return;
-								}else {
-									//TODO 还没有想要获取baseUrl的方法
-									byte[] content = infoPanel.getInfoTab().getOriginContent();
-									/*
-									 * FindUrl_Action.FindAllUrls(content); FindUrl_Action.findPossibleBaseURL();
-									 * BurpExtender.BaseUrlMap.get(e);
-									 */
+								} else {
+									List<String> urls = new ArrayList<>();
+									urls.add(url);
+									doRequestUrl(urls);
 								}
 							}
 						} catch (Exception e1) {
@@ -166,16 +168,60 @@ public class InfoTable extends JTable {
 		});
 	}
 
+	public String getTargetBaseUrl() {
+		IMessageEditorController controller = infoPanel.getInfoTab().getController();
+		return FindUrlAction.getTargetSiteBaseUrl(controller.getHttpService(), controller.getRequest());
+	}
 
-	public String getSelectedContent () {
+	public List<String> getAllUrlsOfTarget() {
+		IMessageEditorController controller = infoPanel.getInfoTab().getController();
+		return FindUrlAction.FindAllUrlsOfTarget(controller.getHttpService(), controller.getRequest(), controller.getResponse());
+	}
+
+	public String choseBaseUrlToRequest(List<String> allUrlsOfTarget) {
+		return FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget);
+	}
+
+	public void doRequestUrl(List<String> urlsToRequest) {
+		String targetBaseUrl = getTargetBaseUrl();
+
+		String baseurl = FindUrlAction.httpServiceBaseUrlMap.get(targetBaseUrl);
+		if (StringUtils.isEmpty(baseurl)) {
+			baseurl = choseBaseUrlToRequest(getAllUrlsOfTarget());
+			if (StringUtils.isNotEmpty(targetBaseUrl) && StringUtils.isNotEmpty(baseurl)) {
+				FindUrlAction.httpServiceBaseUrlMap.put(targetBaseUrl, baseurl);
+			}
+		}
+
+		FindUrlAction.doSendRequest(baseurl, urlsToRequest, targetBaseUrl);
+	}
+
+	public List<String> getSelectedUrls() {
+		int[] rows = this.getSelectedRows();
+		List<String> result = new ArrayList<>();
+		for (int row : rows) {
+			List<String> line = new ArrayList<>();
+			try {
+				String value = (String) this.getValueAt(row, 0);
+				if (UrlUtils.isVaildUrl(value)) {
+					result.add(value);
+				}
+			} catch (Exception e) {
+				//e.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	public String getSelectedContent() {
 		int[] rows = this.getSelectedRows();
 		int[] columns = this.getSelectedColumns();
 		List<String> result = new ArrayList<>();
-		for (int row:rows) {
+		for (int row : rows) {
 			List<String> line = new ArrayList<>();
-			for (int column:columns) {
+			for (int column : columns) {
 				try {
-					String value = (String)this.getValueAt(row, column);
+					String value = (String) this.getValueAt(row, column);
 					line.add(value);
 				} catch (Exception e) {
 					//e.printStackTrace();
