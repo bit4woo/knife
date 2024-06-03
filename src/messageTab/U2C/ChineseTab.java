@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.SwingWorker;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -37,7 +35,7 @@ public class ChineseTab implements IMessageEditorTab {
 
 	private byte[] originContent;
 	private String detectedCharset;
-	private int charSetIndex;
+	private int charSetIndex = 0;
 
 
 	public ChineseTab(IMessageEditorController controller, boolean editable, IExtensionHelpers helpers, IBurpExtenderCallbacks callbacks) {
@@ -96,7 +94,7 @@ public class ChineseTab implements IMessageEditorTab {
 	}
 
 	public List<String> getCharsetList() {
-		String encoding = "GBK,GB2312,UTF-8,GB18030,Big5,Big5-HKSCS";
+		String encoding = "UTF-8,GBK,GB2312,GB18030,Big5,Big5-HKSCS";
 		List<String> encodingList = new ArrayList<>(Arrays.asList(encoding.split(",")));
 		if (StringUtils.isNotEmpty(detectedCharset)) {
 			encodingList.remove(detectedCharset);
@@ -112,7 +110,7 @@ public class ChineseTab implements IMessageEditorTab {
 	public String getNextCharSet() {
 		List<String> charsetList = getCharsetList();
 		if (charSetIndex < charsetList.size() - 1) {
-			charSetIndex++;
+			charSetIndex = charSetIndex+1;
 		} else {
 			charSetIndex = 0;
 		}
@@ -125,20 +123,8 @@ public class ChineseTab implements IMessageEditorTab {
 			return;
 		}else {
 			originContent = content;
-			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-				@Override
-				protected Void doInBackground() throws Exception {
-					originContent = content;
-					detectedCharset = BurpExtender.getHelperPlus().detectCharset(isRequest, content);
-					if (StringUtils.isEmpty(detectedCharset)) {
-						panel.display(content, isRequest, "UTF-8");
-					} else {
-						panel.display(content, isRequest, detectedCharset);
-					}
-					return null;
-				}
-			};
-			worker.execute();
+			detectedCharset = BurpExtender.getHelperPlus().detectCharset(isRequest, content);
+			panel.displayInChunks(content, isRequest, getCurrentCharSet(),1);
 		}
 	}
 
