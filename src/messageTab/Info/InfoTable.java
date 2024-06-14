@@ -200,10 +200,9 @@ public class InfoTable extends JTable {
 		int[] rows = this.getSelectedRows();
 		List<String> result = new ArrayList<>();
 		for (int row : rows) {
-			List<String> line = new ArrayList<>();
 			try {
 				String value = (String) this.getValueAt(row, 0);
-				if (UrlUtils.isVaildUrl(value)) {
+				if (!value.contains("@")) {
 					result.add(value);
 				}
 			} catch (Exception e) {
