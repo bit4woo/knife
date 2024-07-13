@@ -48,25 +48,25 @@ public class FindUrlAction implements ActionListener {
 			+ "sheetjs.openxmlformats.org\r\n"
 			+ "www.w3.org");
 
-	public static final List<String> blackPath = TextUtils.textToLines("application/zip\r\n"
-			+ "application/x-www-form-urlencoded\r\n"
-			+ "application/x-mso\r\n"
-			+ "application/xml\r\n"
-			+ "application/vnd.\r\n"
-			+ "application/pdf\r\n"
+	public static final List<String> blackPath = TextUtils.textToLines("application/json\r\n"
 			+ "application/octet-stream\r\n"
-			+ "application/json\r\n"
+			+ "application/pdf\r\n"
+			+ "application/vnd.\r\n"
+			+ "application/x-mso\r\n"
+			+ "application/x-www-form-urlencoded\r\n"
+			+ "application/xml\r\n"
+			+ "application/zip\r\n"
+			+ "image/bmp\r\n"
+			+ "image/gif\r\n"
+			+ "image/jpeg\r\n"
+			+ "image/pdf\r\n"
+			+ "image/png\r\n"
+			+ "image/tiff\r\n"
+			+ "image/x-\r\n"
 			+ "text/css\r\n"
 			+ "text/html\r\n"
-			+ "text/plain\r\n"
-			+ "image/pdf\r\n"
-			+ "image/x-wmf\r\n"
-			+ "image/x-emf\r\n"
-			+ "image/tiff\r\n"
-			+ "image/png\r\n"
-			+ "image/jpeg\r\n"
-			+ "image/gif\r\n"
-			+ "image/bmp");
+			+ "text/javascript\r\n"
+			+ "text/plain");
 
 
 	public static Proxy CurrentProxy;
@@ -83,16 +83,23 @@ public class FindUrlAction implements ActionListener {
 		List<String> result = new ArrayList<>();
 
 		for (String url : urlPath) {
-			if (!url.startsWith("http://") && !url.startsWith("https://")) {
-				if (url.startsWith("/")) {
-					url = url.replaceFirst("/", "");
-				}
-				if (url.startsWith("./")) {
-					url = url.replaceFirst("\\./", "");
-				}
-				url = baseurl + url; //baseurl统一以“/”结尾；url统一删除“/”的开头
-				result.add(url);
+			if (StringUtils.isBlank(baseurl)) {
+				continue;
 			}
+			url = url.toLowerCase();
+			if (url.startsWith("http://") || url.startsWith("https://")) {
+				result.add(url);
+				continue;
+			}
+			
+			if (url.startsWith("/")) {
+				url = url.replaceFirst("/", "");
+			}
+			if (url.startsWith("./")) {
+				url = url.replaceFirst("\\./", "");
+			}
+			url = baseurl + url; //baseurl统一以“/”结尾；url统一删除“/”的开头
+			result.add(url);
 		}
 		return result;
 	}

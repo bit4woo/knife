@@ -201,12 +201,30 @@ public class InfoTable extends JTable {
 	}
 
 	public void doOpenUrlInBrowser(List<String> urlsToRequest) {
-		String targetBaseUrl = getOrFindBaseUrl();
-		List<String> full_urls = FindUrlAction.buildUrls(targetBaseUrl, urlsToRequest);
+		List<String> full_urls;
+		if (needBaseUrl(urlsToRequest)) {
+			String targetBaseUrl = getOrFindBaseUrl();
+			full_urls = FindUrlAction.buildUrls(targetBaseUrl, urlsToRequest);
+		}else {
+			full_urls = urlsToRequest;
+		}
+		
 		String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
 		for (String url:full_urls) {
 			SystemUtils.browserOpen(url, browserPath);
 		}
+	}
+	
+	public boolean needBaseUrl(List<String> urlsToRequest) {
+		
+		for (String urlOrPath:urlsToRequest) {
+			if (StringUtils.isNotBlank(urlOrPath)) {
+				if (!urlOrPath.toLowerCase().startsWith("http://") && !urlOrPath.toLowerCase().startsWith("https://")) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public List<String> getSelectedUrls() {
