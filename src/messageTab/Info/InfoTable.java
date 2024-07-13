@@ -19,7 +19,6 @@ import javax.swing.table.TableRowSorter;
 import org.apache.commons.lang3.StringUtils;
 
 import com.bit4woo.utilbox.utils.SystemUtils;
-import com.bit4woo.utilbox.utils.UrlUtils;
 
 import base.FindUrlAction;
 import burp.BurpExtender;
@@ -125,8 +124,8 @@ public class InfoTable extends JTable {
 					int row = target.getSelectedRow();
 					int column = target.getSelectedColumn();
 
-					//双击浏览器打开url
-					if (headers[column].equalsIgnoreCase("Value")) {//双击url在浏览器中打开
+					//双击浏览器打开url，弃用
+					if (headers[column].equalsIgnoreCase("Value____xxxxxxx")) {//双击url在浏览器中打开
 						try {
 							InfoEntry entry = getEntryAt(row);
 							if (entry.getType().equals(InfoEntry.Type_URL)) {
@@ -182,7 +181,7 @@ public class InfoTable extends JTable {
 		return FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget);
 	}
 
-	public void doRequestUrl(List<String> urlsToRequest) {
+	public String getOrFindBaseUrl() {
 		String targetBaseUrl = getTargetBaseUrl();
 
 		String baseurl = FindUrlAction.httpServiceBaseUrlMap.get(targetBaseUrl);
@@ -192,8 +191,22 @@ public class InfoTable extends JTable {
 				FindUrlAction.httpServiceBaseUrlMap.put(targetBaseUrl, baseurl);
 			}
 		}
+		return baseurl;
+	}
 
-		FindUrlAction.doSendRequest(baseurl, urlsToRequest, targetBaseUrl);
+	public void doRequestUrl(List<String> urlsToRequest) {
+		String targetBaseUrl = getOrFindBaseUrl();
+		List<String> full_urls = FindUrlAction.buildUrls(targetBaseUrl, urlsToRequest);
+		FindUrlAction.doSendRequest(full_urls, targetBaseUrl);
+	}
+
+	public void doOpenUrlInBrowser(List<String> urlsToRequest) {
+		String targetBaseUrl = getOrFindBaseUrl();
+		List<String> full_urls = FindUrlAction.buildUrls(targetBaseUrl, urlsToRequest);
+		String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");
+		for (String url:full_urls) {
+			SystemUtils.browserOpen(url, browserPath);
+		}
 	}
 
 	public List<String> getSelectedUrls() {
