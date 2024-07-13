@@ -1,0 +1,10 @@
+ns.adobe.com
+schemas.microsoft.com
+iptc.org
+jmespath.org
+json-schema.org
+registry.npmjs.org
+openoffice.org
+schemas.openxmlformats.org
+sheetjs.openxmlformats.org
+www.w3.org

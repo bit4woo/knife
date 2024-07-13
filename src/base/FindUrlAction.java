@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,14 +37,36 @@ public class FindUrlAction implements ActionListener {
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
 
-	public static final String[] blackHostList = {"www.w3.org", "ns.adobe.com", "iptc.org", "openoffice.org"
-			, "schemas.microsoft.com", "schemas.openxmlformats.org", "sheetjs.openxmlformats.org", "registry.npmjs.org"
-			, "json-schema.org", "jmespath.org"};
+	public static final List<String> blackHostList = TextUtils.textToLines("ns.adobe.com\r\n"
+			+ "schemas.microsoft.com\r\n"
+			+ "iptc.org\r\n"
+			+ "jmespath.org\r\n"
+			+ "json-schema.org\r\n"
+			+ "registry.npmjs.org\r\n"
+			+ "openoffice.org\r\n"
+			+ "schemas.openxmlformats.org\r\n"
+			+ "sheetjs.openxmlformats.org\r\n"
+			+ "www.w3.org");
 
-	public static final List<String> blackPath = TextUtils.textToLines("text/css\r\n"
-			+ "	text/html\r\n"
-			+ "	text/plain\r\n"
-			+ "	image/pdf\r\n");
+	public static final List<String> blackPath = TextUtils.textToLines("application/zip\r\n"
+			+ "application/x-www-form-urlencoded\r\n"
+			+ "application/x-mso\r\n"
+			+ "application/xml\r\n"
+			+ "application/vnd.\r\n"
+			+ "application/pdf\r\n"
+			+ "application/octet-stream\r\n"
+			+ "application/json\r\n"
+			+ "text/css\r\n"
+			+ "text/html\r\n"
+			+ "text/plain\r\n"
+			+ "image/pdf\r\n"
+			+ "image/x-wmf\r\n"
+			+ "image/x-emf\r\n"
+			+ "image/tiff\r\n"
+			+ "image/png\r\n"
+			+ "image/jpeg\r\n"
+			+ "image/gif\r\n"
+			+ "image/bmp");
 
 
 	public static Proxy CurrentProxy;
@@ -360,12 +381,12 @@ public class FindUrlAction implements ActionListener {
 			if (UrlUtils.uselessExtension(urlItem)) {
 				it.remove();
 			}
-			if (blackPath.contains(urlItem)) {
+			if (TextUtils.containsAny(urlItem, blackPath, false)) {
 				it.remove();
 			}
 			try {
 				String host = new URL(urlItem).getHost();
-				if (Arrays.asList(blackHostList).contains(host)) {
+				if (blackHostList.contains(host)) {
 					it.remove();
 				}
 			} catch (Exception E) {
