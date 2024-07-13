@@ -171,6 +171,13 @@
 			<version>3.4.0</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
+		<!--用于获取MIME类型的完整列表-->
+		<dependency>
+		    <groupId>org.apache.tika</groupId>
+		    <artifactId>tika-core</artifactId>
+		    <version>3.0.0-BETA</version>
+		</dependency>
 
 	</dependencies>
 

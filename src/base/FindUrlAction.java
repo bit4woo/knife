@@ -28,6 +28,8 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IHttpService;
 import burp.threadRequester;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MimeTypes;
 
 public class FindUrlAction implements ActionListener {
 	private IContextMenuInvocation invocation;
@@ -48,26 +50,7 @@ public class FindUrlAction implements ActionListener {
 			+ "sheetjs.openxmlformats.org\r\n"
 			+ "www.w3.org");
 
-	public static final List<String> blackPath = TextUtils.textToLines("application/json\r\n"
-			+ "application/octet-stream\r\n"
-			+ "application/pdf\r\n"
-			+ "application/vnd.\r\n"
-			+ "application/x-mso\r\n"
-			+ "application/x-www-form-urlencoded\r\n"
-			+ "application/xml\r\n"
-			+ "application/zip\r\n"
-			+ "image/bmp\r\n"
-			+ "image/gif\r\n"
-			+ "image/jpeg\r\n"
-			+ "image/pdf\r\n"
-			+ "image/png\r\n"
-			+ "image/tiff\r\n"
-			+ "image/x-\r\n"
-			+ "text/css\r\n"
-			+ "text/html\r\n"
-			+ "text/javascript\r\n"
-			+ "text/plain");
-
+	public static final List<String> blackPath = MimeTypesList.genMIMETypeListAsPathBlackList();
 
 	public static Proxy CurrentProxy;
 	public static HashMap<String, String> httpServiceBaseUrlMap = new HashMap<>();
