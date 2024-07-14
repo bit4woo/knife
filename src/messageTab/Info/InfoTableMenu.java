@@ -27,7 +27,7 @@ public class InfoTableMenu extends JPopupMenu {
 
 		JMenuItem numItem = new JMenuItem(infoTable.getSelectedRows().length + " items selected");
 
-		JMenuItem copyItem = new JMenuItem(new AbstractAction("Copy (double click)") {
+		JMenuItem copyItem = new JMenuItem(new AbstractAction("Copy (Ctrl+C)") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				String content = infoTable.getSelectedContent();
@@ -57,7 +57,7 @@ public class InfoTableMenu extends JPopupMenu {
 		});
 
 
-		JMenuItem openInBrowerItem = new JMenuItem(new AbstractAction("Open URL In Brower") {
+		JMenuItem openInBrowerItem = new JMenuItem(new AbstractAction("Open URL In Brower(Double Click)") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				List<String> urls = infoTable.getSelectedUrls();
@@ -67,8 +67,8 @@ public class InfoTableMenu extends JPopupMenu {
 
 		add(numItem);
 		add(copyItem);
-		add(doRequestItem);
 		add(openInBrowerItem);
+		add(doRequestItem);
 		add(changeBaseUrlItem);
 	}
 }

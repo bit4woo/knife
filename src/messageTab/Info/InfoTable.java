@@ -124,8 +124,8 @@ public class InfoTable extends JTable {
 					int row = target.getSelectedRow();
 					int column = target.getSelectedColumn();
 
-					//双击浏览器打开url，弃用
-					if (headers[column].equalsIgnoreCase("Value____xxxxxxx")) {//双击url在浏览器中打开
+					//双击浏览器打开url
+					if (headers[column].equalsIgnoreCase("Value")) {//双击url在浏览器中打开
 						try {
 							InfoEntry entry = getEntryAt(row);
 							if (entry.getType().equals(InfoEntry.Type_URL)) {
@@ -137,7 +137,7 @@ public class InfoTable extends JTable {
 								} else {
 									List<String> urls = new ArrayList<>();
 									urls.add(url);
-									doRequestUrl(urls);
+									doOpenUrlInBrowser(urls);
 								}
 							}
 						} catch (Exception e1) {
