@@ -216,7 +216,7 @@ public class FindUrlAction implements ActionListener {
 		return getTargetSiteBaseUrl(message.getHttpService(), message.getRequest());
 	}
 
-
+	
 	public static String getTargetSiteBaseUrl(IHttpService httpService, byte[] request) {
 		HelperPlus getter = BurpExtender.getHelperPlus();
 
@@ -315,6 +315,7 @@ public class FindUrlAction implements ActionListener {
 				}
 			}
 		}
+		Collections.sort(baseURLs);
 		return baseURLs;
 	}
 
