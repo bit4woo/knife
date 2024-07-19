@@ -167,9 +167,9 @@ public class InfoTable extends JTable {
 		});
 	}
 
-	public String getTargetBaseUrl() {
+	public String getOriginUrl() {
 		IMessageEditorController controller = infoPanel.getInfoTab().getController();
-		return FindUrlAction.getTargetSiteBaseUrl(controller.getHttpService(), controller.getRequest());
+		return FindUrlAction.getOriginUrlOfMessage(controller.getHttpService(), controller.getRequest());
 	}
 
 	public List<String> getAllUrlsOfTarget() {
@@ -180,15 +180,18 @@ public class InfoTable extends JTable {
 	public String choseBaseUrlToRequest(List<String> allUrlsOfTarget) {
 		return FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget);
 	}
-
+	/**
+	 * 从已有记录中直接获取【构建URL所需要的基准URL（BaseURL）】，或者从数据包中查找并选择 
+	 * @return
+	 */
 	public String getOrFindBaseUrl() {
-		String targetBaseUrl = getTargetBaseUrl();
+		String originUrl = getOriginUrl();
 
-		String baseurl = FindUrlAction.httpServiceBaseUrlMap.get(targetBaseUrl);
+		String baseurl = FindUrlAction.httpServiceBaseUrlMap.get(originUrl);
 		if (StringUtils.isEmpty(baseurl)) {
 			baseurl = choseBaseUrlToRequest(getAllUrlsOfTarget());
-			if (StringUtils.isNotEmpty(targetBaseUrl) && StringUtils.isNotEmpty(baseurl)) {
-				FindUrlAction.httpServiceBaseUrlMap.put(targetBaseUrl, baseurl);
+			if (StringUtils.isNotEmpty(originUrl) && StringUtils.isNotEmpty(baseurl)) {
+				FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
 			}
 		}
 		return baseurl;
@@ -200,13 +203,13 @@ public class InfoTable extends JTable {
 		FindUrlAction.doSendRequest(full_urls, targetBaseUrl);
 	}
 
-	public void doOpenUrlInBrowser(List<String> urlsToRequest) {
+	public void doOpenUrlInBrowser(List<String> urlsOrPathsToRequest) {
 		List<String> full_urls;
-		if (needBaseUrl(urlsToRequest)) {
+		if (needBaseUrl(urlsOrPathsToRequest)) {
 			String targetBaseUrl = getOrFindBaseUrl();
-			full_urls = FindUrlAction.buildUrls(targetBaseUrl, urlsToRequest);
+			full_urls = FindUrlAction.buildUrls(targetBaseUrl, urlsOrPathsToRequest);
 		}else {
-			full_urls = urlsToRequest;
+			full_urls = urlsOrPathsToRequest;
 		}
 		
 		String browserPath = BurpExtender.getConfigTableModel().getConfigValueByKey("browserPath");

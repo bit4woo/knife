@@ -121,9 +121,9 @@ public class FindUrlAction implements ActionListener {
 				if (messages == null || messages.length == 0) {
 					return;
 				}
-				String targetBaseUrl = getTargetSiteBaseUrl(messages[0]);
+				String originUrl = getOriginUrlOfMessage(messages[0]);
 
-				List<String> urls = FindAllUrlsOfTarget(targetBaseUrl);
+				List<String> urls = FindAllUrlsOfTarget(originUrl);
 
 				String baseurl = choseAndEditBaseURL(urls);
 
@@ -131,33 +131,31 @@ public class FindUrlAction implements ActionListener {
 					return;
 				}
 
-				httpServiceBaseUrlMap.put(targetBaseUrl, baseurl);
+				httpServiceBaseUrlMap.put(originUrl, baseurl);
 
 				urls = choseURLPath(urls);
 				if (urls.size() == 0) return;
 				List<String> full_urls = buildUrls(baseurl, urls);
-				doSendRequest(full_urls, targetBaseUrl);
+				doSendRequest(full_urls, originUrl);
 			}
 		};
 		new Thread(requestRunner).start();
 	}
 
 	/**
-	 * 根据当前web的baseUrl找JS，特征就是referer以它开头
+	 * 
+	 * 根据当前web的originUrl找JS，特征就是referer以它开头
 	 *
 	 * @return
 	 */
 	public static List<String> FindAllUrlsOfTarget(IHttpService httpService, byte[] request, byte[] response) {
-		String targetBaseUrl = getTargetSiteBaseUrl(httpService, request);
-		return FindAllUrlsOfTarget(targetBaseUrl);
+		String originUrl = getOriginUrlOfMessage(httpService, request);
+		return FindAllUrlsOfTarget(originUrl);
 	}
 
 
-	public static List<String> FindAllUrlsOfTarget(String targetBaseUrl) {
+	public static List<String> FindAllUrlsOfTarget(String originUrl) {
 		List<String> urls = new ArrayList<>();
-		urls.add(targetBaseUrl);
-		//List<String> urls = findUrls(response);
-		//siteMap中应该也会包含这个请求的
 
 		HelperPlus getter = BurpExtender.getHelperPlus();
 		IHttpRequestResponse[] messages = BurpExtender.getCallbacks().getSiteMap(null);
@@ -181,7 +179,7 @@ public class FindUrlAction implements ActionListener {
 				if (referUrl == null) {
 					continue;
 				}
-				if (referUrl.toLowerCase().startsWith(targetBaseUrl.toLowerCase())) {
+				if (referUrl.toLowerCase().startsWith(originUrl.toLowerCase())) {
 					urls.addAll(findUrls(item.getResponse()));
 				}
 			}
@@ -192,16 +190,19 @@ public class FindUrlAction implements ActionListener {
 
 			if (!url.toString().toLowerCase().endsWith(".html")) {
 				if (referUrl == null) {
-					if (url.toString().toLowerCase().startsWith(targetBaseUrl.toLowerCase())) {
+					if (url.toString().toLowerCase().startsWith(originUrl.toLowerCase())) {
 						urls.addAll(findUrls(item.getResponse()));
 					}
 				} else {
-					if (referUrl.toLowerCase().startsWith(targetBaseUrl.toLowerCase())) {
+					if (referUrl.toLowerCase().startsWith(originUrl.toLowerCase())) {
 						urls.addAll(findUrls(item.getResponse()));
 					}
 				}
 			}
 		}
+		
+		Collections.sort(urls);
+		urls.add(0,originUrl);//把orginUrl放在最前面，它是baseUrl的概率比较高
 		return urls;
 	}
 
@@ -212,12 +213,18 @@ public class FindUrlAction implements ActionListener {
 	 * @param message
 	 * @return
 	 */
-	public static String getTargetSiteBaseUrl(IHttpRequestResponse message) {
-		return getTargetSiteBaseUrl(message.getHttpService(), message.getRequest());
+	public static String getOriginUrlOfMessage(IHttpRequestResponse message) {
+		return getOriginUrlOfMessage(message.getHttpService(), message.getRequest());
 	}
 
-	
-	public static String getTargetSiteBaseUrl(IHttpService httpService, byte[] request) {
+	/**
+	 * 
+	 * 获取当前数据包的来源URL(OriginUrl),和请求包中的origin header是一个概念
+	 * @param httpService
+	 * @param request
+	 * @return
+	 */
+	public static String getOriginUrlOfMessage(IHttpService httpService, byte[] request) {
 		HelperPlus getter = BurpExtender.getHelperPlus();
 
 		String current_referUrl = getter.getHeaderValueOf(true, request, "Referer");
@@ -321,8 +328,6 @@ public class FindUrlAction implements ActionListener {
 
 
 	public static String choseAndEditBaseURL(List<String> inputs) {
-
-		Collections.sort(inputs);
 		inputs = findPossibleBaseURL(inputs);
 
 		int n = inputs.size() + 1;

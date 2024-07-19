@@ -38,15 +38,16 @@ public class InfoTableMenu extends JPopupMenu {
 		JMenuItem changeBaseUrlItem = new JMenuItem(new AbstractAction("Set/Change Base URL") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
-				String targetBaseUrl = infoTable.getTargetBaseUrl();
+				String originUrl = infoTable.getOriginUrl();
 				List<String> allUrlsOfTarget = infoTable.getAllUrlsOfTarget();
 				String baseurl = infoTable.choseBaseUrlToRequest(allUrlsOfTarget);
 
-				if (StringUtils.isNotEmpty(targetBaseUrl) && StringUtils.isNotEmpty(baseurl)) {
-					FindUrlAction.httpServiceBaseUrlMap.put(targetBaseUrl, baseurl);
+				if (StringUtils.isNotEmpty(originUrl) && StringUtils.isNotEmpty(baseurl)) {
+					FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
 				}
 			}
 		});
+		
 
 		JMenuItem doRequestItem = new JMenuItem(new AbstractAction("Request URL With Burp Proxy") {
 			@Override
