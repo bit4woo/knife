@@ -2,7 +2,7 @@ package runcmd;
 
 import java.io.IOException;
 
-public class RunAsArch {
+public class RunAsKonsole {
 
     /**
      * 启动Konsole并异步执行命令

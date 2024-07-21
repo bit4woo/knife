@@ -43,18 +43,18 @@ public class RunCmd_Action implements ActionListener, Runnable {
             IHttpRequestResponse[] messages = invocation.getSelectedMessages();
             if (messages != null) {
                 boolean useRobot = (BurpExtender.getConfigTableModel().getConfigValueByKey("RunTerminalWithRobotInput") != null);
-                boolean IsArchLinux = (BurpExtender.getConfigTableModel().getConfigValueByKey("RunTerminalWithRobotInput") != null);
-                if (useRobot && !IsArchLinux) {
+                boolean IsArchKonsole = (BurpExtender.getConfigTableModel().getConfigValueByKey("RunTerminalWithKonsole") != null);
+                if (useRobot && !IsArchKonsole) {
                     RobotInput.startCmdConsole();//尽早启动减少出错概率
                 }
 
                 String cmd = config.getFinalValue(messages);
                 if (useRobot) {
-                    //方案1：使用模拟输入实现
-
-                    if (IsArchLinux){
-                        RunAsArch.launchKonsoleAsync(cmd);
+                    if (IsArchKonsole){
+                        //使用Konsole终端
+                        RunAsKonsole.launchKonsoleAsync(cmd);
                     } else {
+                        //方案1：使用模拟输入实现
                         new RobotInput().inputString(cmd);
                     }
                 } else {
