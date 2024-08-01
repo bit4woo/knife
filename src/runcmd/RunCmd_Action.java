@@ -43,14 +43,20 @@ public class RunCmd_Action implements ActionListener, Runnable {
             IHttpRequestResponse[] messages = invocation.getSelectedMessages();
             if (messages != null) {
                 boolean useRobot = (BurpExtender.getConfigTableModel().getConfigValueByKey("RunTerminalWithRobotInput") != null);
-                if (useRobot) {
+                boolean IsArchKonsole = (BurpExtender.getConfigTableModel().getConfigValueByKey("RunTerminalWithKonsole") != null);
+                if (useRobot && !IsArchKonsole) {
                     RobotInput.startCmdConsole();//尽早启动减少出错概率
                 }
 
                 String cmd = config.getFinalValue(messages);
                 if (useRobot) {
-                    //方案1：使用模拟输入实现
-                    new RobotInput().inputString(cmd);
+                    if (IsArchKonsole){
+                        //使用Konsole终端
+                        RunAsKonsole.launchKonsoleAsync(cmd);
+                    } else {
+                        //方案1：使用模拟输入实现
+                        new RobotInput().inputString(cmd);
+                    }
                 } else {
                     //方案2：使用bat文件实现
                     String file = SystemUtils.genBatchFile(cmd, config.getKey() + ".bat");

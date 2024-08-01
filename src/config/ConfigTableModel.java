@@ -64,6 +64,7 @@ public class ConfigTableModel extends AbstractTableModel{
 		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Run_External_Cmd,true,true));
 		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Run_External_Cmd,true,false));
 		configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
+		configEntries.add(new ConfigEntry("RunTerminalWithKonsole","",ConfigEntry.Config_Basic_Variable,false,false,"判断是否为konsole终端"));
 		//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
 
 		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
