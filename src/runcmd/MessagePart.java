@@ -39,9 +39,9 @@ public class MessagePart {
     public static final String MultiResponseHeaders = "MultiResponseHeaders";
     public static final String ResponseBody = "ResponseBody";
     public static final String MultiResponseBody = "MultiResponseBody";
-    
-    
-    private static final String ConnectingCharacter =" ";
+
+
+    private static final String ConnectingCharacter = " ";
     private static final String workdir = System.getProperty("user.home") + File.separator + ".knife";
 
     public static List<String> getPartList() {
@@ -106,7 +106,11 @@ public class MessagePart {
             case MultiResponse:
             case ResponseAsFile:
             case MultiResponseAsFile:
-                value = new String(message.getResponse());
+                if (message.getResponse() == null) {
+                    value = "";
+                } else {
+                    value = new String(message.getResponse());
+                }
                 break;
             case RequestHeaders:
             case MultiRequestHeaders:
@@ -122,7 +126,12 @@ public class MessagePart {
                 break;
             case ResponseBody:
             case MultiResponseBody:
-                value = new String(HelperPlus.getBody(false, message));
+                byte[] body = HelperPlus.getBody(false, message);
+                if (body == null) {
+                    value = "";
+                } else {
+                    value = new String(HelperPlus.getBody(false, message));
+                }
                 break;
             default:
                 value = "NotValidPartType";
@@ -151,7 +160,7 @@ public class MessagePart {
                 break;
             }
         }
-        
+
         if (partType.toLowerCase().endsWith("asfile")) {
             if (tempValues.size() > 1) {
                 firstHost = firstHost + "." + tempValues.size();
@@ -159,7 +168,7 @@ public class MessagePart {
             String content = String.join(System.lineSeparator(), tempValues);
             return contentToFile(firstHost, content);
         } else {
-        	String content = String.join(ConnectingCharacter, tempValues);
+            String content = String.join(ConnectingCharacter, tempValues);
             return content;
         }
     }

@@ -266,11 +266,11 @@ public class ConfigEntry {
         HelperPlus getter = BurpExtender.getHelperPlus();
         String baseUrl = HelperPlus.getBaseURL(messageInfo).toString();
         String url;
-		try {
-			url = getter.getFullURL(messageInfo).toString();
-		} catch (Exception e) {
-			url = baseUrl;
-		}
+        try {
+            url = getter.getFullURL(messageInfo).toString();
+        } catch (Exception e) {
+            url = baseUrl;
+        }
         String host = HelperPlus.getHost(messageInfo);
         String configkey = getKey();
 
@@ -323,26 +323,41 @@ public class ConfigEntry {
             return valueStr;
         }
 
-        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{.*?\\}");
+        //List<String> items = TextUtils.grepWithRegex(valueStr, "\\{A-Za-z?\\}");
+        //正则提取在遇到json格式时，可能有非预期结果。
 
         List<String> httpParts = MessagePart.getPartList();
         List<ConfigEntry> varConfigs = GUI.configTableModel.getBasicConfigVars();
 
-        for (String item : items) {
-            String partType = item.replace("{", "").replace("}", "");
-            for (String part : httpParts) {
-                if (partType.equalsIgnoreCase(part)) {
-                    String value = getValueByPartType(messageInfos, partType);
-                    valueStr = valueStr.replace(item, value);
-                }
-            }
-            for (ConfigEntry config : varConfigs) {
-                if (partType.equalsIgnoreCase(config.getKey())) {
-                    valueStr = valueStr.replace(item, config.getValue());
-                }
-            }
+        for (String part : httpParts) {
+            valueStr = findAndReplace(valueStr, "{" + part + "}", getValueByPartType(messageInfos, part));
+        }
+        for (ConfigEntry config : varConfigs) {
+            valueStr = findAndReplace(valueStr, "{" + config.getKey() + "}", config.getValue());
         }
         return valueStr;
+    }
+
+    /**
+     * 查找时忽略大小写，但是替换结果不能改变原始字符串的大小写。
+     *
+     * @param text
+     * @param toFind
+     * @param replacement
+     * @return
+     */
+    public static String findAndReplace(String text, String toFind, String replacement) {
+        while (true) {
+            int index = text.toLowerCase().indexOf(toFind.toLowerCase());
+            if (index != -1) {
+                String prefix = text.substring(0, index);
+                String suffix = text.substring(index + toFind.length());
+                text = prefix + replacement + suffix;
+            } else {
+                break;
+            }
+        }
+        return text;
     }
 
     public boolean ifNeedTakeAction(int toolFlag, IHttpRequestResponse messageInfo) {
