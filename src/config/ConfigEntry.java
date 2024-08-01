@@ -323,7 +323,7 @@ public class ConfigEntry {
             return valueStr;
         }
 
-        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{.*?\\}");
+        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{[^{}]*?\\}");
 
         List<String> httpParts = MessagePart.getPartList();
         List<ConfigEntry> varConfigs = GUI.configTableModel.getBasicConfigVars();
