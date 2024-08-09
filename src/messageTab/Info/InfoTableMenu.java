@@ -35,7 +35,7 @@ public class InfoTableMenu extends JPopupMenu {
 			}
 		});
 
-		JMenuItem changeBaseUrlItem = new JMenuItem(new AbstractAction("Set/Change Base URL") {
+		JMenuItem changeBaseUrlItem = new JMenuItem(new AbstractAction("Set Base URL") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				String originUrl = infoTable.getOriginUrl();
@@ -48,6 +48,20 @@ public class InfoTableMenu extends JPopupMenu {
 			}
 		});
 		
+		JMenuItem setSelectedAsBaseUrlItem = new JMenuItem(new AbstractAction("Set Selected Item As Base URL") {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				
+				String originUrl = infoTable.getOriginUrl();
+				//List<String> allUrlsOfTarget = infoTable.getAllUrlsOfTarget();
+				List<String> urls = infoTable.getSelectedUrls();
+				String baseurl = infoTable.choseBaseUrlToRequest(urls);
+
+				if (StringUtils.isNotEmpty(originUrl) && StringUtils.isNotEmpty(baseurl)) {
+					FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
+				}
+			}
+		});
 
 		JMenuItem doRequestItem = new JMenuItem(new AbstractAction("Request URL With Burp Proxy") {
 			@Override
@@ -68,8 +82,14 @@ public class InfoTableMenu extends JPopupMenu {
 
 		add(numItem);
 		add(copyItem);
+		
+		this.addSeparator();
+		add(changeBaseUrlItem);
+		add(setSelectedAsBaseUrlItem);
+		
+		this.addSeparator();
 		add(openInBrowerItem);
 		add(doRequestItem);
-		add(changeBaseUrlItem);
+		
 	}
 }
