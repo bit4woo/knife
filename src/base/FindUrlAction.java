@@ -69,8 +69,7 @@ public class FindUrlAction implements ActionListener {
 			if (StringUtils.isBlank(baseurl)) {
 				continue;
 			}
-			url = url.toLowerCase();
-			if (url.startsWith("http://") || url.startsWith("https://")) {
+			if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://")) {
 				result.add(url);
 				continue;
 			}
