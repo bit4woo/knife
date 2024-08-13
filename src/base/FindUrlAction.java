@@ -104,8 +104,9 @@ public class FindUrlAction implements ActionListener {
 			} catch (Exception e) {
 				e.printStackTrace(BurpExtender.getStderr());
 			}
-
-			doRequest(inputQueue, refererToUse);
+			HashMap<String, String> headers = new HashMap<String,String>();
+			headers.put("Referer", refererToUse);
+			doRequest(inputQueue, headers);
 		} catch (Exception e1) {
 			e1.printStackTrace(BurpExtender.getStderr());
 		}
@@ -275,7 +276,7 @@ public class FindUrlAction implements ActionListener {
 	 *
 	 * @param inputQueue
 	 */
-	public static void doRequest(BlockingQueue<RequestTask> inputQueue, String referUrl) {
+	public static void doRequest(BlockingQueue<RequestTask> inputQueue, HashMap<String,String> headers) {
 		if (CurrentProxy == null) {
 			CurrentProxy = Proxy.inputProxy();
 		}
@@ -286,7 +287,7 @@ public class FindUrlAction implements ActionListener {
 		int max = threadNumberShouldUse(inputQueue.size());
 
 		for (int i = 0; i <= max; i++) {
-			threadRequester requester = new threadRequester(inputQueue, CurrentProxy.getHost(), CurrentProxy.getPort(), referUrl, i);
+			threadRequester requester = new threadRequester(inputQueue, CurrentProxy.getHost(), CurrentProxy.getPort(), headers, i);
 			requester.start();
 		}
 	}

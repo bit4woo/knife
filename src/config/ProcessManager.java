@@ -68,6 +68,14 @@ public class ProcessManager {
         }
         return null;
     }
+    
+    public static String getLatestCookieFromHistory(IHttpRequestResponse messageInfo) {
+        return getLatestHeaderFromHistory(messageInfo, "Cookie");
+    }
+
+    public static String getLatestCookieFromHistory(String shortUrl) {
+        return getLatestHeaderFromHistory(shortUrl, "Cookie");
+    }
 
     /**
      * 是否有必要从sitemap中获取，如果它是按照时间排序的话，还是有用的。后续测试一下//TODO
@@ -94,13 +102,18 @@ public class ProcessManager {
         }
         return null;
     }
-
-    public static String getLatestCookieFromHistory(IHttpRequestResponse messageInfo) {
-        return getLatestHeaderFromHistory(messageInfo, "Cookie");
+    
+    public static String getLatestHeaderFromSiteMap(IHttpRequestResponse messageInfo, String headerName) {
+        String sourceshorturl = HelperPlus.getBaseURL(messageInfo).toString();
+        return getLatestHeaderFromSiteMap(sourceshorturl, headerName);
     }
 
-    public static String getLatestCookieFromHistory(String shortUrl) {
-        return getLatestHeaderFromHistory(shortUrl, "Cookie");
+    public static String getLatestHeaderFromSiteMap(IHttpRequestResponse messageInfo) {
+        return getLatestHeaderFromSiteMap(messageInfo, "Cookie");
+    }
+
+    public static String getLatestHeaderFromSiteMap(String shortUrl) {
+        return getLatestHeaderFromSiteMap(shortUrl, "Cookie");
     }
 
 

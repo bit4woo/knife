@@ -63,6 +63,9 @@ public class InfoTableMenu extends JPopupMenu {
 			}
 		});
 
+		/**
+		 * TODO 自动查找对应cookie并用于请求
+		 */
 		JMenuItem doRequestItem = new JMenuItem(new AbstractAction("Request URL With Burp Proxy") {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {

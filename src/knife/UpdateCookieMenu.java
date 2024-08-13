@@ -46,6 +46,10 @@ class UpdateCookieAction implements ActionListener {
 			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
 
 			String latestCookie = ProcessManager.getLatestCookieFromHistory(selectedItems[0]);//自行查找一次
+			
+			if (!isVaildCookie(latestCookie)) {
+				ProcessManager.getLatestHeaderFromSiteMap(selectedItems[0]);//自行查找一次
+			}
 
 			//通过弹窗交互 获取Cookie
 			int time = 0;

@@ -1,5 +1,6 @@
 package burp;
 
+import java.util.HashMap;
 import java.util.concurrent.BlockingQueue;
 
 import base.RequestTask;
@@ -8,13 +9,13 @@ public class threadRequester extends Thread {
 	private final BlockingQueue<RequestTask> inputQueue;
 	private String proxyHost;
 	private int proxyPort;
-	private String referUrl;
+	private HashMap<String,String> headers;
 
-	public threadRequester(BlockingQueue<RequestTask> inputQueue,String proxyHost,int proxyPort,String referUrl,int threadNo) {
+	public threadRequester(BlockingQueue<RequestTask> inputQueue,String proxyHost,int proxyPort,HashMap<String,String> headers,int threadNo) {
 		this.inputQueue = inputQueue;
 		this.proxyHost = proxyHost;
 		this.proxyPort = proxyPort;
-		this.referUrl = referUrl;
+		this.headers = headers;
 		this.setName(this.getClass().getName()+threadNo);
 	}
 
@@ -30,7 +31,7 @@ public class threadRequester extends Thread {
 				}
 
 				RequestTask task = inputQueue.take();
-				task.sendRequest(proxyHost,proxyPort,referUrl);
+				task.sendRequest(proxyHost,proxyPort,headers);
 			} catch (Exception error) {
 				error.printStackTrace(BurpExtender.getStderr());
 			}

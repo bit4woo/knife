@@ -2,6 +2,7 @@ package base;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 
 import com.bit4woo.utilbox.burp.HelperPlus;
 import com.github.kevinsawicki.http.HttpRequest;
@@ -15,72 +16,83 @@ public class RequestTask {
 
 	String url;
 	RequestType requestType;
+	
+	static final String userAgentKey = "User-Agent";
+	static final String userAgentValue = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0";
+	static final String RefererKey = "Referer";
 
 	public RequestTask(String url,RequestType requestType) {
 		this.url = url;
 		this.requestType = requestType;
 	}
+	
+	
+	private static HttpRequest configHttpRequest(HttpRequest request,String proxyHost,int proxyPort,HashMap<String,String> headers) {
 
-	public static void doGetReq(String url,String proxyHost,int proxyPort,String referUrl) {
-		HttpRequest request = HttpRequest.get(url);
 		//Configure proxy
 		request.useProxy(proxyHost, proxyPort);
-		request.header("Referer", referUrl);
-
+		
+		for (String key:headers.keySet()) {
+			String value =headers.get(key); 
+			request.header(key, value);
+		}
+		
+		if (!headers.keySet().contains(userAgentKey)) {
+			request.header(userAgentKey, userAgentValue);
+		}
+		
 		//Accept all certificates
 		request.trustAllCerts();
 		//Accept all hostnames
 		request.trustAllHosts();
 
+		return request;
+	}
+	
+
+	//TODO 使用已有请求的header？尤其是cookie
+	public static void doGetReq(String url,String proxyHost,int proxyPort,HashMap<String,String> headers) {
+		HttpRequest request = HttpRequest.get(url);
+		request = configHttpRequest(request,proxyHost,proxyPort,headers);
 		request.code();
 	}
+	
 
-	public static void doPostReq(String url,String proxyHost,int proxyPort,String referUrl) 
+	public static void doPostReq(String url,String proxyHost,int proxyPort,HashMap<String,String> headers) 
 	{
 		HttpRequest postRequest = HttpRequest.post(url);
-		//Configure proxy
-		postRequest.useProxy(proxyHost, proxyPort);
-		postRequest.header("Referer", referUrl);
-		//Accept all certificates
-		postRequest.trustAllCerts();
-		//Accept all hostnames
-		postRequest.trustAllHosts();
+		postRequest = configHttpRequest(postRequest,proxyHost,proxyPort,headers);
 
 		postRequest.send("test=test");
 		postRequest.code();
 	}
 
-	public static void doPostJsonReq(String url,String proxyHost,int proxyPort,String referUrl) 
+	public static void doPostJsonReq(String url,String proxyHost,int proxyPort,HashMap<String,String> headers) 
 	{
 		HttpRequest postRequest = HttpRequest.post(url);
-		//Configure proxy
-		postRequest.useProxy(proxyHost, proxyPort);
-		postRequest.header("Referer", referUrl);
+		
+		postRequest = configHttpRequest(postRequest,proxyHost,proxyPort,headers);
+		
+	
 		postRequest.header("Content-Type", "application/json");
-		//Accept all certificates
-		postRequest.trustAllCerts();
-		//Accept all hostnames
-		postRequest.trustAllHosts();
-
-
 		postRequest.send("{}");
 		postRequest.code();
 	}
 
-	public void sendRequest(String proxyHost,int proxyPort,String referUrl) {
+	public void sendRequest(String proxyHost,int proxyPort,HashMap<String,String> headers) {
 
-		if (referUrl ==null || referUrl.equals("")) {
-			referUrl = url;
+		if (!headers.keySet().contains(RefererKey)) {
+			headers.put(RefererKey, url);
 		}
 		System.out.println("send request:"+url+"  using proxy:"+proxyHost+":"+proxyPort);
 		if (requestType == RequestType.GET) {
-			doGetReq(url,proxyHost,proxyPort,referUrl);
+			doGetReq(url,proxyHost,proxyPort,headers);
 		}
 		if (requestType == RequestType.POST) {
-			doPostReq(url,proxyHost,proxyPort,referUrl);
+			doPostReq(url,proxyHost,proxyPort,headers);
 		}
 		if (requestType == RequestType.JSON) {
-			doPostJsonReq(url,proxyHost,proxyPort,referUrl);
+			doPostJsonReq(url,proxyHost,proxyPort,headers);
 		}
 	}
 
