@@ -9,6 +9,8 @@ import javax.swing.JMenuItem;
 import com.bit4woo.utilbox.burp.HelperPlus;
 
 import burp.*;
+import config.CookieFinder;
+import config.CookieRecorder;
 import config.ProcessManager;
 
 public class UpdateCookieMenu extends JMenuItem {
@@ -44,20 +46,15 @@ class UpdateCookieAction implements ActionListener {
 		try {
 			//stdout.println("UpdateCookieAction called");
 			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-
-			String latestCookie = ProcessManager.getLatestCookieFromHistory(selectedItems[0]);//自行查找一次
 			
-			if (!isVaildCookie(latestCookie)) {
-				ProcessManager.getLatestHeaderFromSiteMap(selectedItems[0]);//自行查找一次
+			CookieRecorder recorder = CookieFinder.getLatestCookieFromHistory(selectedItems[0]);//自行查找一次
+			
+			if (recorder.isAllBlank()) {
+				recorder = CookieFinder.getLatestHeaderFromSiteMap(selectedItems[0]);//自行查找一次
 			}
 
-			//通过弹窗交互 获取Cookie
-			int time = 0;
-			while (!isVaildCookie(latestCookie) && time <2) {
-				latestCookie = ProcessManager.getLatestCookieFromUserInput();
-				time++;
-			}
-
+			//通过弹窗交互 获取Cookie的方式很不简便，不再使用！
+			String latestCookie = recorder.getValue();
 			if (isVaildCookie(latestCookie)) {
 				try{
 					selectedItems[0] = ProcessManager.updateCookie(true,selectedItems[0], latestCookie);

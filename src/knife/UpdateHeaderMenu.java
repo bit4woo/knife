@@ -19,6 +19,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import config.CookieFinder;
 import config.GUI;
 import config.ProcessManager;
 
@@ -117,7 +118,7 @@ class UpdateHeader_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		if (invocation.getInvocationContext() == IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST) {
 			IHttpRequestResponse[] selectedItems = invocation.getSelectedMessages();
-			String headerLine = ProcessManager.getLatestHeaderFromHistory(selectedItems[0], headerName);
+			String headerLine = CookieFinder.getLatestHeaderFromHistory(selectedItems[0], headerName).getValue();
 
 			if (headerLine != null) {
 				ProcessManager.updateHeader(true,selectedItems[0],headerLine);

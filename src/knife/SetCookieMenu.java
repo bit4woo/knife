@@ -11,6 +11,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
+import config.CookieFinder;
 import config.ProcessManager;
 
 public class SetCookieMenu extends JMenuItem {
@@ -45,7 +46,7 @@ class SetCookie_Action implements ActionListener{
 	public void actionPerformed(ActionEvent event) {
 		try{
 			//stdout.println("SetCookie_Action called");
-			String cookieEntry = ProcessManager.getLatestCookieFromUserInput();
+			String cookieEntry = CookieFinder.getLatestCookieFromUserInput();
 
 			if (cookieEntry != null) {//当没有找到相应的cookie时为null
 				IHttpRequestResponse[] messages = invocation.getSelectedMessages();
