@@ -63,7 +63,9 @@ public class ProcessManager {
             hisShortUrl = HelperPlus.removeUrlDefaultPort(hisShortUrl);
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String headerLine = getter.getHeaderLine(true, historyMessage, headerName);
-                return headerLine;
+                if (StringUtils.isNotBlank(headerLine)){
+                    return headerLine;
+                }
             }
         }
         return null;
@@ -97,7 +99,9 @@ public class ProcessManager {
             hisShortUrl = HelperPlus.removeUrlDefaultPort(hisShortUrl);
             if (hisShortUrl.equalsIgnoreCase(shortUrl)) {
                 String headerLine = getter.getHeaderLine(true, historyMessage, headerName);
-                return headerLine;
+                if (StringUtils.isNotBlank(headerLine)){
+                    return headerLine;
+                }
             }
         }
         return null;
