@@ -129,7 +129,9 @@ public class InfoTab implements IMessageEditorTab {
 				protected Void doInBackground() throws Exception {
 					((InfoPanel) panel).getTable().getInfoTableModel().clear();
 					List<String> urls = FindUrlAction.findUrls(originContent);
-
+					
+					//清除JS\scss\vue等非接口URL
+					urls = FindUrlAction.removeJsUrl(urls);
 					for (String url : urls) {
 						InfoEntry aaa = new InfoEntry(url, InfoEntry.Type_URL);
 						((InfoPanel) panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);

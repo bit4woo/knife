@@ -391,4 +391,26 @@ public class FindUrlAction implements ActionListener {
 		}
 		return urls;
 	}
+	
+	public static List<String> removeJsUrl(List<String> urls) {
+
+		urls = TextUtils.deduplicate(urls);
+		Iterator<String> it = urls.iterator();
+		while (it.hasNext()) {
+			String urlItem = it.next();
+			// 仅在判断中去除参数和片段
+	        String cleanUrl = urlItem.split("\\?")[0].split("#")[0];
+
+	        // 判断是否以指定后缀结尾
+	        if (cleanUrl.endsWith(".js") || cleanUrl.endsWith(".vue") || cleanUrl.endsWith(".scss")) {
+	            it.remove();
+	        }
+	        
+	        if (cleanUrl.contains("node_modules")) {
+	            it.remove();
+	        }
+	        
+		}
+		return urls;
+	}
 }
