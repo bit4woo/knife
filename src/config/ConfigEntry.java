@@ -323,17 +323,23 @@ public class ConfigEntry {
             return valueStr;
         }
 
-        //List<String> items = TextUtils.grepWithRegex(valueStr, "\\{A-Za-z?\\}");
-        //正则提取在遇到json格式时，可能有非预期结果。
+        List<String> items = TextUtils.grepWithRegex(valueStr, "\\{[^{}]*?\\}");
 
         List<String> httpParts = MessagePart.getPartList();
         List<ConfigEntry> varConfigs = GUI.configTableModel.getBasicConfigVars();
-
-        for (String part : httpParts) {
-            valueStr = findAndReplace(valueStr, "{" + part + "}", getValueByPartType(messageInfos, part));
-        }
-        for (ConfigEntry config : varConfigs) {
-            valueStr = findAndReplace(valueStr, "{" + config.getKey() + "}", config.getValue());
+        for (String item : items) {
+            String partType = item.replace("{", "").replace("}", "");
+            for (String part : httpParts) {
+                if (partType.equalsIgnoreCase(part)) {
+                    String value = getValueByPartType(messageInfos, partType);
+                    valueStr = valueStr.replace(item, value);
+                }
+            }
+            for (ConfigEntry config : varConfigs) {
+                if (partType.equalsIgnoreCase(config.getKey())) {
+                    valueStr = valueStr.replace(item, config.getValue());
+                }
+            }
         }
         return valueStr;
     }
