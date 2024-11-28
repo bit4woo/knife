@@ -49,6 +49,7 @@ public class MimeTypesList {
             if (!result.contains(item)) {
             	result.add(item);
             }
+            result.add("text/");
         }
         
 //        try {

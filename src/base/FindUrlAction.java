@@ -448,9 +448,9 @@ public class FindUrlAction implements ActionListener {
 			String cleanUrl = urlItem.split("\\?")[0].split("#")[0];
 
 			// 判断是否以指定后缀结尾
-			if (cleanUrl.endsWith(".js") || cleanUrl.endsWith(".vue") || cleanUrl.endsWith(".scss")) {
+			if (cleanUrl.endsWith(".js") || cleanUrl.endsWith(".vue") || cleanUrl.endsWith(".scss") || cleanUrl.endsWith(".svg")) {
 				it.remove();
-			} else if (cleanUrl.contains("node_modules")) {
+			} else if (cleanUrl.contains("node_modules") || cleanUrl.contains("text/")) {
 				it.remove();
 			}
 		}
