@@ -143,6 +143,11 @@ public class InfoTab implements IMessageEditorTab {
 						InfoEntry aaa = new InfoEntry(email, InfoEntry.Type_Email);
 						((InfoPanel) panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
 					}
+					
+					if (((InfoPanel) panel).getTable().getInfoTableModel().getRowCount()==0) {
+						InfoEntry aaa = new InfoEntry("No Info To Display", InfoEntry.Type_URL);
+						((InfoPanel) panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
+					}
 
 					return null;
 				}

@@ -44,7 +44,7 @@ public class MimeTypesList {
         	}
         	
             String item  =typeStr+"/"+subTypeStr;
-            System.out.println(item);
+            //System.out.println(item);
             
             if (!result.contains(item)) {
             	result.add(item);

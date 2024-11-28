@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang3.StringUtils;
 
 import com.bit4woo.utilbox.burp.HelperPlus;
+import com.bit4woo.utilbox.utils.IPAddressUtils;
 import com.bit4woo.utilbox.utils.SwingUtils;
 import com.bit4woo.utilbox.utils.TextUtils;
 import com.bit4woo.utilbox.utils.UrlUtils;
@@ -62,7 +63,7 @@ public class FindUrlAction implements ActionListener {
 		this.callbacks = BurpExtender.callbacks;
 	}
 
-	public static List<String> buildUrls(String baseurl, List<String> urlPath){
+	public static List<String> buildUrls(String baseurl, List<String> urlPath) {
 		List<String> result = new ArrayList<>();
 
 		for (String url : urlPath) {
@@ -73,7 +74,7 @@ public class FindUrlAction implements ActionListener {
 				result.add(url);
 				continue;
 			}
-			
+
 			if (url.startsWith("/")) {
 				url = url.replaceFirst("/", "");
 			}
@@ -104,7 +105,7 @@ public class FindUrlAction implements ActionListener {
 			} catch (Exception e) {
 				e.printStackTrace(BurpExtender.getStderr());
 			}
-			HashMap<String, String> headers = new HashMap<String,String>();
+			HashMap<String, String> headers = new HashMap<String, String>();
 			headers.put("Referer", refererToUse);
 			doRequest(inputQueue, headers);
 		} catch (Exception e1) {
@@ -122,10 +123,12 @@ public class FindUrlAction implements ActionListener {
 					return;
 				}
 				String originUrl = getOriginUrlOfMessage(messages[0]);
+				String referUrl = getReferUrlOfMessage(messages[0]);
+				String currentUrl = getFullUrlOfMessage(messages[0]);
 
 				List<String> urls = FindAllUrlsOfTarget(originUrl);
 
-				String baseurl = choseAndEditBaseURL(urls);
+				String baseurl = choseAndEditBaseURL(urls, referUrl, currentUrl);
 
 				if (null == baseurl) {
 					return;
@@ -143,7 +146,6 @@ public class FindUrlAction implements ActionListener {
 	}
 
 	/**
-	 * 
 	 * 根据当前web的originUrl找JS，特征就是referer以它开头
 	 *
 	 * @return
@@ -200,9 +202,9 @@ public class FindUrlAction implements ActionListener {
 				}
 			}
 		}
-		
+
 		Collections.sort(urls);
-		urls.add(0,originUrl);//把orginUrl放在最前面，它是baseUrl的概率比较高
+		urls.add(0, originUrl);//把orginUrl放在最前面，它是baseUrl的概率比较高
 		return urls;
 	}
 
@@ -217,9 +219,17 @@ public class FindUrlAction implements ActionListener {
 		return getOriginUrlOfMessage(message.getHttpService(), message.getRequest());
 	}
 
+	public static String getReferUrlOfMessage(IHttpRequestResponse message) {
+		return getReferUrlOfMessage(message.getHttpService(), message.getRequest());
+	}
+
+	public static String getFullUrlOfMessage(IHttpRequestResponse message) {
+		return getFullUrlOfMessage(message.getHttpService(), message.getRequest());
+	}
+
 	/**
-	 * 
 	 * 获取当前数据包的来源URL(OriginUrl),和请求包中的origin header是一个概念
+	 *
 	 * @param httpService
 	 * @param request
 	 * @return
@@ -239,6 +249,20 @@ public class FindUrlAction implements ActionListener {
 		}
 	}
 
+	public static String getReferUrlOfMessage(IHttpService httpService, byte[] request) {
+		HelperPlus getter = BurpExtender.getHelperPlus();
+
+		String current_referUrl = getter.getHeaderValueOf(true, request, "Referer");
+		return current_referUrl;
+	}
+
+
+	public static String getFullUrlOfMessage(IHttpService httpService, byte[] request) {
+		HelperPlus getter = BurpExtender.getHelperPlus();
+
+		String current_fullUrl = getter.getFullURL(httpService, request).toString();
+		return current_fullUrl;
+	}
 
 	public static List<String> findUrls(byte[] content) {
 		List<String> urls = new ArrayList<>();
@@ -276,7 +300,7 @@ public class FindUrlAction implements ActionListener {
 	 *
 	 * @param inputQueue
 	 */
-	public static void doRequest(BlockingQueue<RequestTask> inputQueue, HashMap<String,String> headers) {
+	public static void doRequest(BlockingQueue<RequestTask> inputQueue, HashMap<String, String> headers) {
 		if (CurrentProxy == null) {
 			CurrentProxy = Proxy.inputProxy();
 		}
@@ -311,14 +335,31 @@ public class FindUrlAction implements ActionListener {
 		}
 	}
 
-	public static List<String> findPossibleBaseURL(List<String> urls) {
+	public static List<String> findPossibleBaseURL(List<String> urls, String referUrl, String currentUrl) {
 		List<String> baseURLs = new ArrayList<>();
+
+		String referHost = "";
+		if (referUrl != null) {
+			referHost = UrlUtils.getHost(referUrl);
+		}
+
+		String currentHost = UrlUtils.getHost(currentUrl);
+
 		for (String tmpurl : urls) {
 			//这部分提取的是含有协议头的完整URL地址
 			if (tmpurl.toLowerCase().startsWith("http://")
 					|| tmpurl.toLowerCase().startsWith("https://")) {
-				if (!baseURLs.contains(tmpurl)) {
-					baseURLs.add(tmpurl);
+				String host = UrlUtils.getHost(tmpurl);
+				if (TextUtils.calculateSimilarity(referHost, host) > 0.5 || TextUtils.calculateSimilarity(currentHost, host) > 0.5) {
+					if (!baseURLs.contains(tmpurl)) {
+						baseURLs.add(tmpurl);
+					}
+				}
+
+				if (IPAddressUtils.isValidIPv4MayPort(host)) {
+					if (!baseURLs.contains(tmpurl)) {
+						baseURLs.add(tmpurl);
+					}
 				}
 			}
 		}
@@ -326,9 +367,14 @@ public class FindUrlAction implements ActionListener {
 		return baseURLs;
 	}
 
-
-	public static String choseAndEditBaseURL(List<String> inputs) {
-		inputs = findPossibleBaseURL(inputs);
+	/**
+	 * @param inputs
+	 * @param referUrl   当前数据包的refer
+	 * @param currentUrl 当前查找到url path数据包的URL
+	 * @return
+	 */
+	public static String choseAndEditBaseURL(List<String> inputs, String referUrl, String currentUrl) {
+		inputs = findPossibleBaseURL(inputs, referUrl, currentUrl);
 
 		int n = inputs.size() + 1;
 		String[] possibleValues = new String[n];
@@ -391,7 +437,7 @@ public class FindUrlAction implements ActionListener {
 		}
 		return urls;
 	}
-	
+
 	public static List<String> removeJsUrl(List<String> urls) {
 
 		urls = TextUtils.deduplicate(urls);
@@ -399,18 +445,19 @@ public class FindUrlAction implements ActionListener {
 		while (it.hasNext()) {
 			String urlItem = it.next();
 			// 仅在判断中去除参数和片段
-	        String cleanUrl = urlItem.split("\\?")[0].split("#")[0];
+			String cleanUrl = urlItem.split("\\?")[0].split("#")[0];
 
-	        // 判断是否以指定后缀结尾
-	        if (cleanUrl.endsWith(".js") || cleanUrl.endsWith(".vue") || cleanUrl.endsWith(".scss")) {
-	            it.remove();
-	        }
-	        
-	        if (cleanUrl.contains("node_modules")) {
-	            it.remove();
-	        }
-	        
+			// 判断是否以指定后缀结尾
+			if (cleanUrl.endsWith(".js") || cleanUrl.endsWith(".vue") || cleanUrl.endsWith(".scss")) {
+				it.remove();
+			} else if (cleanUrl.contains("node_modules")) {
+				it.remove();
+			}
 		}
 		return urls;
+	}
+
+	public static void main(String[] args) {
+
 	}
 }

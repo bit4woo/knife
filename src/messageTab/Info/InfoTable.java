@@ -123,7 +123,8 @@ public class InfoTable extends JTable {
 					InfoTable target = (InfoTable) e.getSource();
 					int row = target.getSelectedRow();
 					int column = target.getSelectedColumn();
-
+					
+					if (column ==-1) return;
 					//双击浏览器打开url
 					if (headers[column].equalsIgnoreCase("Value")) {//双击url在浏览器中打开
 						try {
@@ -172,13 +173,31 @@ public class InfoTable extends JTable {
 		return FindUrlAction.getOriginUrlOfMessage(controller.getHttpService(), controller.getRequest());
 	}
 
+	public String getReferUrl() {
+		IMessageEditorController controller = infoPanel.getInfoTab().getController();
+		return FindUrlAction.getReferUrlOfMessage(controller.getHttpService(), controller.getRequest());
+	}
+	
+	public String getFullUrl() {
+		IMessageEditorController controller = infoPanel.getInfoTab().getController();
+		return FindUrlAction.getFullUrlOfMessage(controller.getHttpService(), controller.getRequest());
+	}
+	
+	
 	public List<String> getAllUrlsOfTarget() {
 		IMessageEditorController controller = infoPanel.getInfoTab().getController();
 		return FindUrlAction.FindAllUrlsOfTarget(controller.getHttpService(), controller.getRequest(), controller.getResponse());
 	}
-
+	
+	/**
+	 * 增加基于refer和当前URL的过滤
+	 * @param allUrlsOfTarget
+	 * @return
+	 */
 	public String choseBaseUrlToRequest(List<String> allUrlsOfTarget) {
-		return FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget);
+		String referUrl = getReferUrl();
+		String currentUrl = getFullUrl();
+		return FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget,referUrl,currentUrl);
 	}
 	/**
 	 * 从已有记录中直接获取【构建URL所需要的基准URL（BaseURL）】，或者从数据包中查找并选择 
