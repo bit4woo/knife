@@ -197,7 +197,9 @@ public class InfoTable extends JTable {
 	public String choseBaseUrlToRequest(List<String> allUrlsOfTarget) {
 		String referUrl = getReferUrl();
 		String currentUrl = getFullUrl();
-		return FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget,referUrl,currentUrl);
+		String baseUrl = FindUrlAction.choseAndEditBaseURL(allUrlsOfTarget,referUrl,currentUrl);
+		((InfoPanelHeadPanel)(InfoPanel.getHeadPanel())).setBaseUrl(baseUrl.trim());
+		return baseUrl;
 	}
 	/**
 	 * 从已有记录中直接获取【构建URL所需要的基准URL（BaseURL）】，或者从数据包中查找并选择 
@@ -213,6 +215,7 @@ public class InfoTable extends JTable {
 				FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
 			}
 		}
+		((InfoPanelHeadPanel)(InfoPanel.getHeadPanel())).setBaseUrl(baseurl.trim());
 		return baseurl;
 	}
 

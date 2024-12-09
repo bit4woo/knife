@@ -45,7 +45,6 @@ public class InfoTableMenu extends JPopupMenu {
 
 				if (StringUtils.isNotEmpty(originUrl) && StringUtils.isNotEmpty(baseurl)) {
 					FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
-					((InfoPanelHeadPanel)(InfoPanel.getHeadPanel())).setBaseUrl(baseurl);
 				}
 			}
 		});
@@ -61,9 +60,7 @@ public class InfoTableMenu extends JPopupMenu {
 
 				if (StringUtils.isNotEmpty(originUrl) && StringUtils.isNotEmpty(baseurl)) {
 					FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
-					((InfoPanelHeadPanel)(InfoPanel.getHeadPanel())).setBaseUrl(baseurl);
 				}
-				
 			}
 		});
 

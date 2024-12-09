@@ -29,8 +29,6 @@ import burp.IExtensionHelpers;
 import burp.IHttpRequestResponse;
 import burp.IHttpService;
 import burp.threadRequester;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.mime.MimeTypes;
 
 public class FindUrlAction implements ActionListener {
 	private IContextMenuInvocation invocation;
