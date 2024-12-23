@@ -330,10 +330,15 @@ public class ConfigEntry {
         List<ConfigEntry> varConfigs = GUI.configTableModel.getBasicConfigVars();
 
         for (String part : httpParts) {
-            valueStr = findAndReplace(valueStr, "{" + part + "}", getValueByPartType(messageInfos, part));
+            if (valueStr.toLowerCase().contains("{" + part.toLowerCase() + "}")){
+            	//fix https://github.com/bit4woo/knife/issues/94
+                valueStr = findAndReplace(valueStr, "{" + part + "}", getValueByPartType(messageInfos, part));
+            }
         }
         for (ConfigEntry config : varConfigs) {
-            valueStr = findAndReplace(valueStr, "{" + config.getKey() + "}", config.getValue());
+            if (valueStr.toLowerCase().contains("{" + config.getKey() + "}")) {
+                valueStr = findAndReplace(valueStr, "{" + config.getKey() + "}", config.getValue());
+            }
         }
         return valueStr;
     }
