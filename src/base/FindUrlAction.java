@@ -450,6 +450,9 @@ public class FindUrlAction implements ActionListener {
 				it.remove();
 			} else if (cleanUrl.contains("node_modules") || cleanUrl.contains("text/")) {
 				it.remove();
+			} else if (cleanUrl.startsWith("./") && cleanUrl.contains("-")) {
+				//比如./en-US 
+				it.remove();
 			}
 		}
 		return urls;
