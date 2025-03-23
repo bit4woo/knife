@@ -44,7 +44,7 @@ mvn package
 
 ### 2、通过github action下载
 
-访问项目的Action页面 https://github.com/bit4woo/knife/actions。找到最新成功的构建，绿色✔的成功的构建，红色×是失败的构建。
+访问项目的Action页面 https://github.com/bit4woo/knife/actions 。找到最新成功的构建，绿色✔的成功的构建，红色×是失败的构建。
 
 ![image-20231220194707237](assets/image-20231220194707237.png)
 
