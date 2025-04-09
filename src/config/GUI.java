@@ -69,6 +69,7 @@ public class GUI extends JFrame {
 	public JCheckBox chckbx_repeater;
 	public JCheckBox chckbx_intruder;
 	private JCheckBox chckbx_scanner;
+	private JCheckBox chckbx_extender;
 	private JCheckBox chckbx_target;//content discover
 	private JCheckBox chckbx_scope;
 
@@ -177,13 +178,21 @@ public class GUI extends JFrame {
 		});
 		panel.add(chckbx_target);
 
-		chckbx_scanner = new JCheckBox("Scanner ]");
+		chckbx_scanner = new JCheckBox("Scanner");
 		chckbx_scanner.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				configManager.setEnableStatus(checkEnabledFor());
 			}
 		});
 		panel.add(chckbx_scanner);
+		
+		chckbx_extender = new JCheckBox("Extender ]");
+		chckbx_extender.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				configManager.setEnableStatus(checkEnabledFor());
+			}
+		});
+		panel.add(chckbx_extender);
 
 		JLabel lblNewLabel_display = new JLabel(" AND [");
 		panel.add(lblNewLabel_display);
@@ -496,6 +505,12 @@ public class GUI extends JFrame {
 			chckbx_target.setSelected(false);
 		}
 		
+		if (IBurpExtenderCallbacks.TOOL_EXTENDER ==(configManager.getEnableStatus() & IBurpExtenderCallbacks.TOOL_EXTENDER)) {
+			chckbx_extender.setSelected(true);
+		}else {
+			chckbx_extender.setSelected(false);
+		}
+		
 		chckbx_scope.setSelected(configManager.isOnlyForScope());
 	}
 
@@ -525,6 +540,9 @@ public class GUI extends JFrame {
 		}
 		if (chckbx_target.isSelected()) {
 			status += IBurpExtenderCallbacks.TOOL_TARGET;
+		}
+		if (chckbx_extender.isSelected()) {
+			status += IBurpExtenderCallbacks.TOOL_EXTENDER;
 		}
 		return status;
 	}
