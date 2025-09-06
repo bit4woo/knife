@@ -64,6 +64,9 @@ public class InfoTableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
+		if (rowIndex < 0 || rowIndex >= infoEntries.size()) {
+	        return null; // 或者返回空字符串 ""
+	    }
 		InfoEntry entry = infoEntries.get(rowIndex);
 		if (titles[columnIndex].equals("#")) {
 			return rowIndex;

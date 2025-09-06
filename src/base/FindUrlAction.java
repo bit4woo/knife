@@ -453,6 +453,10 @@ public class FindUrlAction implements ActionListener {
 			} else if (cleanUrl.startsWith("./") && cleanUrl.contains("-")) {
 				//比如./en-US 
 				it.remove();
+			}else if (cleanUrl.startsWith("./views/") || cleanUrl.contains("./src/")) {
+				//./views/user/Login
+				//./src/components/TagSelect/TagSelectOption.jsx
+				it.remove();
 			}
 		}
 		return urls;
