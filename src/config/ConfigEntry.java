@@ -330,8 +330,8 @@ public class ConfigEntry {
         List<ConfigEntry> varConfigs = GUI.configTableModel.getBasicConfigVars();
 
         for (String part : httpParts) {
-            if (valueStr.toLowerCase().contains("{" + part.toLowerCase() + "}")){
-            	//fix https://github.com/bit4woo/knife/issues/94
+            if (valueStr.toLowerCase().contains("{" + part.toLowerCase() + "}")) {
+                //fix https://github.com/bit4woo/knife/issues/94
                 valueStr = findAndReplace(valueStr, "{" + part + "}", getValueByPartType(messageInfos, part));
             }
         }
@@ -440,7 +440,7 @@ public class ConfigEntry {
             switch (type) {
                 case Action_Add_Or_Replace_Header:
                 case Action_If_Base_URL_Matches_Add_Or_Replace_Header:
-                    getter.addOrUpdateHeader(true, messageInfo, configValue);
+                    getter.addOrUpdateHeader(true, messageInfo, configKey, configValue);
                     //注意，单个分支应该break。
                     break;
                 case Action_Append_To_header_value:
