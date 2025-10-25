@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import burp.BurpExtender;
@@ -107,17 +108,20 @@ public class InfoTableModel extends AbstractTableModel {
 	}
 
 	//////////////////////extend AbstractTableModel////////////////////////////////
-
+	
 	public void addNewInfoEntry(InfoEntry lineEntry) {
-		synchronized (infoEntries) {
-			infoEntries.add(lineEntry);
-			int row = infoEntries.size();
-			//fireTableRowsInserted(row, row);
-			//need to use row-1 when add setRowSorter to table. why??
-			//https://stackoverflow.com/questions/6165060/after-adding-a-tablerowsorter-adding-values-to-model-cause-java-lang-indexoutofb
-			fireTableRowsInserted(row - 1, row - 1);
-			//fireTableRowsInserted(row-2, row-2);
-		}
+	    int row;
+	    synchronized (infoEntries) {
+	        infoEntries.add(lineEntry);
+	        row = infoEntries.size() - 1;
+	        //https://stackoverflow.com/questions/6165060/after-adding-a-tablerowsorter-adding-values-to-model-cause-java-lang-indexoutofb	        
+	    }
+	    // fire 事件必须在 EDT 执行
+	    if (SwingUtilities.isEventDispatchThread()) {
+	        fireTableRowsInserted(row, row);
+	    } else {
+	        SwingUtilities.invokeLater(() -> fireTableRowsInserted(row, row));
+	    }
 	}
 
 
@@ -147,9 +151,17 @@ public class InfoTableModel extends AbstractTableModel {
 	}
 
 	public void clear() {
-		synchronized (infoEntries) {
-			infoEntries = new ArrayList<>();
-		}
+	    int oldSize;
+	    synchronized (infoEntries) {
+	        oldSize = infoEntries.size();
+	        infoEntries.clear();
+	    }
+	    if (oldSize > 0) {
+	        // 必须通知 JTable & Sorter 数据被清空
+	        fireTableRowsDeleted(0, oldSize - 1);
+	    } else {
+	        fireTableDataChanged();
+	    }
 	}
 
 	public void updateRows(int[] rows) {

@@ -1,9 +1,11 @@
 package messageTab.Info;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.apache.commons.lang3.StringUtils;
@@ -124,33 +126,62 @@ public class InfoTab implements IMessageEditorTab {
 			return;
 		} else {
 			originContent = content;
-			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+			SwingWorker<List<InfoEntry>, Void> worker = new SwingWorker<List<InfoEntry>, Void>() {
+				/*
+				 * 一、doInBackground()
+					运行线程：在 后台线程（worker thread） 执行
+					作用：执行耗时任务（例如网络请求、IO、分析计算）
+					线程安全性：
+					不是线程安全的 对 Swing 组件（UI）而言。
+					在这里不能直接操作 Swing 组件（如 JTable、JLabel 等）。
+					如果修改 UI，会有随机的显示错误、空指针、数据错乱等问题。
+					二、done()
+					运行线程：在 事件派发线程（EDT, Event Dispatch Thread） 执行
+					作用：后台任务结束后，更新 UI（比如刷新表格、显示结果、关闭加载动画等）
+					线程安全性：
+					是线程安全的 对 Swing 组件操作而言。
+					因为 EDT 是 Swing 的唯一 UI 线程。
+				 */
 				@Override
-				protected Void doInBackground() throws Exception {
-					((InfoPanel) panel).getTable().getInfoTableModel().clear();
-					List<String> urls = FindUrlAction.findUrls(originContent);
-					
-					//清除JS\scss\vue等非接口URL
-					urls = FindUrlAction.removeJsUrl(urls);
-					for (String url : urls) {
-						InfoEntry aaa = new InfoEntry(url, InfoEntry.Type_URL);
-						((InfoPanel) panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
-					}
+			    protected List<InfoEntry> doInBackground() {
+			        List<InfoEntry> entries = new ArrayList<>();
 
-					List<String> emails = EmailUtils.grepEmail(new String(originContent));
-					emails = TextUtils.deduplicate(emails);
-					for (String email : emails) {
-						InfoEntry aaa = new InfoEntry(email, InfoEntry.Type_Email);
-						((InfoPanel) panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
-					}
-					
-					if (((InfoPanel) panel).getTable().getInfoTableModel().getRowCount()==0) {
-						InfoEntry aaa = new InfoEntry("No Info To Display", InfoEntry.Type_URL);
-						((InfoPanel) panel).getTable().getInfoTableModel().addNewInfoEntry(aaa);
-					}
+			        List<String> urls = FindUrlAction.findUrls(originContent);
+			        urls = FindUrlAction.removeJsUrl(urls);
+			        for (String url : urls) {
+			            entries.add(new InfoEntry(url, InfoEntry.Type_URL));
+			        }
 
-					return null;
-				}
+			        List<String> emails = EmailUtils.grepEmail(new String(originContent));
+			        emails = TextUtils.deduplicate(emails);
+			        for (String email : emails) {
+			            entries.add(new InfoEntry(email, InfoEntry.Type_Email));
+			        }
+
+			        if (entries.isEmpty()) {
+			            entries.add(new InfoEntry("No Info To Display", InfoEntry.Type_URL));
+			        }
+
+			        return entries;
+			    }
+				
+			    @Override
+			    protected void done() {
+			        try {
+			            List<InfoEntry> newEntries = get();
+			            InfoTableModel model = ((InfoPanel) panel).getTable().getInfoTableModel();
+
+			            // ✅ 所有 UI 更新都在 EDT 进行
+			            SwingUtilities.invokeLater(() -> {
+			                model.clear();
+			                for (InfoEntry e : newEntries) {
+			                    model.addNewInfoEntry(e);
+			                }
+			            });
+			        } catch (Exception ex) {
+			            ex.printStackTrace();
+			        }
+			    }
 			};
 			worker.execute();
 		}
