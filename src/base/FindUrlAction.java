@@ -348,10 +348,16 @@ public class FindUrlAction implements ActionListener {
 			if (tmpurl.toLowerCase().startsWith("http://")
 					|| tmpurl.toLowerCase().startsWith("https://")) {
 				String host = UrlUtils.getHost(tmpurl);
+
+				/*
 				if (TextUtils.calculateSimilarity(referHost, host) > 0.5 || TextUtils.calculateSimilarity(currentHost, host) > 0.5) {
 					if (!baseURLs.contains(tmpurl)) {
 						baseURLs.add(tmpurl);
 					}
+				}*/
+
+				if (!baseURLs.contains(tmpurl)) {
+					baseURLs.add(tmpurl);
 				}
 
 				if (IPAddressUtils.isValidIPv4MayPort(host)) {
