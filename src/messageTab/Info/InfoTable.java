@@ -271,6 +271,12 @@ public class InfoTable extends JTable {
 	public String getSelectedContent() {
 		int[] rows = this.getSelectedRows();
 		int[] columns = this.getSelectedColumns();
+		
+	    // ⚠️ 有可能在反选瞬间 rows/cols 为空 → 避免返回空内容
+	    if (rows == null || rows.length == 0 || columns == null || columns.length == 0) {
+	        return ""; // 或者 return null;
+	    }
+	    
 		List<String> result = new ArrayList<>();
 		for (int row : rows) {
 			List<String> line = new ArrayList<>();
