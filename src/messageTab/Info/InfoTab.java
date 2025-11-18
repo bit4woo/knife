@@ -3,6 +3,7 @@ package messageTab.Info;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -32,6 +33,8 @@ public class InfoTab implements IMessageEditorTab {
 
 	int triggerTime = 1;
 	boolean debug = false;
+	private UUID currentTaskId = null;
+
 
 	public byte[] getOriginContent() {
 		return originContent;
@@ -125,6 +128,14 @@ public class InfoTab implements IMessageEditorTab {
 		} else if (ByteArrayUtils.equals(originContent, content)) {
 			return;
 		} else {
+			UUID taskId = UUID.randomUUID();
+			currentTaskId = taskId;
+			
+			//setMessage() 就是在 EDT中调用的
+			InfoTableModel model = ((InfoPanel) panel).getTable().getInfoTableModel();
+			model.clear();
+			model.addNewInfoEntry(new InfoEntry("Loading...", InfoEntry.Type_URL));
+			
 			originContent = content;
 			SwingWorker<List<InfoEntry>, Void> worker = new SwingWorker<List<InfoEntry>, Void>() {
 				/*
@@ -167,6 +178,11 @@ public class InfoTab implements IMessageEditorTab {
 				
 			    @Override
 			    protected void done() {
+			    	
+			    	if (!taskId.equals(currentTaskId)) {
+			    	    return; // 丢弃旧任务的结果
+			    	}
+
 			        try {
 			            List<InfoEntry> newEntries = get();
 			            InfoTableModel model = ((InfoPanel) panel).getTable().getInfoTableModel();
