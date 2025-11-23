@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.sql.rowset.Joinable;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -12,7 +13,9 @@ import javax.swing.SwingWorker;
 import org.apache.commons.lang3.StringUtils;
 
 import com.bit4woo.utilbox.utils.ByteArrayUtils;
+import com.bit4woo.utilbox.utils.DomainUtils;
 import com.bit4woo.utilbox.utils.EmailUtils;
+import com.bit4woo.utilbox.utils.IPAddressUtils;
 import com.bit4woo.utilbox.utils.TextUtils;
 
 import base.FindUrlAction;
@@ -21,6 +24,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import burp.IMessageEditorController;
 import burp.IMessageEditorTab;
+import inet.ipaddr.IPAddress;
 
 /**
  * @author bit4woo
@@ -168,6 +172,28 @@ public class InfoTab implements IMessageEditorTab {
 			        for (String email : emails) {
 			            entries.add(new InfoEntry(email, InfoEntry.Type_Email));
 			        }
+			        
+			        String info_text = String.join(System.lineSeparator(), urls);
+			        info_text = info_text + String.join(System.lineSeparator(), emails);
+			        
+			        
+			        List<String> domains = DomainUtils.grepDomainAndPort(new String(originContent));
+			        domains = TextUtils.deduplicate(domains);
+			        for (String domain : domains) {
+			        	if (info_text.contains(domain)) {
+			        		continue;
+			        	}
+			            entries.add(new InfoEntry(domain, InfoEntry.Type_Domain));
+			        }
+			        
+			        List<String> iPList = IPAddressUtils.grepIPv4MayPort(new String(originContent));
+			        iPList = TextUtils.deduplicate(iPList);
+			        for (String ip : iPList) {
+			        	if (info_text.contains(ip)) {
+			        		continue;
+			        	}
+			            entries.add(new InfoEntry(ip, InfoEntry.Type_IP));
+			        }
 
 			        if (entries.isEmpty()) {
 			            entries.add(new InfoEntry("No Info To Display", InfoEntry.Type_URL));
@@ -219,10 +245,10 @@ public class InfoTab implements IMessageEditorTab {
 	 */
 	@Override
 	public byte[] getSelectedData() {
-		InfoTable table = (InfoTable) ((InfoPanel) panel).getTable();
-		String content = table.getSelectedContent();
-		return content.getBytes();
+	    InfoTable table = (InfoTable) ((InfoPanel) panel).getTable();
+	    return table.getSelectedContent().getBytes();
 	}
+
 
 
 	public static void main(String[] args) {

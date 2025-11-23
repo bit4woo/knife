@@ -12,6 +12,8 @@ public class InfoEntry {
     
     public static final String Type_URL ="Type_URL";
     public static final String Type_Email ="Type_Email";
+    public static final String Type_Domain ="Type_Domain";
+    public static final String Type_IP ="Type_IP";
 
     public InfoEntry() {
         //to resolve "default constructor not found" error
