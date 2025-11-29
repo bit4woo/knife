@@ -176,15 +176,15 @@ public class InfoTab implements IMessageEditorTab {
 			        String info_text = String.join(System.lineSeparator(), urls);
 			        info_text = info_text + String.join(System.lineSeparator(), emails);
 			        
-			        
-			        List<String> domains = DomainUtils.grepDomainAndPort(new String(originContent));
-			        domains = TextUtils.deduplicate(domains);
-			        for (String domain : domains) {
-			        	if (info_text.contains(domain)) {
-			        		continue;
-			        	}
-			            entries.add(new InfoEntry(domain, InfoEntry.Type_Domain));
-			        }
+			        //误报太多
+//			        List<String> domains = DomainUtils.grepDomainAndPort(new String(originContent));
+//			        domains = TextUtils.deduplicate(domains);
+//			        for (String domain : domains) {
+//			        	if (info_text.contains(domain)) {
+//			        		continue;
+//			        	}
+//			            entries.add(new InfoEntry(domain, InfoEntry.Type_Domain));
+//			        }
 			        
 			        List<String> iPList = IPAddressUtils.grepIPv4MayPort(new String(originContent));
 			        iPList = TextUtils.deduplicate(iPList);
