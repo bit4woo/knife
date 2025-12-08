@@ -98,6 +98,7 @@ public class FindUrlAction implements ActionListener {
 					} else {
 						inputQueue.put(new RequestTask(url, RequestType.POST));
 						inputQueue.put(new RequestTask(url, RequestType.JSON));
+						inputQueue.put(new RequestTask(url, RequestType.XML));
 					}
 				}
 			} catch (Exception e) {

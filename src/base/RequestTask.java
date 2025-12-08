@@ -79,6 +79,22 @@ public class RequestTask {
 		postRequest.code();
 	}
 
+	public static void doPostXmlReq(String url,String proxyHost,int proxyPort,HashMap<String,String> headers) 
+	{
+		HttpRequest postRequest = HttpRequest.post(url);
+		
+		postRequest = configHttpRequest(postRequest,proxyHost,proxyPort,headers);
+		
+	
+		postRequest.header("Content-Type", "application/xml");
+		postRequest.send("<?xml version=\"1.0\" \r\n"
+				+ "encoding=\"UTF-8\"?>\r\n"
+				+ "<request>\r\n"
+				+ "    <name>John</name>\r\n"
+				+ "</request>");
+		postRequest.code();
+	}
+	
 	public void sendRequest(String proxyHost,int proxyPort,HashMap<String,String> headers) {
 
 		if (!headers.keySet().contains(RefererKey)) {
@@ -93,6 +109,9 @@ public class RequestTask {
 		}
 		if (requestType == RequestType.JSON) {
 			doPostJsonReq(url,proxyHost,proxyPort,headers);
+		}
+		if (requestType == RequestType.XML) {
+			doPostXmlReq(url,proxyHost,proxyPort,headers);
 		}
 	}
 
