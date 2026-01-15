@@ -336,7 +336,7 @@ public class ConfigEntry {
             }
         }
         for (ConfigEntry config : varConfigs) {
-            if (valueStr.toLowerCase().contains("{" + config.getKey() + "}")) {
+            if (valueStr.toLowerCase().contains("{" + config.getKey().toLowerCase() + "}")) {
                 valueStr = findAndReplace(valueStr, "{" + config.getKey() + "}", config.getValue());
             }
         }

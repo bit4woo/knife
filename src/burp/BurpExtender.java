@@ -60,7 +60,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     public static PrintWriter stdout;
     public static PrintWriter stderr;
     public IContextMenuInvocation invocation;
-
+    public static IBurpCollaboratorClientContext DNSlogClient;
 
     public static String ExtensionName = "Knife";
     public static String Version = bsh.This.class.getPackage().getImplementationVersion();
@@ -76,6 +76,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         flushStd();
         BurpExtender.stdout.println(getFullExtensionName());
         BurpExtender.stdout.println(github);
+        
+        DNSlogClient = callbacks.createBurpCollaboratorClientContext();
 
         configTable = new ConfigTable(new ConfigTableModel());
         configPanel.setViewportView(configTable);

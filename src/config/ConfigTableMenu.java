@@ -2,6 +2,7 @@ package config;
 
 import java.awt.event.ActionEvent;
 import java.io.PrintWriter;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
@@ -52,10 +53,27 @@ public class ConfigTableMenu extends JPopupMenu {
 				}
 			}
 		});
+		
+		
+		JMenuItem resetItem = new JMenuItem(new AbstractAction("Reset Config") {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				for (int row:modelRows) {
+					ConfigEntry config = configTable.getConfigTableModel().getConfigEntries().get(row);
+					List<ConfigEntry> defaults = ConfigTableModel.initDefaultConfigs();
+					for (ConfigEntry item:defaults) {
+						if (item.getKey().equals(config.getKey())) {
+							config.setValue(item.getValue());
+						}
+					}
+				}
+			}
+		});
 
 		add(itemNumber);
 		add(enableItem);
 		add(disableItem);
+		add(resetItem);
 	}
 
 
