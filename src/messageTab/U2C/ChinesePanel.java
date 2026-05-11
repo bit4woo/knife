@@ -439,6 +439,18 @@ public class ChinesePanel extends JPanel {
 					}
 				}
 
+				// Handle HTML entity encoding like &#x5bc6; or &#23450;
+				int j = 0;
+				while (contentStr.contains("&#") && j < 3) {
+					int oldLength = contentStr.length();
+					contentStr = StringEscapeUtils.unescapeHtml4(contentStr);
+					j++;
+					int newLength = contentStr.length();
+					if (oldLength == newLength) {
+						break;
+					}
+				}
+
 				displayContent = contentStr.getBytes(charSet);
 			}
 
