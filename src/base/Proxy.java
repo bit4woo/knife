@@ -10,29 +10,31 @@ import burp.BurpExtender;
 
 public class Proxy {
 
-	String host;
+	String host = "127.0.0.1";
 	int port;
 
-	public Proxy(String proxyStr) throws IllegalArgumentException {
+	public Proxy(String proxyStr) {
 		if (StringUtils.isEmpty(proxyStr)) {
-			throw new IllegalArgumentException("input is empty");
+			return;
 		}
 		try {
 			String[] parts = proxyStr.split(":");
 			if (parts.length != 2) {
-				throw new IllegalArgumentException("not valid host:port format");
+				return;
 			}
-			host = parts[0];
-			if (!isValidIPAddress(host) && !isValidDomainName(host)) {
-				throw new IllegalArgumentException("host is not valid IP address and domain name");
+			String tmp_host = parts[0];
+			if (!isValidIPAddress(tmp_host) && !isValidDomainName(tmp_host)) {
+				return;
 			}
 			String portStr = parts[1];
-			port = Integer.parseInt(portStr);
-			if (!(port >= 0 && port <= 65535)) {
-				throw new IllegalArgumentException("invalid port range");
+			int tmp_port = Integer.parseInt(portStr);
+			if (!(tmp_port >= 0 && tmp_port <= 65535)) {
+				return;
 			}
+			host = tmp_host;
+			port = tmp_port;
 		} catch (Exception e) {
-			throw new IllegalArgumentException(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
