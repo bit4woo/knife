@@ -120,8 +120,8 @@ public class InfoPanel extends JPanel {
     }
 
 	public void displayBaseUrl(String baseUrl) {
-		if (headPanel !=null) {
-			((InfoPanelHeadPanel)headPanel).setBaseUrl(baseUrl.trim());
+		if (headPanel != null && baseUrl != null) {
+			((InfoPanelHeadPanel) headPanel).setBaseUrl(baseUrl.trim());
 		}
 	}
 

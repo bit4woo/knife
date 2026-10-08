@@ -4,8 +4,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -19,7 +21,6 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang3.StringUtils;
 
 import com.bit4woo.utilbox.burp.HelperPlus;
-import com.bit4woo.utilbox.utils.IPAddressUtils;
 import com.bit4woo.utilbox.utils.SwingUtils;
 import com.bit4woo.utilbox.utils.TextUtils;
 import com.bit4woo.utilbox.utils.UrlUtils;
@@ -40,20 +41,21 @@ public class FindUrlAction implements ActionListener {
 	public IBurpExtenderCallbacks callbacks;
 	public BurpExtender burp;
 
-	public static final List<String> blackHostList = TextUtils.textToLines("ns.adobe.com\r\n"
-			+ "schemas.microsoft.com\r\n"
-			+ "iptc.org\r\n"
-			+ "jmespath.org\r\n"
-			+ "json-schema.org\r\n"
-			+ "registry.npmjs.org\r\n"
-			+ "openoffice.org\r\n"
-			+ "schemas.openxmlformats.org\r\n"
-			+ "sheetjs.openxmlformats.org\r\n"
-			+ "www.w3.org");
+	public static final List<String> blackHostList = Arrays.asList(
+			"ns.adobe.com", "schemas.microsoft.com", "iptc.org", "jmespath.org",
+			"json-schema.org", "registry.npmjs.org", "openoffice.org",
+			"schemas.openxmlformats.org", "sheetjs.openxmlformats.org", "www.w3.org",
+			"w3.org", "xml.org", "purl.org", "unpkg.com", "cdn.jsdelivr.net",
+			"cdnjs.cloudflare.com", "esm.sh", "fonts.googleapis.com", "fonts.gstatic.com",
+			"code.jquery.com", "ajax.googleapis.com", "maxcdn.bootstrapcdn.com",
+			"google-analytics.com", "googletagmanager.com", "doubleclick.net", "hotjar.com");
 
-	public static final List<String> blackPath = MimeTypesList.genMIMETypeListAsPathBlackList();
+	public static final List<String> blackPath = Arrays.asList(
+			"node_modules", "/dist/", "/build/", "/vendor/", "/assets/", "/static/",
+			"/chunks/", ".map", "/locale/", "/locales/", "/lang/", "/i18n/",
+			"/fonts/", "/icons/", "/favicon");
 
-	public static Proxy CurrentProxy;
+public static Proxy CurrentProxy;
 	public static HashMap<String, String> httpServiceBaseUrlMap = new HashMap<>();
 
 	public FindUrlAction(BurpExtender burp, IContextMenuInvocation invocation) {
@@ -65,23 +67,39 @@ public class FindUrlAction implements ActionListener {
 
 	public static List<String> buildUrls(String baseurl, List<String> urlPath) {
 		List<String> result = new ArrayList<>();
+		if (StringUtils.isBlank(baseurl)) {
+			return result;
+		}
+		//兜底：确保baseurl以"/"结尾，避免拼接出 http://hostapi/xxx 这类错误URL
+		baseurl = baseurl.trim();
+		if (!baseurl.endsWith("/")) {
+			baseurl = baseurl + "/";
+		}
 
 		for (String url : urlPath) {
-			if (StringUtils.isBlank(baseurl)) {
+			if (StringUtils.isBlank(url)) {
 				continue;
 			}
-			if (url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://")) {
+			String lower = url.toLowerCase();
+			if (lower.startsWith("http://") || lower.startsWith("https://")) {
 				result.add(url);
 				continue;
 			}
-
-			if (url.startsWith("/")) {
-				url = url.replaceFirst("/", "");
+			//协议相对URL：//host/path，补上baseurl的协议
+			if (url.startsWith("//")) {
+				String protocol = baseurl.toLowerCase().startsWith("https://") ? "https:" : "http:";
+				result.add(protocol + url);
+				continue;
 			}
-			if (url.startsWith("./")) {
-				url = url.replaceFirst("\\./", "");
+			String path = url;
+			//去掉开头的./和../（相对baseurl根目录无意义）
+			while (path.startsWith("./") || path.startsWith("../")) {
+				path = path.substring(path.startsWith("./") ? 2 : 3);
 			}
-			url = baseurl + url; //baseurl统一以“/”结尾；url统一删除“/”的开头
+			if (path.startsWith("/")) {
+				path = path.substring(1);
+			}
+			url = baseurl + path; //baseurl统一以"/"结尾；url统一删除"/"的开头
 			result.add(url);
 		}
 		return result;
@@ -159,6 +177,10 @@ public class FindUrlAction implements ActionListener {
 
 	public static List<String> FindAllUrlsOfTarget(String originUrl) {
 		List<String> urls = new ArrayList<>();
+		if (StringUtils.isEmpty(originUrl)) {
+			return urls;
+		}
+		String originLower = originUrl.toLowerCase();
 
 		HelperPlus getter = BurpExtender.getHelperPlus();
 		IHttpRequestResponse[] messages = BurpExtender.getCallbacks().getSiteMap(null);
@@ -175,32 +197,29 @@ public class FindUrlAction implements ActionListener {
 			if (url == null) {
 				continue;
 			}
+			String urlStr = url.toString();
+			String urlLower = urlStr.toLowerCase();
+
+			//首页的.html请求通常没有referer，价值低，不处理
+			if (urlLower.endsWith(".html")) {
+				continue;
+			}
 
 			String referUrl = getter.getHeaderValueOf(true, item, "Referer");
-			//JS请求必然有referer，js.map请求则没有referer，首页的.html请求也没有
-			if (url.toString().toLowerCase().endsWith(".js")) {
-				if (referUrl == null) {
+			boolean belongToTarget;
+			if (referUrl != null) {
+				//有referer：referer属于目标才算
+				belongToTarget = referUrl.toLowerCase().startsWith(originLower);
+			} else {
+				//无referer：js请求必然有referer，直接跳过；其他文件看URL本身是否属于目标
+				if (urlLower.endsWith(".js")) {
 					continue;
 				}
-				if (referUrl.toLowerCase().startsWith(originUrl.toLowerCase())) {
-					urls.addAll(findUrls(item.getResponse()));
-				}
-			}
-			//没必要处理js.map。
-			if (url.toString().toLowerCase().endsWith(".js.map")) {
-
+				belongToTarget = urlLower.startsWith(originLower);
 			}
 
-			if (!url.toString().toLowerCase().endsWith(".html")) {
-				if (referUrl == null) {
-					if (url.toString().toLowerCase().startsWith(originUrl.toLowerCase())) {
-						urls.addAll(findUrls(item.getResponse()));
-					}
-				} else {
-					if (referUrl.toLowerCase().startsWith(originUrl.toLowerCase())) {
-						urls.addAll(findUrls(item.getResponse()));
-					}
-				}
+			if (belongToTarget) {
+				urls.addAll(findUrls(item.getResponse()));
 			}
 		}
 
@@ -239,14 +258,16 @@ public class FindUrlAction implements ActionListener {
 		HelperPlus getter = BurpExtender.getHelperPlus();
 
 		String current_referUrl = getter.getHeaderValueOf(true, request, "Referer");
-		String current_fullUrl = getter.getFullURL(httpService, request).toString();
-
 		if (current_referUrl != null) {
 			//认为当前数据包是前端触发的
 			return UrlUtils.getBaseUrl(current_referUrl);
 		} else {
 			//认为其是当前数据包是浏览器地址栏访问直接触发的
-			return UrlUtils.getBaseUrl(current_fullUrl);
+			URL fullUrl = getter.getFullURL(httpService, request);
+			if (fullUrl == null) {
+				return null;
+			}
+			return UrlUtils.getBaseUrl(fullUrl.toString());
 		}
 	}
 
@@ -261,8 +282,11 @@ public class FindUrlAction implements ActionListener {
 	public static String getFullUrlOfMessage(IHttpService httpService, byte[] request) {
 		HelperPlus getter = BurpExtender.getHelperPlus();
 
-		String current_fullUrl = getter.getFullURL(httpService, request).toString();
-		return current_fullUrl;
+		URL fullUrl = getter.getFullURL(httpService, request);
+		if (fullUrl == null) {
+			return null;
+		}
+		return fullUrl.toString();
 	}
 
 	public static List<String> findUrls(byte[] content) {
@@ -282,18 +306,18 @@ public class FindUrlAction implements ActionListener {
 	 * @return
 	 */
 	public static List<String> findUrls(String content) {
-		List<String> urls = new ArrayList<>();
 		if (StringUtils.isEmpty(content)) {
-			return urls;
+			return new ArrayList<>();
 		}
 
 		content = TextUtils.decodeAll(content);
-		urls.addAll(UrlUtils.grepUrlsWithProtocol(content));
-		urls.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(content));
-		urls.addAll(UrlUtils.grepUrlsInQuotes(content));
-		urls = cleanUrls(urls);
+		//三个提取器合并去重（保持顺序），避免重复项在cleanUrls中反复解析
+		Set<String> urlSet = new LinkedHashSet<>();
+		urlSet.addAll(UrlUtils.grepUrlsWithProtocol(content));
+		urlSet.addAll(UrlUtils.grepUrlPathNotStartWithSlashInQuotes(content));
+		urlSet.addAll(UrlUtils.grepUrlsInQuotes(content));
 
-		return urls;
+		return cleanUrls(new ArrayList<>(urlSet));
 	}
 
 	/**
@@ -337,41 +361,40 @@ public class FindUrlAction implements ActionListener {
 	}
 
 	public static List<String> findPossibleBaseURL(List<String> urls, String referUrl, String currentUrl) {
-		List<String> baseURLs = new ArrayList<>();
+		String referHost = (referUrl == null) ? "" : UrlUtils.getHost(referUrl);
+		String currentHost = (currentUrl == null) ? "" : UrlUtils.getHost(currentUrl);
 
-		String referHost = "";
-		if (referUrl != null) {
-			referHost = UrlUtils.getHost(referUrl);
-		}
-
-		String currentHost = UrlUtils.getHost(currentUrl);
-
+		//只保留带协议的完整URL，用LinkedHashSet去重并保持顺序
+		Set<String> baseURLs = new LinkedHashSet<>();
 		for (String tmpurl : urls) {
-			//这部分提取的是含有协议头的完整URL地址
-			if (tmpurl.toLowerCase().startsWith("http://")
-					|| tmpurl.toLowerCase().startsWith("https://")) {
-				String host = UrlUtils.getHost(tmpurl);
-
-				/*
-				if (TextUtils.calculateSimilarity(referHost, host) > 0.5 || TextUtils.calculateSimilarity(currentHost, host) > 0.5) {
-					if (!baseURLs.contains(tmpurl)) {
-						baseURLs.add(tmpurl);
-					}
-				}*/
-
-				if (!baseURLs.contains(tmpurl)) {
-					baseURLs.add(tmpurl);
-				}
-
-				if (IPAddressUtils.isValidIPv4MayPort(host)) {
-					if (!baseURLs.contains(tmpurl)) {
-						baseURLs.add(tmpurl);
-					}
-				}
+			if (tmpurl == null) {
+				continue;
+			}
+			String lower = tmpurl.toLowerCase();
+			if (lower.startsWith("http://") || lower.startsWith("https://")) {
+				baseURLs.add(tmpurl);
 			}
 		}
-		Collections.sort(baseURLs);
-		return baseURLs;
+
+		List<String> result = new ArrayList<>(baseURLs);
+		//同源（host与refer/current一致）的候选排前面，其余按字典序
+		Collections.sort(result, new Comparator<String>() {
+			@Override
+			public int compare(String a, String b) {
+				boolean aSame = isSameOrigin(a, referHost, currentHost);
+				boolean bSame = isSameOrigin(b, referHost, currentHost);
+				if (aSame != bSame) {
+					return aSame ? -1 : 1;
+				}
+				return a.compareTo(b);
+			}
+		});
+		return result;
+	}
+
+	private static boolean isSameOrigin(String url, String referHost, String currentHost) {
+		String host = UrlUtils.getHost(url);
+		return host.equalsIgnoreCase(referHost) || host.equalsIgnoreCase(currentHost);
 	}
 
 	/**
@@ -411,10 +434,11 @@ public class FindUrlAction implements ActionListener {
 			if (baseUrl == null) {
 				return null;
 			}
+			baseUrl = baseUrl.trim();
 			if (!baseUrl.endsWith("/")) {
-				baseUrl = baseUrl.trim() + "/";
+				baseUrl = baseUrl + "/";
 			}
-			return baseUrl.trim();
+			return baseUrl;
 		}
 		return selectedValue;
 	}
@@ -449,7 +473,7 @@ public class FindUrlAction implements ActionListener {
 			}
 			try {
 				String host = new URL(urlItem).getHost();
-				if (blackHostList.contains(host)) {
+				if (host != null && blackHostList.contains(host.toLowerCase())) {
 					it.remove();
 				}
 			} catch (Exception E) {
@@ -459,8 +483,11 @@ public class FindUrlAction implements ActionListener {
 		return urls;
 	}
 
+	/**
+	 * 排除无价值的前端源码/构建产物URL，只保留有价值的目标接口路径。
+	 * 注意：.css/.png/.jpg/.svg/.vue 等静态资源扩展名（无query时）已由 cleanUrls 的 uselessExtension 覆盖。
+	 */
 	public static List<String> removeJsUrl(List<String> urls) {
-
 		urls = TextUtils.deduplicate(urls);
 		Iterator<String> it = urls.iterator();
 		while (it.hasNext()) {
@@ -468,21 +495,42 @@ public class FindUrlAction implements ActionListener {
 			// 仅在判断中去除参数和片段
 			String cleanUrl = urlItem.split("\\?")[0].split("#")[0];
 
-			// 判断是否以指定后缀结尾
-			if (cleanUrl.endsWith(".js") || cleanUrl.endsWith(".vue") || cleanUrl.endsWith(".scss") || cleanUrl.endsWith(".svg")) {
-				it.remove();
-			} else if (cleanUrl.contains("node_modules") || cleanUrl.contains("text/")) {
-				it.remove();
-			} else if (cleanUrl.startsWith("./") && cleanUrl.contains("-")) {
-				//比如./en-US 
-				it.remove();
-			}else if (cleanUrl.startsWith("./views/") || cleanUrl.contains("./src/")) {
-				//./views/user/Login
-				//./src/components/TagSelect/TagSelectOption.jsx
+			if (isFrontendSourceFile(cleanUrl)
+					|| isFrontendSourcePath(cleanUrl)
+					|| isLocalePath(cleanUrl)) {
 				it.remove();
 			}
 		}
 		return urls;
+	}
+
+	//前端源码文件扩展名（.vue 补 uselessExtension 无法处理的带query场景）
+	private static boolean isFrontendSourceFile(String cleanUrl) {
+		return cleanUrl.endsWith(".js")
+				|| cleanUrl.endsWith(".jsx")
+				|| cleanUrl.endsWith(".ts")
+				|| cleanUrl.endsWith(".tsx")
+				|| cleanUrl.endsWith(".vue")
+				|| cleanUrl.endsWith(".scss")
+				|| cleanUrl.endsWith(".less")
+				|| cleanUrl.endsWith(".mjs")
+				|| cleanUrl.endsWith(".cjs");
+	}
+
+	//前端源码/框架路径（./src/、./views/等）
+	private static boolean isFrontendSourcePath(String cleanUrl) {
+		return cleanUrl.startsWith("./src/")
+				|| cleanUrl.startsWith("./views/")
+				|| cleanUrl.startsWith("./components/")
+				|| cleanUrl.startsWith("./pages/")
+				|| cleanUrl.startsWith("./routes/")
+				|| cleanUrl.startsWith("./store/")
+				|| cleanUrl.startsWith("./router/");
+	}
+
+	//语言包路径（如./en-US、./zh-CN）
+	private static boolean isLocalePath(String cleanUrl) {
+		return cleanUrl.startsWith("./") && cleanUrl.contains("-");
 	}
 
 	public static void main(String[] args) {

@@ -216,7 +216,8 @@ public class InfoTable extends JTable {
 				FindUrlAction.httpServiceBaseUrlMap.put(originUrl, baseurl);
 			}
 		}
-		((InfoPanelHeadPanel)(InfoPanel.getHeadPanel())).setBaseUrl(baseurl.trim());
+		//baseurl可能为null（用户取消选择），displayBaseUrl内部已做null安全处理
+		infoPanel.displayBaseUrl(baseurl);
 		return baseurl;
 	}
 
